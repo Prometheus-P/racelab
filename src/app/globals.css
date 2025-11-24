@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 250, 250, 250;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+/* 경마/경륜/경정 색상 테마 */
+.theme-horse {
+  --theme-color: #2d5a27;
+}
+
+.theme-cycle {
+  --theme-color: #dc2626;
+}
+
+.theme-boat {
+  --theme-color: #0369a1;
+}
+
+/* 배당률 표시 */
+.odds {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.odds-up {
+  color: #dc2626;
+}
+
+.odds-down {
+  color: #2563eb;
+}
+
+/* 카드 스타일 */
+.card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
+}
+
+.card-hover {
+  @apply transition-shadow hover:shadow-md;
+}
+
+/* 배지 스타일 */
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.badge-horse {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-cycle {
+  @apply bg-red-100 text-red-800;
+}
+
+.badge-boat {
+  @apply bg-blue-100 text-blue-800;
+}
+
+/* 테이블 */
+.table-race {
+  @apply w-full text-sm;
+}
+
+.table-race th {
+  @apply bg-gray-50 px-3 py-2 text-left font-medium text-gray-600;
+}
+
+.table-race td {
+  @apply px-3 py-2 border-b border-gray-100;
+}
+
+/* 로딩 스피너 */
+.spinner {
+  @apply animate-spin h-5 w-5 border-2 border-gray-300 rounded-full;
+  border-top-color: #1a56db;
+}
