@@ -1,7 +1,7 @@
 // src/app/race/[id]/page.test.tsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import RaceDetailPage from './page';
+import RaceDetailPage, { generateMetadata } from './page'; // Import generateMetadata
 import { fetchRaceById } from '@/lib/api'; // This function does not exist yet
 import { Race } from '@/types';
 
@@ -59,5 +59,22 @@ describe('RaceDetailPage', () => {
     render(resolvedPage);
 
     expect(screen.getByText('경주 정보를 찾을 수 없습니다.')).toBeInTheDocument();
+  });
+
+  describe('generateMetadata', () => {
+    it('should generate correct metadata for a race', async () => {
+      const metadata = await generateMetadata({ params: { id: 'horse-1-1-20240115' } });
+
+      expect(metadata.title).toBe('서울 제1경주 - KRace');
+      expect(metadata.description).toContain('서울 제1경주 경마 상세 정보');
+    });
+
+    it('should generate default metadata if race is not found', async () => {
+      (fetchRaceById as jest.Mock).mockResolvedValue(null);
+
+      const metadata = await generateMetadata({ params: { id: 'invalid-id' } });
+
+      expect(metadata.title).toBe('경주 정보 - KRace');
+    });
   });
 });

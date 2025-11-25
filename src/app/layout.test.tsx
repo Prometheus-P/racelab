@@ -10,11 +10,10 @@ jest.mock('@vercel/analytics/react', () => ({
 }));
 
 // Mock the next/script component
-jest.mock('next/script', () => {
-  const MockScript = (props: any) => {
-    return <script {...props} />;
-  };
-  return MockScript;
+const mockScript = jest.fn();
+jest.mock('next/script', () => (props: any) => {
+  mockScript(props);
+  return <script {...props} />;
 });
 
 
@@ -24,7 +23,7 @@ describe('RootLayout', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...OLD_ENV }; // Make a copy
-    (Script as jest.Mock).mockClear();
+    mockScript.mockClear();
   });
 
   afterAll(() => {
@@ -66,23 +65,21 @@ describe('RootLayout', () => {
     );
 
     // Expect the Script component to have been called twice
-    expect(Script).toHaveBeenCalledTimes(2);
+    expect(mockScript).toHaveBeenCalledTimes(2);
 
     // Check the props of the first call (gtag.js)
-    expect(Script).toHaveBeenCalledWith(
+    expect(mockScript).toHaveBeenCalledWith(
       expect.objectContaining({
         src: 'https://www.googletagmanager.com/gtag/js?id=G-TEST12345',
-      }),
-      expect.anything()
+      })
     );
 
     // Check the props of the second call (inline script)
-    expect(Script).toHaveBeenCalledWith(
+    expect(mockScript).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'google-analytics',
         children: expect.stringContaining("gtag('config', 'G-TEST12345')"),
-      }),
-      expect.anything()
+      })
     );
   });
 
@@ -97,6 +94,6 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    expect(Script).not.toHaveBeenCalled();
+    expect(mockScript).not.toHaveBeenCalled();
   });
 });
