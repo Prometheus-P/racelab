@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'; // Import Script
 import './globals.css'
 import Header from '@/components/Header'; // Import Header
 import Footer from '@/components/Footer'; // Import Footer
@@ -55,6 +56,23 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#1a56db" />
+        {/* Google Analytics Scripts */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
