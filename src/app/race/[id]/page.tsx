@@ -4,6 +4,29 @@ import { fetchRaceById } from '@/lib/api';
 import { getRaceTypeEmoji } from '@/lib/utils/ui';
 import { Race, Entry } from '@/types';
 import { notFound } from 'next/navigation';
+import type { Metadata, ResolvingMetadata } from 'next'
+
+type Props = {
+  params: { id: string }
+}
+
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const race = await fetchRaceById(params.id);
+
+  if (!race) {
+    return {
+      title: '경주 정보 - KRace',
+    }
+  }
+
+  return {
+    title: `${race.track} 제${race.raceNo}경주 - KRace`,
+    description: `${race.track} 제${race.raceNo}경주 경마 상세 정보, 출전표, 배당률을 확인하세요.`,
+  }
+}
 
 const EntryRow = ({ entry }: { entry: Entry }) => (
   <tr className="border-b last:border-b-0">
