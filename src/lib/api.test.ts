@@ -226,7 +226,8 @@ describe('API Client', () => {
     expect(race).not.toBeNull();
     expect(race?.id).toBe('horse-1-1-20240115');
     expect(race?.type).toBe('horse');
-    expect(fetchHorseRaceSchedules).toHaveBeenCalledTimes(1);
+    // fetchRaceById internally calls fetchHorseRaceSchedules which uses fetch
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('should return null if a race is not found by ID', async () => {
