@@ -9,6 +9,17 @@ jest.mock('@vercel/analytics/react', () => ({
 }));
 
 describe('RootLayout', () => {
+  const OLD_ENV = process.env;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...OLD_ENV }; // Make a copy
+  });
+
+  afterAll(() => {
+    process.env = OLD_ENV; // Restore old environment
+  });
+
   it('should render Header, Footer, children, and Analytics', () => {
     render(
       <RootLayout>
@@ -18,21 +29,53 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    // Check for Header content, scoped to the header element
-    const header = screen.getByRole('banner'); // The <header> tag has a default role of 'banner'
-    const titleElement = within(header).getByText(/KRace/i);
-    expect(titleElement).toBeInTheDocument();
+    // Check for Header content
+    const header = screen.getByRole('banner');
+    expect(within(header).getByText(/KRace/i)).toBeInTheDocument();
 
     // Check for Footer content
-    const disclaimerElement = screen.getByText(/본 서비스는 정보 제공 목적이며/i);
-    expect(disclaimerElement).toBeInTheDocument();
+    expect(screen.getByText(/본 서비스는 정보 제공 목적이며/i)).toBeInTheDocument();
 
     // Check for children content
-    const childrenElement = screen.getByText(/Main Content/i);
-    expect(childrenElement).toBeInTheDocument();
+    expect(screen.getByText(/Main Content/i)).toBeInTheDocument();
 
     // Check for Vercel Analytics component
-    const analyticsElement = screen.getByTestId('vercel-analytics');
-    expect(analyticsElement).toBeInTheDocument();
+    expect(screen.getByTestId('vercel-analytics')).toBeInTheDocument();
+  });
+
+  it('should render Google Analytics scripts when GA_ID is provided', () => {
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST12345';
+
+    render(
+      <RootLayout>
+        <main>
+          <p>Main Content</p>
+        </main>
+      </RootLayout>
+    );
+
+    // Using querySelector to check for the scripts in the document head
+    // as they don't have text content for react-testing-library to find easily.
+    const gtagScript = document.querySelector('script[src="https://www.googletagmanager.com/gtag/js?id=G-TEST12345"]');
+    expect(gtagScript).toBeInTheDocument();
+
+    const inlineGtagScript = document.querySelector('script[id="google-analytics"]');
+    expect(inlineGtagScript).toBeInTheDocument();
+    expect(inlineGtagScript?.textContent).toContain("gtag('config', 'G-TEST12345')");
+  });
+
+  it('should not render Google Analytics scripts when GA_ID is not provided', () => {
+    delete process.env.NEXT_PUBLIC_GA_ID;
+
+    render(
+      <RootLayout>
+        <main>
+          <p>Main Content</p>
+        </main>
+      </RootLayout>
+    );
+
+    const gtagScript = document.querySelector('script[src*="googletagmanager"]');
+    expect(gtagScript).not.toBeInTheDocument();
   });
 });
