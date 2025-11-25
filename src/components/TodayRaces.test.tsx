@@ -34,7 +34,7 @@ describe('TodayRaces Component', () => {
   });
 
   it('should render race information grouped by type', async () => {
-    const resolvedComponent = await TodayRaces();
+    const resolvedComponent = await TodayRaces({ filter: 'all' });
     render(resolvedComponent);
 
     // Check for Horse Races section
@@ -61,7 +61,7 @@ describe('TodayRaces Component', () => {
     (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
     (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
 
-    const resolvedComponent = await TodayRaces();
+    const resolvedComponent = await TodayRaces({ filter: 'all' });
     render(resolvedComponent);
 
     expect(screen.getByText('오늘 예정된 경주가 없습니다.')).toBeInTheDocument();

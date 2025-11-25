@@ -62,8 +62,11 @@ describe('RaceDetailPage', () => {
   });
 
   describe('generateMetadata', () => {
+    // Mock parent metadata as required by generateMetadata signature
+    const mockParent = Promise.resolve({}) as any;
+
     it('should generate correct metadata for a race', async () => {
-      const metadata = await generateMetadata({ params: { id: 'horse-1-1-20240115' } });
+      const metadata = await generateMetadata({ params: { id: 'horse-1-1-20240115' } }, mockParent);
 
       expect(metadata.title).toBe('서울 제1경주 - KRace');
       expect(metadata.description).toContain('서울 제1경주 경마 상세 정보');
@@ -72,7 +75,7 @@ describe('RaceDetailPage', () => {
     it('should generate default metadata if race is not found', async () => {
       (fetchRaceById as jest.Mock).mockResolvedValue(null);
 
-      const metadata = await generateMetadata({ params: { id: 'invalid-id' } });
+      const metadata = await generateMetadata({ params: { id: 'invalid-id' } }, mockParent);
 
       expect(metadata.title).toBe('경주 정보 - KRace');
     });
