@@ -30,6 +30,26 @@ export interface KSPORaceItem {
   recentRecord?: string;
 }
 
+/**
+ * Generate a unique race ID with validation
+ * Throws error if required fields are missing to prevent invalid/duplicate IDs
+ */
+function generateRaceId(
+  type: 'horse' | 'cycle' | 'boat',
+  meet: string | undefined,
+  rcNo: string | undefined,
+  rcDate: string | undefined
+): string {
+  if (!meet || !rcNo || !rcDate) {
+    // Log warning but don't throw to avoid breaking the app for bad API data
+    console.warn(`Missing required fields for race ID generation: meet=${meet}, rcNo=${rcNo}, rcDate=${rcDate}`);
+    // Generate a fallback ID with timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    return `${type}-unknown-${timestamp}`;
+  }
+  return `${type}-${meet}-${rcNo}-${rcDate}`;
+}
+
 // Helper function to map KRA API response item to our internal Race type
 export function mapKRAHorseRaceToRace(item: KRAHorseRaceItem): Race {
   // Extract entry data for horse races
@@ -51,14 +71,14 @@ export function mapKRAHorseRaceToRace(item: KRAHorseRaceItem): Race {
   }
 
   return {
-    id: `horse-${item.meet || '0'}-${item.rcNo || '0'}-${item.rcDate || ''}`, // Construct unique ID
+    id: generateRaceId('horse', item.meet, item.rcNo, item.rcDate),
     type: 'horse',
     raceNo: item.rcNo ? parseInt(item.rcNo) : 0,
-    track: item.meet === '1' ? '서울' : item.meet === '2' ? '부산경남' : '제주', // Basic mapping
+    track: item.meet === '1' ? '서울' : item.meet === '2' ? '부산경남' : '제주',
     startTime: item.rcTime || '',
     distance: item.rcDist ? parseInt(item.rcDist) : undefined,
     grade: item.rank,
-    status: 'upcoming', // Default status for now
+    status: 'upcoming',
     entries: entries,
   };
 }
@@ -77,14 +97,14 @@ export function mapKSPOCycleRaceToRace(item: KSPORaceItem): Race {
   }
 
   return {
-    id: `cycle-${item.meet || '0'}-${item.rcNo || '0'}-${item.rcDate || ''}`, // Construct unique ID
+    id: generateRaceId('cycle', item.meet, item.rcNo, item.rcDate),
     type: 'cycle',
     raceNo: item.rcNo ? parseInt(item.rcNo) : 0,
-    track: item.meet === '1' ? '광명' : item.meet === '2' ? '창원' : '부산', // Basic mapping
+    track: item.meet === '1' ? '광명' : item.meet === '2' ? '창원' : '부산',
     startTime: item.rcTime || '',
     distance: item.rcDist ? parseInt(item.rcDist) : undefined,
-    grade: undefined, // Not available in this endpoint
-    status: 'upcoming', // Default status for now
+    grade: undefined,
+    status: 'upcoming',
     entries: entries,
   };
 }
@@ -103,14 +123,14 @@ export function mapKSPOBoatRaceToRace(item: KSPORaceItem): Race {
   }
 
   return {
-    id: `boat-${item.meet || '0'}-${item.rcNo || '0'}-${item.rcDate || ''}`, // Construct unique ID (meet will be constant for Boat: Misari)
+    id: generateRaceId('boat', item.meet, item.rcNo, item.rcDate),
     type: 'boat',
     raceNo: item.rcNo ? parseInt(item.rcNo) : 0,
-    track: '미사리', // Only one track for boat, as per API_SPECIFICATION.md
+    track: '미사리',
     startTime: item.rcTime || '',
-    distance: undefined, // Not available in this endpoint
-    grade: undefined, // Not available in this endpoint
-    status: 'upcoming', // Default status for now
+    distance: undefined,
+    grade: undefined,
+    status: 'upcoming',
     entries: entries,
   };
 }
