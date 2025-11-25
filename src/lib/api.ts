@@ -142,3 +142,25 @@ export async function fetchRaceOdds(raceId: string): Promise<Array<{ no: number;
     odds: entry.odds || 0,
   }));
 }
+
+export interface RaceResult {
+  rank: number;
+  no: number;
+  name: string;
+  jockey: string;
+  time: string;
+  diff: string;
+}
+
+export async function fetchRaceResults(raceId: string): Promise<RaceResult[] | null> {
+  const race = await fetchRaceById(raceId);
+
+  if (!race) {
+    return null;
+  }
+
+  // For now, return empty array as results are not yet available
+  // In the future, this will call the actual API for race results
+  // For completed races, it will return actual results
+  return [];
+}
