@@ -30,7 +30,6 @@ export default function Home({
       {/* 빠른 요약 */}
       <div data-testid="quick-stats">
         <Suspense fallback={<QuickStatsSkeleton />}>
-          {/* @ts-expect-error Server Component */}
           <QuickStats />
         </Suspense>
       </div>
@@ -77,7 +76,6 @@ export default function Home({
         {/* 경주 목록 */}
         <div className="p-4">
           <Suspense key={currentTab} fallback={<RaceListSkeleton />}>
-            {/* @ts-expect-error Server Component */}
             <TodayRaces filter={currentTab} />
           </Suspense>
         </div>
