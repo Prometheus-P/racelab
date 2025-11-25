@@ -1,41 +1,37 @@
-import { getTodayStats } from '@/lib/api'
+// src/components/QuickStats.tsx
+import React from 'react';
+import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules } from '@/lib/api';
+import { getTodayYYYYMMDD } from '@/lib/utils/date';
+
+// Helper component for individual stats
+const StatCard = ({ label, value }: { label: string; value: number }) => (
+  <div className="bg-white p-4 rounded-lg shadow">
+    <p className="text-sm text-gray-500">{label}</p>
+    <p className="text-2xl font-bold">{value}</p>
+  </div>
+);
 
 export default async function QuickStats() {
-  const stats = await getTodayStats()
-  
+  const rcDate = getTodayYYYYMMDD();
+  const [horseRaces, cycleRaces, boatRaces] = await Promise.all([
+    fetchHorseRaceSchedules(rcDate),
+    fetchCycleRaceSchedules(rcDate),
+    fetchBoatRaceSchedules(rcDate),
+  ]);
+
+  const stats = {
+    horse: horseRaces.length,
+    cycle: cycleRaces.length,
+    boat: boatRaces.length,
+    total: horseRaces.length + cycleRaces.length + boatRaces.length,
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {/* 전체 경주 */}
-      <div className="card">
-        <div className="text-sm text-gray-500 mb-1">오늘 전체</div>
-        <div className="text-2xl font-bold text-gray-900">
-          {stats.totalRaces}경주
-        </div>
-      </div>
-      
-      {/* 경마 */}
-      <div className="card border-l-4 border-horse">
-        <div className="text-sm text-gray-500 mb-1">🐎 경마</div>
-        <div className="text-2xl font-bold text-horse">
-          {stats.horseRaces}경주
-        </div>
-      </div>
-      
-      {/* 경륜 */}
-      <div className="card border-l-4 border-cycle">
-        <div className="text-sm text-gray-500 mb-1">🚴 경륜</div>
-        <div className="text-2xl font-bold text-cycle">
-          {stats.cycleRaces}경주
-        </div>
-      </div>
-      
-      {/* 경정 */}
-      <div className="card border-l-4 border-boat">
-        <div className="text-sm text-gray-500 mb-1">🚤 경정</div>
-        <div className="text-2xl font-bold text-boat">
-          {stats.boatRaces}경주
-        </div>
-      </div>
+      <StatCard label="총 경주" value={stats.total} />
+      <StatCard label="경마" value={stats.horse} />
+      <StatCard label="경륜" value={stats.cycle} />
+      <StatCard label="경정" value={stats.boat} />
     </div>
-  )
+  );
 }
