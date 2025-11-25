@@ -1,10 +1,9 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+// jest.config.js
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  roots: ['<rootDir>/src'],
+  projects: [
+    '<rootDir>/jest.config.api.js',
+    '<rootDir>/jest.config.ui.js',
+    // Add other test configs here if needed
+  ],
+  // You can also add global configuration options here
 };
