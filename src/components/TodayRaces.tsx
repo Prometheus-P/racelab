@@ -33,7 +33,7 @@ const RaceSection = ({ title, races, 'data-testid': dataTestId }: { title: strin
   );
 };
 
-export default async function TodayRaces() {
+export default async function TodayRaces({ filter = 'all' }: { filter?: string }) {
   const rcDate = getTodayYYYYMMDD();
   const [horseRaces, cycleRaces, boatRaces] = await Promise.all([
     fetchHorseRaceSchedules(rcDate),
@@ -41,17 +41,31 @@ export default async function TodayRaces() {
     fetchBoatRaceSchedules(rcDate),
   ]);
 
-  const allRaces = [...horseRaces, ...cycleRaces, ...boatRaces];
+  // Filter races based on selected tab
+  let displayRaces: { horse: Race[]; cycle: Race[]; boat: Race[] };
+
+  if (filter === 'horse') {
+    displayRaces = { horse: horseRaces, cycle: [], boat: [] };
+  } else if (filter === 'cycle') {
+    displayRaces = { horse: [], cycle: cycleRaces, boat: [] };
+  } else if (filter === 'boat') {
+    displayRaces = { horse: [], cycle: [], boat: boatRaces };
+  } else {
+    // 'all' or default - show all races
+    displayRaces = { horse: horseRaces, cycle: cycleRaces, boat: boatRaces };
+  }
+
+  const allRaces = [...displayRaces.horse, ...displayRaces.cycle, ...displayRaces.boat];
 
   if (allRaces.length === 0) {
-    return <p>오늘 예정된 경주가 없습니다.</p>;
+    return <p className="text-gray-500 text-center py-8">오늘 예정된 경주가 없습니다.</p>;
   }
 
   return (
     <div>
-      <RaceSection title="🐎 경마" races={horseRaces} data-testid="race-section-horse" />
-      <RaceSection title="🚴 경륜" races={cycleRaces} data-testid="race-section-cycle" />
-      <RaceSection title="🚤 경정" races={boatRaces} data-testid="race-section-boat" />
+      <RaceSection title="🐎 경마" races={displayRaces.horse} data-testid="race-section-horse" />
+      <RaceSection title="🚴 경륜" races={displayRaces.cycle} data-testid="race-section-cycle" />
+      <RaceSection title="🚤 경정" races={displayRaces.boat} data-testid="race-section-boat" />
     </div>
   );
 }
