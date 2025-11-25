@@ -1,6 +1,6 @@
 ---
-title: KRace 프로젝트 컨텍스트
-version: 1.0.0
+title: RaceLab 프로젝트 컨텍스트
+version: 1.1.0
 status: Approved
 owner: "@Prometheus-P"
 created: 2025-11-25
