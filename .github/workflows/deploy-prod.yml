@@ -1,0 +1,383 @@
+# KRace Production Deployment
+# main 브랜치 머지 시 프로덕션 환경 배포
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip E2E tests (emergency only)'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  # ============================================
+  # 배포 전 검증
+  # ============================================
+  pre-deploy-checks:
+    name: Pre-Deploy Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Run type check
+        run: pnpm typecheck
+
+      - name: Run unit tests
+        run: pnpm test:unit --ci
+
+      - name: Run integration tests
+        run: pnpm test:integration --ci
+        env:
+          KSPO_API_URL: ${{ secrets.KSPO_API_URL_TEST }}
+          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY_TEST }}
+
+  # ============================================
+  # 프로덕션 빌드
+  # ============================================
+  build-production:
+    name: Build Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          KSPO_API_URL: ${{ vars.KSPO_API_URL }}
+          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: .vercel/output/
+          retention-days: 1
+
+  # ============================================
+  # 프로덕션 배포
+  # ============================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-production]
+    environment:
+      name: production
+      url: https://krace.kr
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build
+          path: .vercel/output/
+
+      - name: Deploy to Vercel Production
+        id: deploy
+        run: |
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $DEPLOYMENT_URL"
+
+      - name: Notify deployment start
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              target_url: '${{ steps.deploy.outputs.deployment-url }}',
+              description: 'Production deployment in progress',
+              context: 'Production Deployment'
+            });
+
+  # ============================================
+  # 배포 후 E2E 검증
+  # ============================================
+  post-deploy-verification:
+    name: Post-Deploy Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Wait for deployment to be ready
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+
+      - name: Run smoke tests
+        run: pnpm test:e2e --grep "@smoke"
+        env:
+          BASE_URL: ${{ needs.deploy-production.outputs.deployment-url }}
+          CI: true
+
+      - name: Run critical path tests
+        run: pnpm test:e2e --grep "@critical"
+        env:
+          BASE_URL: ${{ needs.deploy-production.outputs.deployment-url }}
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: production-e2e-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ============================================
+  # 헬스 체크
+  # ============================================
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    steps:
+      - name: Check deployment health
+        run: |
+          DEPLOYMENT_URL="${{ needs.deploy-production.outputs.deployment-url }}"
+          MAX_RETRIES=10
+          RETRY_INTERVAL=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i/$MAX_RETRIES..."
+
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/health" || echo "000")
+
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed!"
+              exit 0
+            fi
+
+            echo "Status: $STATUS - Retrying in ${RETRY_INTERVAL}s..."
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "Health check failed after $MAX_RETRIES attempts"
+          exit 1
+
+      - name: Check API endpoints
+        run: |
+          DEPLOYMENT_URL="${{ needs.deploy-production.outputs.deployment-url }}"
+
+          # 메인 페이지 확인
+          curl -f -s "$DEPLOYMENT_URL" > /dev/null || exit 1
+          echo "Main page: OK"
+
+          # API 엔드포인트 확인
+          curl -f -s "$DEPLOYMENT_URL/api/races/today" > /dev/null || exit 1
+          echo "API /api/races/today: OK"
+
+  # ============================================
+  # 배포 완료 알림
+  # ============================================
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deploy-verification, health-check]
+    if: success()
+    steps:
+      - name: Update commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              target_url: '${{ needs.deploy-production.outputs.deployment-url }}',
+              description: 'Production deployment successful',
+              context: 'Production Deployment'
+            });
+
+      - name: Create deployment record
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              auto_merge: false,
+              required_contexts: [],
+              description: 'Production deployment'
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              environment_url: '${{ needs.deploy-production.outputs.deployment-url }}',
+              description: 'Deployment successful'
+            });
+
+      # Slack 알림 (선택사항)
+      # - name: Notify Slack
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "✅ KRace Production Deployment Successful",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "*✅ Production Deployment Successful*\n\n• Commit: `${{ github.sha }}`\n• URL: ${{ needs.deploy-production.outputs.deployment-url }}"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ============================================
+  # 배포 실패 알림
+  # ============================================
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deploy-verification, health-check]
+    if: failure()
+    steps:
+      - name: Update commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'failure',
+              description: 'Production deployment failed',
+              context: 'Production Deployment'
+            });
+
+      - name: Create issue for failed deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Production Deployment Failed',
+              body: `## Deployment Failure Report
+
+              **Commit:** \`${{ github.sha }}\`
+              **Run:** [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              **Time:** ${new Date().toISOString()}
+
+              ### Next Steps
+              1. Check the workflow logs for error details
+              2. Verify the last successful deployment is still running
+              3. Fix the issue and redeploy
+
+              /cc @${{ github.actor }}`,
+              labels: ['bug', 'deployment', 'urgent']
+            });
+
+  # ============================================
+  # 롤백 (수동 트리거)
+  # ============================================
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    if: ${{ false }} # 수동으로만 실행
+    steps:
+      - name: Get previous deployment
+        id: previous
+        run: |
+          # Vercel CLI를 사용하여 이전 배포 URL 조회
+          echo "Getting previous deployment..."
+          # vercel list --prod --limit 2
+
+      - name: Promote previous deployment
+        run: |
+          echo "Promoting previous deployment to production..."
+          # vercel promote <previous-deployment-url> --token=${{ secrets.VERCEL_TOKEN }}
