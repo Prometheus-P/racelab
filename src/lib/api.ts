@@ -126,3 +126,19 @@ export async function fetchRaceEntries(raceId: string): Promise<Entry[] | null> 
   // In the future, this will call the actual API for detailed entry information
   return race.entries || [];
 }
+
+export async function fetchRaceOdds(raceId: string): Promise<Array<{ no: number; name: string; odds: number }> | null> {
+  const entries = await fetchRaceEntries(raceId);
+
+  if (!entries) {
+    return null;
+  }
+
+  // Extract odds information from entries
+  // In the future, this will call the actual API for real-time odds
+  return entries.map(entry => ({
+    no: entry.no,
+    name: entry.name,
+    odds: entry.odds || 0,
+  }));
+}
