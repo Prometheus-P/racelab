@@ -1,4 +1,4 @@
-import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules } from '../lib/api';
+import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules, fetchRaceById } from '../lib/api';
 import { Race, Entry } from '@/types'; // Import Race and Entry from types
 
 describe('API Client', () => {
@@ -217,5 +217,22 @@ describe('API Client', () => {
     expect(schedules[0]).toHaveProperty('type', 'boat');
     expect(schedules[0]).toHaveProperty('track');
     expect(schedules[0]).toHaveProperty('startTime');
+  });
+
+  it('should fetch a specific race by its ID', async () => {
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+    const race = await fetchRaceById('horse-1-1-20240115');
+
+    expect(race).not.toBeNull();
+    expect(race?.id).toBe('horse-1-1-20240115');
+    expect(race?.type).toBe('horse');
+    expect(fetchHorseRaceSchedules).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return null if a race is not found by ID', async () => {
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+    const race = await fetchRaceById('invalid-id');
+
+    expect(race).toBeNull();
   });
 });

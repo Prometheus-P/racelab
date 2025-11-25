@@ -95,3 +95,22 @@ export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
 
   return rawItems.map(mapKSPOBoatRaceToRace);
 }
+
+export async function fetchRaceById(id: string): Promise<Race | null> {
+  const [type, meet, raceNo, date] = id.split('-');
+
+  let races: Race[] = [];
+  switch (type) {
+    case 'horse':
+      races = await fetchHorseRaceSchedules(date);
+      break;
+    case 'cycle':
+      races = await fetchCycleRaceSchedules(date);
+      break;
+    case 'boat':
+      races = await fetchBoatRaceSchedules(date);
+      break;
+  }
+
+  return races.find(race => race.id === id) || null;
+}
