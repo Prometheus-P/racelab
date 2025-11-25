@@ -319,9 +319,78 @@ Vercel은 GitHub 연동으로 자동 배포됩니다.
 
 ---
 
-## 7. 문제 해결 (Troubleshooting)
+## 7. GitHub Secrets 설정 (CI/CD)
 
-### 7.1 일반적인 문제
+CI/CD 워크플로우가 정상 동작하려면 GitHub Repository Secrets를 설정해야 합니다.
+
+### 7.1 필수 Secrets
+
+GitHub Repository → Settings → Secrets and variables → Actions에서 설정:
+
+| Secret Name | 필수 | 용도 | 발급 방법 |
+|-------------|------|------|----------|
+| `VERCEL_TOKEN` | ✅ | Vercel 배포 인증 | [Vercel Tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | ✅ | Vercel 조직 ID | Vercel 프로젝트 설정에서 확인 |
+| `VERCEL_PROJECT_ID` | ✅ | Vercel 프로젝트 ID | Vercel 프로젝트 설정에서 확인 |
+| `KSPO_API_KEY` | ✅ | 프로덕션 KSPO API 키 | 공공데이터포털 |
+| `KSPO_API_KEY_TEST` | - | 테스트용 KSPO API 키 | 공공데이터포털 |
+| `KSPO_API_KEY_PREVIEW` | - | 프리뷰용 KSPO API 키 | 공공데이터포털 |
+| `CODECOV_TOKEN` | - | 코드 커버리지 업로드 | [Codecov](https://codecov.io/) |
+
+### 7.2 Repository Variables
+
+GitHub Repository → Settings → Secrets and variables → Actions → Variables 탭에서 설정:
+
+| Variable Name | 용도 |
+|---------------|------|
+| `KSPO_API_URL` | 프로덕션 KSPO API URL |
+| `KSPO_API_URL_PREVIEW` | 프리뷰 KSPO API URL |
+
+### 7.3 Vercel Token 발급
+
+```bash
+# 1. Vercel 대시보드 접속
+https://vercel.com/account/tokens
+
+# 2. "Create Token" 클릭
+# 3. 토큰 이름 입력 (예: "GitHub Actions")
+# 4. Scope: Full Account 선택
+# 5. 생성된 토큰 복사
+
+# 6. GitHub Secrets에 추가
+# Repository → Settings → Secrets → New repository secret
+# Name: VERCEL_TOKEN
+# Value: [복사한 토큰]
+```
+
+### 7.4 Vercel Project ID 확인
+
+```bash
+# 방법 1: Vercel CLI
+vercel link
+cat .vercel/project.json
+# projectId와 orgId 확인
+
+# 방법 2: Vercel 대시보드
+# 프로젝트 → Settings → General
+# "Project ID" 섹션에서 확인
+```
+
+### 7.5 Secrets 설정 체크리스트
+
+- [ ] `VERCEL_TOKEN` 설정
+- [ ] `VERCEL_ORG_ID` 설정
+- [ ] `VERCEL_PROJECT_ID` 설정
+- [ ] `KSPO_API_KEY` 설정
+- [ ] (선택) `CODECOV_TOKEN` 설정
+- [ ] (선택) `KSPO_API_KEY_TEST` 설정
+- [ ] (선택) `KSPO_API_KEY_PREVIEW` 설정
+
+---
+
+## 8. 문제 해결 (Troubleshooting)
+
+### 8.1 일반적인 문제
 
 #### Node.js 버전 오류
 
@@ -357,7 +426,7 @@ Error: Executable doesn't exist
 npx playwright install --force
 ```
 
-### 7.2 API 관련 문제
+### 8.2 API 관련 문제
 
 #### API 호출 실패 (401)
 
@@ -385,9 +454,9 @@ Error: 429 Too Many Requests
 
 ---
 
-## 8. 환경별 설정 요약
+## 9. 환경별 설정 요약
 
-### 8.1 체크리스트
+### 9.1 체크리스트
 
 #### 로컬 개발 환경
 
@@ -411,7 +480,7 @@ Error: 429 Too Many Requests
 - [ ] Google Analytics 연동
 - [ ] Google AdSense 승인
 
-### 8.2 환경 변수 전체 목록
+### 9.2 환경 변수 전체 목록
 
 | 변수명 | 필수 | 기본값 | 설명 |
 |--------|------|--------|------|
@@ -425,9 +494,9 @@ Error: 429 Too Many Requests
 
 ---
 
-## 9. 보안 주의사항
+## 10. 보안 주의사항
 
-### 9.1 절대 하지 말아야 할 것
+### 10.1 절대 하지 말아야 할 것
 
 ```bash
 # ❌ 절대 금지
@@ -441,7 +510,7 @@ git add .env.local  # 금지!
 NEXT_PUBLIC_SECRET_KEY=xxx  # 금지!
 ```
 
-### 9.2 권장 사항
+### 10.2 권장 사항
 
 ```bash
 # ✅ 권장
