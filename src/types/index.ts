@@ -1,5 +1,7 @@
 // src/types/index.ts
 
+export type RaceType = 'horse' | 'cycle' | 'boat';
+
 export interface Entry {
   no: number;              // 번호 (마번/선수 번호)
   name: string;            // 마명/선수명
@@ -14,7 +16,7 @@ export interface Entry {
 
 export interface Race {
   id: string;              // 고유 ID (예: horse-1-1-20240101)
-  type: 'horse' | 'cycle' | 'boat'; // 종목
+  type: RaceType;          // 종목
   raceNo: number;          // 경주 번호
   track: string;           // 경기장 (서울, 부산경남, 제주, 광명, 미사리)
   startTime: string;       // 발주 시간 (HH:mm)
