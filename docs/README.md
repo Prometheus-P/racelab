@@ -65,26 +65,55 @@ npm run start
 ```
 krace/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx           # 메인 페이지
-│   │   ├── layout.tsx         # 루트 레이아웃
-│   │   ├── globals.css        # 전역 스타일
-│   │   ├── horse/             # 경마 섹션
-│   │   ├── cycle/             # 경륜 섹션
-│   │   ├── boat/              # 경정 섹션
-│   │   └── race/[id]/         # 개별 경주 상세
-│   ├── components/            # React 컴포넌트
-│   │   ├── TodayRaces.tsx    # 오늘의 경주 목록
-│   │   ├── QuickStats.tsx    # 요약 통계
-│   │   └── ...
-│   ├── lib/                   # 유틸리티
-│   │   └── api.ts            # API 호출 함수
-│   └── types/                 # TypeScript 타입
+│   ├── app/                        # Next.js App Router
+│   │   ├── page.tsx               # 메인 페이지
+│   │   ├── layout.tsx             # 루트 레이아웃
+│   │   ├── globals.css            # 전역 스타일
+│   │   ├── robots.ts              # SEO robots.txt
+│   │   ├── sitemap.ts             # SEO sitemap
+│   │   ├── race/[id]/             # 개별 경주 상세
+│   │   │   └── page.tsx
+│   │   └── api/races/             # API 라우트
+│   │       ├── [type]/route.ts    # 동적 타입 라우트
+│   │       ├── horse/route.ts     # 경마 API
+│   │       ├── cycle/route.ts     # 경륜 API
+│   │       └── boat/route.ts      # 경정 API
+│   ├── components/                 # React 컴포넌트
+│   │   ├── Header.tsx             # 헤더
+│   │   ├── Footer.tsx             # 푸터
+│   │   ├── TodayRaces.tsx         # 오늘의 경주 목록
+│   │   └── QuickStats.tsx         # 요약 통계
+│   ├── lib/                        # 유틸리티
+│   │   ├── api.ts                 # API 호출 함수
+│   │   ├── api-helpers/
+│   │   │   ├── mappers.ts         # API 응답 변환
+│   │   │   └── dummy.ts           # 목업 데이터
+│   │   └── utils/
+│   │       ├── apiResponse.ts     # API 응답 헬퍼
+│   │       ├── date.ts            # 날짜 유틸
+│   │       └── ui.ts              # UI 유틸
+│   └── types/                      # TypeScript 타입
 │       └── index.ts
-├── public/                    # 정적 파일
-├── .env.local.example        # 환경변수 템플릿
+├── e2e/                            # E2E 테스트 (Playwright)
+│   ├── pages/                      # Page Objects
+│   │   ├── base.page.ts
+│   │   ├── home.page.ts
+│   │   └── race-detail.page.ts
+│   └── tests/
+│       ├── home.spec.ts
+│       ├── race-detail.spec.ts
+│       └── api.spec.ts
+├── docs/                           # 문서
+│   ├── business/                   # 비즈니스 문서
+│   ├── technical/                  # 기술 문서
+│   └── operations/                 # 운영 문서
+├── public/                         # 정적 파일
 ├── next.config.js
 ├── tailwind.config.ts
+├── jest.config.js                  # Jest 통합 설정
+├── jest.config.ui.js               # UI 테스트 설정
+├── jest.config.api.js              # API 테스트 설정
+├── playwright.config.ts            # Playwright 설정
 └── package.json
 ```
 

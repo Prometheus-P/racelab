@@ -83,29 +83,49 @@ npm run test:e2e:report         # View report
 src/
 ├── components/
 │   ├── Header.tsx
-│   ├── Header.test.tsx         # UI Unit Test
+│   ├── Header.test.tsx             # UI Unit Test
 │   ├── Footer.tsx
 │   ├── Footer.test.tsx
 │   ├── TodayRaces.tsx
 │   ├── TodayRaces.test.tsx
+│   ├── QuickStats.tsx
 │   └── QuickStats.test.tsx
 ├── lib/
 │   ├── api.ts
-│   ├── api.test.ts             # API Client Unit Test
-│   └── api-helpers/
-│       ├── mappers.ts
-│       └── dummy.ts
+│   ├── api.test.ts                 # API Client Unit Test
+│   ├── api-helpers/
+│   │   ├── mappers.ts
+│   │   ├── mappers.test.ts         # Mapper Unit Test
+│   │   └── dummy.ts
+│   └── utils/
+│       ├── apiResponse.ts
+│       ├── date.ts
+│       └── ui.ts
 ├── app/
-│   ├── page.test.tsx           # Page Unit Test
+│   ├── page.tsx
+│   ├── page.test.tsx               # Page Unit Test
+│   ├── layout.tsx
+│   ├── layout.test.tsx
+│   ├── robots.ts
+│   ├── robots.test.ts
+│   ├── sitemap.ts
+│   ├── sitemap.test.ts
+│   ├── race/[id]/
+│   │   ├── page.tsx
+│   │   └── page.test.tsx           # Race Detail Page Test
 │   └── api/races/
-│       ├── horse/route.test.ts # API Route Integration Test
+│       ├── horse/route.test.ts     # API Route Integration Test
 │       ├── cycle/route.test.ts
-│       └── boat/route.test.ts
+│       ├── boat/route.test.ts
+│       └── [type]/[id]/
+│           ├── entries/route.test.ts
+│           ├── odds/route.test.ts
+│           └── results/route.test.ts
 └── tests/
     └── example.test.ts
 
 e2e/
-├── pages/                      # Page Objects
+├── pages/                          # Page Objects
 │   ├── base.page.ts
 │   ├── home.page.ts
 │   └── race-detail.page.ts

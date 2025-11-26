@@ -48,29 +48,54 @@ npm run dev
 ```
 krace/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx           # 메인 페이지
-│   │   ├── layout.tsx         # 루트 레이아웃
-│   │   ├── globals.css        # 전역 스타일
-│   │   └── race/
-│   │       └── [id]/
-│   │           └── page.tsx   # 경주 상세 페이지
+│   ├── app/                        # Next.js App Router
+│   │   ├── page.tsx               # 메인 페이지
+│   │   ├── layout.tsx             # 루트 레이아웃
+│   │   ├── globals.css            # 전역 스타일
+│   │   ├── robots.ts              # SEO robots.txt
+│   │   ├── sitemap.ts             # SEO sitemap
+│   │   ├── race/[id]/             # 경주 상세 페이지
+│   │   │   └── page.tsx
+│   │   └── api/races/             # API 라우트
+│   │       ├── horse/route.ts     # 경마 API
+│   │       ├── cycle/route.ts     # 경륜 API
+│   │       ├── boat/route.ts      # 경정 API
+│   │       └── [type]/[id]/       # 동적 라우트
+│   │           ├── entries/       # 출전표
+│   │           ├── odds/          # 배당률
+│   │           └── results/       # 결과
 │   │
-│   ├── components/            # React 컴포넌트
-│   │   ├── TodayRaces.tsx    # 오늘의 경주 (Server)
-│   │   └── QuickStats.tsx    # 통계 요약 (Server)
+│   ├── components/                 # React 컴포넌트
+│   │   ├── Header.tsx             # 헤더
+│   │   ├── Footer.tsx             # 푸터
+│   │   ├── TodayRaces.tsx         # 오늘의 경주 (Server)
+│   │   └── QuickStats.tsx         # 통계 요약 (Server)
 │   │
-│   ├── lib/                   # 유틸리티
-│   │   └── api.ts            # API 호출 함수
+│   ├── lib/                        # 유틸리티
+│   │   ├── api.ts                 # API 호출 함수
+│   │   ├── api-helpers/
+│   │   │   ├── mappers.ts         # API 응답 변환
+│   │   │   └── dummy.ts           # 목업 데이터
+│   │   └── utils/
+│   │       ├── apiResponse.ts     # API 응답 헬퍼
+│   │       ├── date.ts            # 날짜 유틸
+│   │       └── ui.ts              # UI 유틸
 │   │
-│   └── types/                 # TypeScript 타입
+│   └── types/                      # TypeScript 타입
 │       └── index.ts
 │
-├── public/                    # 정적 파일
-├── .env.local.example        # 환경변수 템플릿
-├── next.config.js            # Next.js 설정
-├── tailwind.config.ts        # Tailwind 설정
-├── tsconfig.json             # TypeScript 설정
+├── e2e/                            # E2E 테스트
+│   ├── pages/                      # Page Objects
+│   └── tests/                      # 테스트 파일
+├── docs/                           # 문서
+├── public/                         # 정적 파일
+├── jest.config.js                  # Jest 통합 설정
+├── jest.config.ui.js               # UI 테스트 설정
+├── jest.config.api.js              # API 테스트 설정
+├── playwright.config.ts            # Playwright 설정
+├── next.config.js                  # Next.js 설정
+├── tailwind.config.ts              # Tailwind 설정
+├── tsconfig.json                   # TypeScript 설정
 └── package.json
 ```
 
@@ -253,26 +278,39 @@ export default async function TodayRaces() {
 
 ## 6. 테스트
 
-### 6.1 로컬 테스트
+### 6.1 테스트 실행
 
 ```bash
-# 개발 서버
-npm run dev
+# Jest 단위/통합 테스트
+npm run test                    # 전체 Jest 테스트 (UI + API)
+npx jest path/to/file.test.ts   # 단일 파일
 
-# 타입 체크
+# Playwright E2E 테스트
+npm run test:e2e                # 전체 E2E 테스트
+npm run test:e2e:ui             # 인터랙티브 UI 모드
+npm run test:e2e:debug          # 디버그 모드
+npx playwright test -g "test"   # 특정 테스트
+
+# 타입 체크 & 린트
 npx tsc --noEmit
-
-# 린트
 npm run lint
 
 # 빌드 테스트
 npm run build
 ```
 
-### 6.2 API 테스트
+### 6.2 테스트 구조
+
+- **UI 테스트** (`jest.config.ui.js`): jsdom 환경, 컴포넌트 테스트
+- **API 테스트** (`jest.config.api.js`): node 환경, API 라우트 테스트
+- **E2E 테스트** (`playwright.config.ts`): 브라우저 환경, 전체 흐름 테스트
+
+자세한 내용은 [TEST_GUIDE.md](../TEST_GUIDE.md) 참조
+
+### 6.3 API 직접 테스트
 
 ```bash
-# cURL로 API 직접 테스트
+# cURL로 외부 API 테스트
 curl "http://apis.data.go.kr/B551015/API214_17/raceHorse_1?\
 serviceKey=${KRA_API_KEY}\
 &numOfRows=10&pageNo=1\
@@ -393,5 +431,5 @@ refactor: API 호출 로직 분리
 - [Vercel 문서](https://vercel.com/docs)
 
 ---
-**문서 버전**: 1.0
-**최종 수정일**: 2024-XX-XX
+**문서 버전**: 1.1
+**최종 수정일**: 2025-11-26
