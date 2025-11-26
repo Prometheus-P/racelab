@@ -155,4 +155,44 @@ describe('TodayRaces Component', () => {
       expect(raceCard.className).toContain('focus:ring-offset-2');
     });
   });
+
+  describe('Status Badge', () => {
+    it('should display status badge for upcoming races', async () => {
+      const resolvedComponent = await TodayRaces({});
+      render(resolvedComponent);
+
+      const statusBadges = screen.getAllByText('예정');
+      expect(statusBadges.length).toBeGreaterThan(0);
+    });
+
+    it('should display live status badge with aria-live for live races', async () => {
+      const liveRace: Race[] = [
+        { id: 'horse-live', type: 'horse', raceNo: 1, track: '서울', startTime: '11:30', distance: 1200, status: 'live', entries: [] },
+      ];
+      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(liveRace);
+      (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
+      (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
+
+      const resolvedComponent = await TodayRaces({});
+      render(resolvedComponent);
+
+      const liveStatus = screen.getByRole('status');
+      expect(liveStatus).toHaveAttribute('aria-live', 'polite');
+      expect(liveStatus).toHaveTextContent('진행중');
+    });
+
+    it('should display completed status badge for completed races', async () => {
+      const completedRace: Race[] = [
+        { id: 'horse-done', type: 'horse', raceNo: 1, track: '서울', startTime: '11:30', distance: 1200, status: 'completed', entries: [] },
+      ];
+      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(completedRace);
+      (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
+      (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
+
+      const resolvedComponent = await TodayRaces({});
+      render(resolvedComponent);
+
+      expect(screen.getByText('완료')).toBeInTheDocument();
+    });
+  });
 });

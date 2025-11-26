@@ -131,6 +131,36 @@ describe('QuickStats Component', () => {
     });
   });
 
+  describe('Responsive Design', () => {
+    it('should have responsive grid classes', async () => {
+      const resolvedComponent = await QuickStats();
+      render(resolvedComponent);
+
+      const section = screen.getByRole('region', { name: '오늘의 경주 통계' });
+      expect(section.className).toContain('grid-cols-2');
+      expect(section.className).toContain('md:grid-cols-4');
+    });
+
+    it('should have responsive font sizes for values', async () => {
+      const resolvedComponent = await QuickStats();
+      render(resolvedComponent);
+
+      const totalValue = screen.getByText('10');
+      expect(totalValue.className).toContain('text-2xl');
+      expect(totalValue.className).toContain('md:text-3xl');
+    });
+
+    it('should have minimum touch target on stat cards', async () => {
+      const resolvedComponent = await QuickStats();
+      render(resolvedComponent);
+
+      const articles = screen.getAllByRole('article');
+      articles.forEach(article => {
+        expect(article.className).toContain('min-h-[80px]');
+      });
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should_render_zero_when_no_races_available', async () => {
       (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue([]);
