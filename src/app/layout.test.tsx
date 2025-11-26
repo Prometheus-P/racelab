@@ -2,7 +2,6 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import RootLayout from './layout';
-import Script from 'next/script';
 
 // Mock the Vercel Analytics component
 jest.mock('@vercel/analytics/react', () => ({
@@ -10,10 +9,21 @@ jest.mock('@vercel/analytics/react', () => ({
 }));
 
 // Mock the next/script component
+interface ScriptProps {
+  src?: string;
+  id?: string;
+  children?: string;
+  strategy?: string;
+}
+
 const mockScript = jest.fn();
-jest.mock('next/script', () => (props: any) => {
-  mockScript(props);
-  return <script {...props} />;
+jest.mock('next/script', () => {
+  const MockScript = (props: ScriptProps) => {
+    mockScript(props);
+    return <script {...props} />;
+  };
+  MockScript.displayName = 'MockScript';
+  return MockScript;
 });
 
 
@@ -44,7 +54,7 @@ describe('RootLayout', () => {
     expect(within(header).getByText(/KRace/i)).toBeInTheDocument();
 
     // Check for Footer content
-    expect(screen.getByText(/본 서비스는 정보 제공 목적이며/i)).toBeInTheDocument();
+    expect(screen.getByText(/본 서비스는 정보 제공 목적입니다/i)).toBeInTheDocument();
 
     // Check for children content
     expect(screen.getByText(/Main Content/i)).toBeInTheDocument();

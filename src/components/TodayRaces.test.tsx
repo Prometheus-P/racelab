@@ -1,5 +1,4 @@
 // src/components/TodayRaces.test.tsx
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import TodayRaces from './TodayRaces'; // This file does not exist yet
 import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules } from '@/lib/api';

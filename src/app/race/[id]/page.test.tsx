@@ -1,9 +1,9 @@
 // src/app/race/[id]/page.test.tsx
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import RaceDetailPage, { generateMetadata } from './page'; // Import generateMetadata
-import { fetchRaceById } from '@/lib/api'; // This function does not exist yet
+import RaceDetailPage, { generateMetadata } from './page';
+import { fetchRaceById } from '@/lib/api';
 import { Race } from '@/types';
+import type { ResolvingMetadata } from 'next';
 
 // Mock the API client dependency
 jest.mock('@/lib/api', () => ({
@@ -63,7 +63,7 @@ describe('RaceDetailPage', () => {
 
   describe('generateMetadata', () => {
     // Mock parent metadata as required by generateMetadata signature
-    const mockParent = Promise.resolve({}) as any;
+    const mockParent = Promise.resolve({}) as ResolvingMetadata;
 
     it('should generate correct metadata for a race', async () => {
       const metadata = await generateMetadata({ params: { id: 'horse-1-1-20240115' } }, mockParent);

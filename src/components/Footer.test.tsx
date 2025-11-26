@@ -7,9 +7,12 @@ describe('Footer Component', () => {
   it('should display legal disclaimers and contact information', () => {
     render(<Footer />);
 
-    // Check for the information disclaimer
-    const disclaimerElement = screen.getByText(/본 서비스는 정보 제공 목적이며, 베팅 결과를 보장하지 않습니다./i);
+    // Check for the information disclaimer (separate lines in the actual component)
+    const disclaimerElement = screen.getByText(/본 서비스는 정보 제공 목적입니다/i);
     expect(disclaimerElement).toBeInTheDocument();
+
+    const bettingDisclaimerElement = screen.getByText(/베팅 결과를 보장하지 않습니다/i);
+    expect(bettingDisclaimerElement).toBeInTheDocument();
 
     // Check for the gambling addiction help contact
     const helpElement = screen.getByText(/도박 문제 상담: 1336/i);

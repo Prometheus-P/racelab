@@ -2,8 +2,7 @@
 import React from 'react';
 import { fetchRaceById } from '@/lib/api';
 import { getRaceTypeEmoji } from '@/lib/utils/ui';
-import { Race, Entry } from '@/types';
-import { notFound } from 'next/navigation';
+import { Entry } from '@/types';
 import type { Metadata, ResolvingMetadata } from 'next'
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
 
 export async function generateMetadata(
   { params }: Props,
-  parent: ResolvingMetadata
+  _parent: ResolvingMetadata
 ): Promise<Metadata> {
   const race = await fetchRaceById(params.id);
 

@@ -1,6 +1,12 @@
 // src/lib/api.ts
 import { Race, Entry } from '@/types';
-import { mapKRAHorseRaceToRace, mapKSPOCycleRaceToRace, mapKSPOBoatRaceToRace } from './api-helpers/mappers';
+import {
+  mapKRAHorseRaceToRace,
+  mapKSPOCycleRaceToRace,
+  mapKSPOBoatRaceToRace,
+  KRAHorseRaceItem,
+  KSPORaceItem
+} from './api-helpers/mappers';
 import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces } from './api-helpers/dummy';
 
 
@@ -17,7 +23,7 @@ async function fetchApi<T>(
   getDummyData: (rcDate: string) => T[],
   rcDate: string,
   apiName: string,
-): Promise<any[]> { // Return any[] as mapping to T[] happens after this.
+): Promise<unknown[]> {
   if (!apiKey) {
     console.warn(`${apiName}_API_KEY is not set. Returning dummy data.`);
     return getDummyData(rcDate);
@@ -61,7 +67,7 @@ export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
     'KRA'
   );
 
-  return rawItems.map(mapKRAHorseRaceToRace);
+  return (rawItems as KRAHorseRaceItem[]).map(mapKRAHorseRaceToRace);
 }
 
 export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
@@ -77,7 +83,7 @@ export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
     'KSPO Cycle'
   );
 
-  return rawItems.map(mapKSPOCycleRaceToRace);
+  return (rawItems as KSPORaceItem[]).map(mapKSPOCycleRaceToRace);
 }
 
 export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
@@ -93,11 +99,11 @@ export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
     'KSPO Boat'
   );
 
-  return rawItems.map(mapKSPOBoatRaceToRace);
+  return (rawItems as KSPORaceItem[]).map(mapKSPOBoatRaceToRace);
 }
 
 export async function fetchRaceById(id: string): Promise<Race | null> {
-  const [type, meet, raceNo, date] = id.split('-');
+  const [type, , , date] = id.split('-');
 
   let races: Race[] = [];
   switch (type) {

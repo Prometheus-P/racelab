@@ -1,5 +1,4 @@
 // src/components/QuickStats.test.tsx
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import QuickStats from './QuickStats'; // This file does not exist yet
 import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules } from '@/lib/api';

@@ -1,9 +1,10 @@
 // src/app/api/races/[type]/[id]/results/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchRaceResults } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errors';
 
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: { type: string; id: string } }
 ) {
     try {
@@ -31,7 +32,7 @@ export async function GET(
             },
             { status: 200 }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching race results:', error);
 
         return NextResponse.json(
@@ -39,7 +40,7 @@ export async function GET(
                 success: false,
                 error: {
                     code: 'SERVER_ERROR',
-                    message: error.message || 'Internal server error',
+                    message: getErrorMessage(error),
                 },
                 timestamp: new Date().toISOString(),
             },

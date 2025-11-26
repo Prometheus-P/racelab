@@ -14,17 +14,17 @@ describe('Header Component', () => {
     const titleElement = screen.getByText(/KRace/i);
     expect(titleElement).toBeInTheDocument();
 
-    // Check for navigation links
+    // Check for navigation links (using query parameters for tab navigation)
     const horseLink = screen.getByRole('link', { name: /경마/i });
     expect(horseLink).toBeInTheDocument();
-    expect(horseLink).toHaveAttribute('href', '/horse');
+    expect(horseLink).toHaveAttribute('href', '/?tab=horse');
 
     const cycleLink = screen.getByRole('link', { name: /경륜/i });
     expect(cycleLink).toBeInTheDocument();
-    expect(cycleLink).toHaveAttribute('href', '/cycle');
+    expect(cycleLink).toHaveAttribute('href', '/?tab=cycle');
 
     const boatLink = screen.getByRole('link', { name: /경정/i });
     expect(boatLink).toBeInTheDocument();
-    expect(boatLink).toHaveAttribute('href', '/boat');
+    expect(boatLink).toHaveAttribute('href', '/?tab=boat');
   });
 });

@@ -24,4 +24,18 @@ export interface Race {
   entries: Entry[];        // 출전 목록
 }
 
+// Odds types for betting information
+export interface Odds {
+  win: number | null;      // 단승 배당률
+  place: number | null;    // 복승 배당률
+  quinella: number | null; // 쌍승 배당률
+}
+
+// Raw KSPO odds response item
+export interface KSPOOddsResponse {
+  oddsDansng?: string | null;    // 단승 배당
+  oddsBoksng?: string | null;    // 복승 배당
+  oddsSsangsng?: string | null;  // 쌍승 배당
+}
+
 // Additional types will be added here as needed.

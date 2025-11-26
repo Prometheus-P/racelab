@@ -28,10 +28,10 @@ export const metadata: Metadata = {
     description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
     images: [
       {
-        url: '/og-image.png',
+        url: '/opengraph-image.svg',
         width: 1200,
         height: 630,
-        alt: 'KRace',
+        alt: 'KRace - 경마 경륜 경정 통합 정보',
       }
     ],
   },
@@ -53,8 +53,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
         <meta name="theme-color" content="#1a56db" />
         {/* Google Analytics Scripts */}
         {process.env.NEXT_PUBLIC_GA_ID && (

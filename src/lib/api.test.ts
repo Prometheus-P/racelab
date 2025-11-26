@@ -1,5 +1,4 @@
 import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules, fetchRaceById } from '../lib/api';
-import { Race, Entry } from '@/types'; // Import Race and Entry from types
 
 describe('API Client', () => {
   let originalEnv: NodeJS.ProcessEnv;

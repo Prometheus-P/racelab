@@ -30,14 +30,15 @@ export async function handleApiRequest<T>(
     };
 
     return NextResponse.json(response, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error fetching ${apiName} schedules:`, error);
 
+    const errorMessage = error instanceof Error ? error.message : `Failed to fetch ${apiName} schedules`;
     const errorResponse: ApiResponse<T[]> = {
       success: false,
       error: {
         code: 'SERVER_ERROR',
-        message: error.message || `Failed to fetch ${apiName} schedules`,
+        message: errorMessage,
       },
       timestamp: new Date().toISOString(),
     };
