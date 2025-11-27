@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import Script from 'next/script'; // Import Script
+import Script from 'next/script'
 import './globals.css'
-import Header from '@/components/Header'; // Import Header
-import Footer from '@/components/Footer'; // Import Footer
-import { Analytics } from '@vercel/analytics/react'; // Import Analytics
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import { Analytics } from '@vercel/analytics/react'
+import { HeaderSkeleton } from '@/components/Skeletons'
 
 export const metadata: Metadata = {
   title: {
@@ -91,22 +92,5 @@ export default function RootLayout({
         <Analytics />
       </body>
     </html>
-  )
-}
-
-function HeaderSkeleton() {
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-          <div className="hidden md:flex items-center gap-6">
-            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </header>
   )
 }
