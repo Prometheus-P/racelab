@@ -1,5 +1,4 @@
 // src/app/race/[id]/page.test.tsx
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import RaceDetailPage, { generateMetadata } from './page';
 import { fetchRaceById } from '@/lib/api';
