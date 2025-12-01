@@ -24,6 +24,7 @@ language: Korean (한국어)
 | 1.1.0 | 2025-11-27 | AI | OddsDisplay, ResultsTable 컴포넌트 추가, 리팩토링 |
 | 1.2.0 | 2025-11-27 | AI | UI 컴포넌트 통합 완료, E2E 테스트 추가 |
 | 1.2.3 | 2025-12-01 | AI | API-007, API-008, E2E-004, TEST-001 완료 상태 반영 |
+| 1.2.4 | 2025-12-01 | AI | TEST-002~004, PERF-001 완료, ISR 캐싱 적용 |
 
 ## 관련 문서 (Related Documents)
 
@@ -40,16 +41,16 @@ language: Korean (한국어)
 │  📈 프로젝트 진행률                                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  MVP 기능    [████████████████████████] 95%                │
-│  테스트 커버  [████████████████████░░░░] 85%                │
+│  MVP 기능    [████████████████████████] 98%                │
+│  테스트 커버  [██████████████████████░░] 90%                │
 │  문서화      [██████████████████░░░░░░] 80%                │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 
 마지막 업데이트: 2025-12-01
 현재 Phase: MVP
-현재 버전: v1.2.3
-다음 마일스톤: 유틸리티 테스트 확장 및 성능 최적화
+현재 버전: v1.2.4
+다음 마일스톤: 이미지 최적화 및 번들 사이즈 분석
 ```
 
 ---
@@ -209,13 +210,13 @@ describe('mapOddsResponse', () => {
 
 ## 🧪 Epic 4: 테스트 강화
 
-### 4.1 유틸리티 테스트 🔄
+### 4.1 유틸리티 테스트 ✅
 
 | ID | 태스크 | 상태 | TDD Phase | 파일 |
 |----|--------|------|-----------|------|
 | TEST-001 | date.ts 유틸 테스트 | ✅ 완료 | GREEN | `src/lib/utils/date.test.ts` |
-| TEST-002 | ui.ts 유틸 테스트 | ⏳ 대기 | - | `src/lib/utils/ui.test.ts` |
-| TEST-003 | apiResponse.ts 테스트 | ⏳ 대기 | - | `src/lib/utils/apiResponse.test.ts` |
+| TEST-002 | ui.ts 유틸 테스트 | ✅ 완료 | GREEN | `src/lib/utils/ui.test.ts` |
+| TEST-003 | apiResponse.ts 테스트 | ✅ 완료 | GREEN | `src/lib/utils/apiResponse.test.ts` |
 
 **다음 TDD 사이클 (TEST-001):**
 
@@ -255,11 +256,11 @@ describe('date utilities', () => {
 });
 ```
 
-### 4.2 API 매퍼 테스트 ⏳
+### 4.2 API 매퍼 테스트 🔄
 
 | ID | 태스크 | 상태 | TDD Phase | 파일 |
 |----|--------|------|-----------|------|
-| TEST-004 | KSPO 매퍼 테스트 | ⏳ 대기 | - | `src/lib/api-helpers/mappers.test.ts` |
+| TEST-004 | KSPO 매퍼 테스트 | ✅ 완료 | GREEN | `src/lib/api-helpers/mappers.test.ts` |
 | TEST-005 | 더미 데이터 테스트 | ⏳ 대기 | - | `src/lib/api-helpers/dummy.test.ts` |
 
 ### 4.3 E2E 테스트 확장 🔄
@@ -283,11 +284,11 @@ describe('date utilities', () => {
 | SEO-002 | robots.ts 구현 | ✅ 완료 | N/A | `src/app/robots.ts` |
 | SEO-003 | 메타 태그 설정 | ✅ 완료 | N/A | `src/app/layout.tsx` |
 
-### 5.2 성능 최적화 ⏳
+### 5.2 성능 최적화 🔄
 
 | ID | 태스크 | 상태 | TDD Phase | 파일 |
 |----|--------|------|-----------|------|
-| PERF-001 | ISR 캐싱 전략 구현 | 🔄 진행중 | N/A | API routes |
+| PERF-001 | ISR 캐싱 전략 구현 | ✅ 완료 | N/A | API routes (30-60s revalidation) |
 | PERF-002 | 이미지 최적화 | ⏳ 대기 | N/A | - |
 | PERF-003 | 번들 사이즈 분석 | ⏳ 대기 | N/A | - |
 
@@ -302,17 +303,17 @@ describe('date utilities', () => {
 │  🎯 다음 작업 (go 명령 시 실행)                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1. [TEST-002] ui.ts 유틸 테스트                            │
-│     - UI 유틸리티 함수 테스트                               │
+│  1. [TEST-005] 더미 데이터 테스트                           │
+│     - dummy.ts 헬퍼 함수 테스트                             │
 │                                                             │
-│  2. [TEST-003] apiResponse.ts 테스트                        │
-│     - API 응답 헬퍼 테스트                                  │
+│  2. [PERF-002] 이미지 최적화                                │
+│     - Next.js Image 컴포넌트 적용                           │
 │                                                             │
-│  3. [TEST-004] KSPO 매퍼 테스트                             │
-│     - 경륜/경정 매퍼 추가 테스트                            │
+│  3. [PERF-003] 번들 사이즈 분석                             │
+│     - @next/bundle-analyzer 설정                            │
 │                                                             │
-│  4. [PERF-001] ISR 캐싱 전략 구현                           │
-│     - Next.js ISR 캐싱 최적화                               │
+│  4. [E2E-005] 성능 E2E 테스트                               │
+│     - Lighthouse CI 통합                                    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
