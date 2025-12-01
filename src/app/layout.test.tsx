@@ -80,17 +80,33 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    // Expect the Script component to have been called twice
-    expect(mockScript).toHaveBeenCalledTimes(2);
+    // Expect the Script component to have been called 4 times (2 for JSON-LD schemas + 2 for GA)
+    expect(mockScript).toHaveBeenCalledTimes(4);
 
-    // Check the props of the first call (gtag.js)
+    // Check for JSON-LD Organization schema
+    expect(mockScript).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'organization-schema',
+        type: 'application/ld+json',
+      })
+    );
+
+    // Check for JSON-LD WebSite schema
+    expect(mockScript).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'website-schema',
+        type: 'application/ld+json',
+      })
+    );
+
+    // Check the props for GA gtag.js
     expect(mockScript).toHaveBeenCalledWith(
       expect.objectContaining({
         src: 'https://www.googletagmanager.com/gtag/js?id=G-TEST12345',
       })
     );
 
-    // Check the props of the second call (inline script)
+    // Check the props for GA inline script
     expect(mockScript).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'google-analytics',
@@ -110,6 +126,29 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    expect(mockScript).not.toHaveBeenCalled();
+    // Should still have 2 Script calls for JSON-LD schemas
+    expect(mockScript).toHaveBeenCalledTimes(2);
+
+    // Verify JSON-LD schemas are present
+    expect(mockScript).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'organization-schema',
+        type: 'application/ld+json',
+      })
+    );
+
+    expect(mockScript).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'website-schema',
+        type: 'application/ld+json',
+      })
+    );
+
+    // Verify GA scripts are NOT present
+    expect(mockScript).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        src: expect.stringContaining('googletagmanager'),
+      })
+    );
   });
 });
