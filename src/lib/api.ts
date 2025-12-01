@@ -41,10 +41,11 @@ async function fetchApi<T>(
   getDummyData: (rcDate: string) => T[],
   rcDate: string,
   apiName: string,
+  envVarName: string,
   dateParamName: string = 'rc_date',
 ): Promise<unknown[]> {
   if (!apiKey) {
-    console.warn(`${apiName}_API_KEY is not set. Returning dummy data.`);
+    console.warn(`[${apiName}] ${envVarName} is not set. Returning dummy data.`);
     return getDummyData(rcDate);
   }
 
@@ -99,7 +100,8 @@ export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
     {},
     getDummyHorseRaces,
     rcDate,
-    'KRA API299'
+    'KRA API299',
+    'KRA_API_KEY'
   );
 
   // API299 returns grouped race result data
@@ -117,7 +119,8 @@ export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
     {}, // No extra params for now
     getDummyCycleRaces,
     rcDate,
-    'KSPO Cycle'
+    'KSPO Cycle',
+    'KSPO_API_KEY'
   );
 
   const races = (rawItems as KSPORaceItem[]).map(mapKSPOCycleRaceToRace);
@@ -134,7 +137,8 @@ export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
     {}, // No extra params for now
     getDummyBoatRaces,
     rcDate,
-    'KSPO Boat'
+    'KSPO Boat',
+    'KSPO_API_KEY'
   );
 
   const races = (rawItems as KSPORaceItem[]).map(mapKSPOBoatRaceToRace);
