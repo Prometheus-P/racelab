@@ -13,6 +13,24 @@ import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces } from './api
 const KRA_BASE_URL = 'http://apis.data.go.kr/B551015';
 const KSPO_BASE_URL = 'http://apis.data.go.kr/B551014';
 
+// Helper function to aggregate races with the same ID
+// API returns flat data with one row per entry, so we need to combine entries for the same race
+function aggregateRaces(races: Race[]): Race[] {
+  const raceMap = new Map<string, Race>();
+
+  for (const race of races) {
+    const existing = raceMap.get(race.id);
+    if (existing) {
+      // Merge entries
+      existing.entries = [...(existing.entries || []), ...(race.entries || [])];
+    } else {
+      raceMap.set(race.id, { ...race, entries: [...(race.entries || [])] });
+    }
+  }
+
+  return Array.from(raceMap.values());
+}
+
 
 // Generic API fetch function
 async function fetchApi<T>(
@@ -67,7 +85,8 @@ export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
     'KRA'
   );
 
-  return (rawItems as KRAHorseRaceItem[]).map(mapKRAHorseRaceToRace);
+  const races = (rawItems as KRAHorseRaceItem[]).map(mapKRAHorseRaceToRace);
+  return aggregateRaces(races);
 }
 
 export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
@@ -83,7 +102,8 @@ export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
     'KSPO Cycle'
   );
 
-  return (rawItems as KSPORaceItem[]).map(mapKSPOCycleRaceToRace);
+  const races = (rawItems as KSPORaceItem[]).map(mapKSPOCycleRaceToRace);
+  return aggregateRaces(races);
 }
 
 export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
@@ -99,7 +119,8 @@ export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
     'KSPO Boat'
   );
 
-  return (rawItems as KSPORaceItem[]).map(mapKSPOBoatRaceToRace);
+  const races = (rawItems as KSPORaceItem[]).map(mapKSPOBoatRaceToRace);
+  return aggregateRaces(races);
 }
 
 export async function fetchRaceById(id: string): Promise<Race | null> {

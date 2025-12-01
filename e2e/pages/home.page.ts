@@ -14,13 +14,15 @@ export class HomePage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.header = page.locator('header');
-        this.footer = page.locator('footer');
-        this.quickStats = page.locator('[data-testid="quick-stats"]').or(page.locator('text=빠른 통계'));
-        this.todayRaces = page.locator('[data-testid="today-races"]').or(page.locator('text=오늘의 경주'));
-        this.horseTab = page.locator('button:has-text("경마")');
-        this.cycleTab = page.locator('button:has-text("경륜")');
-        this.boatTab = page.locator('button:has-text("경정")');
+        // Use more specific locators to avoid strict mode violations
+        this.header = page.locator('body > header').first();
+        this.footer = page.locator('body > footer').first();
+        this.quickStats = page.locator('[data-testid="quick-stats"]');
+        this.todayRaces = page.locator('[data-testid="today-races"]');
+        // Tabs are implemented as Links with role="tab"
+        this.horseTab = page.locator('a[role="tab"]#tab-horse');
+        this.cycleTab = page.locator('a[role="tab"]#tab-cycle');
+        this.boatTab = page.locator('a[role="tab"]#tab-boat');
         this.raceCards = page.locator('[data-testid="race-card"]').or(page.locator('a[href*="/race/"]'));
     }
 
@@ -36,8 +38,12 @@ export class HomePage extends BasePage {
     }
 
     async clickFirstRaceCard() {
-        await this.raceCards.first().click();
-        await this.waitForPageLoad();
+        const firstCard = this.raceCards.first();
+        await firstCard.waitFor({ state: 'visible' });
+        await Promise.all([
+            this.page.waitForURL(/\/race\//),
+            firstCard.click()
+        ]);
     }
 
     async getRaceCardCount(): Promise<number> {

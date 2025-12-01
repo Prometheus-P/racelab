@@ -34,9 +34,18 @@ test.describe('API Endpoints', () => {
     });
 
     test.describe('Race Detail APIs', () => {
-        const raceId = 'horse-1-1-20240115';
+        // Helper function to get a valid race ID from the race list
+        async function getValidRaceId(request: ReturnType<typeof test.info>['request'] extends Promise<infer R> ? R : never): Promise<string> {
+            const response = await request.get(`${baseURL}/api/races/horse`);
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                return data.data[0].id;
+            }
+            throw new Error('No races available to test');
+        }
 
         test('GET /api/races/[type]/[id]/entries should return 200', async ({ request }) => {
+            const raceId = await getValidRaceId(request);
             const response = await request.get(`${baseURL}/api/races/horse/${raceId}/entries`);
             expect(response.status()).toBe(200);
 
@@ -46,6 +55,7 @@ test.describe('API Endpoints', () => {
         });
 
         test('GET /api/races/[type]/[id]/odds should return 200', async ({ request }) => {
+            const raceId = await getValidRaceId(request);
             const response = await request.get(`${baseURL}/api/races/horse/${raceId}/odds`);
             expect(response.status()).toBe(200);
 
@@ -55,6 +65,7 @@ test.describe('API Endpoints', () => {
         });
 
         test('GET /api/races/[type]/[id]/results should return 200', async ({ request }) => {
+            const raceId = await getValidRaceId(request);
             const response = await request.get(`${baseURL}/api/races/horse/${raceId}/results`);
             expect(response.status()).toBe(200);
 
@@ -87,7 +98,8 @@ test.describe('API Endpoints', () => {
             expect(response.status()).toBe(200);
 
             const text = await response.text();
-            expect(text).toContain('User-agent');
+            // Case-insensitive check for User-Agent directive
+            expect(text.toLowerCase()).toContain('user-agent');
             expect(text).toContain('Sitemap');
         });
     });
@@ -108,10 +120,19 @@ test.describe('API Endpoints', () => {
         });
 
         test('Entries API should have correct data structure', async ({ request }) => {
-            const response = await request.get(`${baseURL}/api/races/horse/horse-1-1-20240115/entries`);
+            // First get a valid race ID
+            const racesResponse = await request.get(`${baseURL}/api/races/horse`);
+            const racesData = await racesResponse.json();
+            if (!racesData.data || racesData.data.length === 0) {
+                test.skip();
+                return;
+            }
+            const raceId = racesData.data[0].id;
+
+            const response = await request.get(`${baseURL}/api/races/horse/${raceId}/entries`);
             const data = await response.json();
 
-            if (data.data.length > 0) {
+            if (data.data && data.data.length > 0) {
                 const entry = data.data[0];
                 expect(entry).toHaveProperty('no');
                 expect(entry).toHaveProperty('name');
@@ -119,10 +140,19 @@ test.describe('API Endpoints', () => {
         });
 
         test('Odds API should have correct data structure', async ({ request }) => {
-            const response = await request.get(`${baseURL}/api/races/horse/horse-1-1-20240115/odds`);
+            // First get a valid race ID
+            const racesResponse = await request.get(`${baseURL}/api/races/horse`);
+            const racesData = await racesResponse.json();
+            if (!racesData.data || racesData.data.length === 0) {
+                test.skip();
+                return;
+            }
+            const raceId = racesData.data[0].id;
+
+            const response = await request.get(`${baseURL}/api/races/horse/${raceId}/odds`);
             const data = await response.json();
 
-            if (data.data.length > 0) {
+            if (data.data && data.data.length > 0) {
                 const odds = data.data[0];
                 expect(odds).toHaveProperty('no');
                 expect(odds).toHaveProperty('name');

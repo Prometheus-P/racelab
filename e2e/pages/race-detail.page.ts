@@ -12,12 +12,13 @@ export class RaceDetailPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
-        this.raceTitle = page.locator('h1');
-        this.raceInfo = page.locator('[data-testid="race-info"]').or(page.locator('text=/경주장|시간|거리/'));
-        this.entriesSection = page.locator('[data-testid="entries"]').or(page.locator('text=출마표'));
-        this.oddsSection = page.locator('[data-testid="odds"]').or(page.locator('text=배당률'));
-        this.resultsSection = page.locator('[data-testid="results"]').or(page.locator('text=경주 결과'));
-        this.backButton = page.locator('a:has-text("목록")').or(page.locator('button:has-text("뒤로")'));
+        this.raceTitle = page.locator('h1').first();
+        // Use more specific locators to avoid strict mode violations
+        this.raceInfo = page.locator('[data-testid="race-info"]');
+        this.entriesSection = page.locator('[data-testid="entries"]');
+        this.oddsSection = page.locator('[data-testid="odds"]');
+        this.resultsSection = page.locator('[data-testid="results"]');
+        this.backButton = page.locator('a:has-text("목록")').first();
     }
 
     async gotoRace(raceId: string) {

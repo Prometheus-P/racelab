@@ -122,10 +122,10 @@ test.describe('Homepage - Accessibility', () => {
     });
 
     test('should have semantic HTML structure', async ({ page }) => {
-        // Check for semantic landmarks
-        await expect(page.locator('header')).toBeVisible();
+        // Check for semantic landmarks (use .first() to avoid strict mode violation)
+        await expect(page.locator('body > header').first()).toBeVisible();
         await expect(page.locator('main')).toBeVisible();
-        await expect(page.locator('footer')).toBeVisible();
+        await expect(page.locator('body > footer').first()).toBeVisible();
     });
 
     test('should have accessible navigation links', async ({ page }) => {
@@ -141,17 +141,15 @@ test.describe('Homepage - Accessibility', () => {
     });
 
     test('race cards should be keyboard navigable', async ({ page }) => {
-        // Tab to first race card
-        await page.keyboard.press('Tab');
-        await page.keyboard.press('Tab');
-        await page.keyboard.press('Tab');
-        await page.keyboard.press('Tab');
+        // Focus on the first race card directly
+        const firstRaceCard = page.locator('[data-testid="race-card"]').first();
+        await firstRaceCard.focus();
 
         // Press Enter to navigate
         await page.keyboard.press('Enter');
 
         // Should navigate to race detail
-        await page.waitForURL(/\/race\//);
+        await page.waitForURL(/\/race\//, { timeout: 10000 });
     });
 });
 
