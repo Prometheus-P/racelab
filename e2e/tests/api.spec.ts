@@ -1,5 +1,5 @@
 // e2e/tests/api.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect, APIRequestContext } from '@playwright/test';
 
 test.describe('API Endpoints', () => {
     const baseURL = 'http://localhost:3000';
@@ -35,7 +35,7 @@ test.describe('API Endpoints', () => {
 
     test.describe('Race Detail APIs', () => {
         // Helper function to get a valid race ID from the race list
-        async function getValidRaceId(request: ReturnType<typeof test.info>['request'] extends Promise<infer R> ? R : never): Promise<string> {
+        async function getValidRaceId(request: APIRequestContext): Promise<string> {
             const response = await request.get(`${baseURL}/api/races/horse`);
             const data = await response.json();
             if (data.data && data.data.length > 0) {

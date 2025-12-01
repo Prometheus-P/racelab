@@ -36,8 +36,7 @@ describe('GET /api/races/boat', () => {
   });
 
   it('should return boat race schedules successfully', async () => {
-    const request = new Request('http://localhost/api/races/boat');
-    const response = await GET(request); // Call the exported GET function
+    const response = await GET(); // Call the exported GET function
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toContain('application/json');
@@ -55,8 +54,7 @@ describe('GET /api/races/boat', () => {
   it('should handle errors from fetchBoatRaceSchedules', async () => {
     (fetchBoatRaceSchedules as jest.Mock).mockRejectedValue(new Error('API error'));
 
-    const request = new Request('http://localhost/api/races/boat');
-    const response = await GET(request);
+    const response = await GET();
 
     expect(response.status).toBe(500);
     expect(response.headers.get('Content-Type')).toContain('application/json');
