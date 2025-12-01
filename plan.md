@@ -27,6 +27,7 @@ language: Korean (한국어)
 | 1.2.4 | 2025-12-01 | AI | TEST-002~004, PERF-001 완료, ISR 캐싱 적용 |
 | 1.2.5 | 2025-12-01 | AI | E2E 테스트 안정화, 295개 테스트 통과 |
 | 1.2.6 | 2025-12-01 | AI | 도메인 통일 (racelab.kr), API 폴백 메커니즘 추가 |
+| 1.2.7 | 2025-12-01 | AI | KRA API299 마이그레이션, StatusBadge 타입 정렬 |
 
 ## 관련 문서 (Related Documents)
 
