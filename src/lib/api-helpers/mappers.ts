@@ -1,7 +1,7 @@
 // src/lib/api-helpers/mappers.ts
 import { Race, Entry, Odds, KSPOOddsResponse } from '@/types';
 
-// Type definitions for raw API response items
+// Type definitions for raw API response items (legacy API214 format)
 export interface KRAHorseRaceItem {
   meet?: string;
   rcNo?: string;
@@ -16,6 +16,43 @@ export interface KRAHorseRaceItem {
   age?: string;
   wgHr?: string;
   rcRst?: string;
+}
+
+// API323 출전등록현황 response format
+export interface KRA323EntryItem {
+  ag?: number;          // 연령
+  gndr?: string;        // 성별 (수/암/거)
+  hrnm?: string;        // 마명
+  raceDt?: number;      // 경주일자 (YYYYMMDD)
+  raceDotw?: string;    // 경주요일
+  raceNo?: number;      // 경주번호
+  ratg?: number;        // 레이팅
+  rcptNo?: number;      // 접수번호
+  trarNm?: string;      // 조교사명
+  ownerNm?: string;     // 마주명
+  prds?: string;        // 산지 (한/미/일 등)
+  erngSump?: string;    // 총상금
+  loyProdNm?: string;   // 부마명
+}
+
+// API299 경주결과종합 response format
+export interface KRA299ResultItem {
+  meet?: string;        // 경마장명
+  rcDate?: number;      // 경주일자
+  rcNo?: number;        // 경주번호
+  chulNo?: number;      // 출전번호
+  ord?: number;         // 순위
+  hrName?: string;      // 마명
+  hrNo?: string;        // 마번
+  jkName?: string;      // 기수명
+  jkNo?: string;        // 기수번호
+  rcTime?: number;      // 주파기록
+  age?: number;         // 연령
+  rank?: string;        // 등급
+  schStTime?: string;   // 발주예정시각
+  seG1fAccTime?: number; // 결승 1F 누적시간
+  seG3fAccTime?: number; // 결승 3F 누적시간
+  seS1fAccTime?: number; // 출발 1F 누적시간
 }
 
 export interface KSPORaceItem {
@@ -133,6 +170,95 @@ export function mapKSPOBoatRaceToRace(item: KSPORaceItem): Race {
     status: 'upcoming',
     entries: entries,
   };
+}
+
+/**
+ * Map API323 출전등록현황 items to Race objects
+ * Groups entries by race number
+ */
+export function mapKRA323ToRaces(items: KRA323EntryItem[]): Race[] {
+  const raceMap = new Map<string, Race>();
+
+  for (const item of items) {
+    const rcDate = item.raceDt?.toString() || '';
+    const raceNo = item.raceNo || 0;
+    const raceId = `horse-1-${raceNo}-${rcDate}`;
+
+    let race = raceMap.get(raceId);
+    if (!race) {
+      race = {
+        id: raceId,
+        type: 'horse',
+        raceNo: raceNo,
+        track: '서울',
+        startTime: '',
+        status: 'upcoming',
+        entries: [],
+      };
+      raceMap.set(raceId, race);
+    }
+
+    // Add entry to race
+    if (item.hrnm) {
+      race.entries = race.entries || [];
+      race.entries.push({
+        no: item.rcptNo || race.entries.length + 1,
+        name: item.hrnm,
+        trainer: item.trarNm,
+        age: item.ag,
+      });
+    }
+  }
+
+  return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
+}
+
+/**
+ * Map API299 경주결과종합 items to Race objects
+ * Groups entries by race number, includes result data
+ */
+export function mapKRA299ToRaces(items: KRA299ResultItem[]): Race[] {
+  const raceMap = new Map<string, Race>();
+
+  for (const item of items) {
+    const rcDate = item.rcDate?.toString() || '';
+    const raceNo = item.rcNo || 0;
+    const meet = item.meet === '서울' ? '1' : item.meet === '부산' ? '3' : '2';
+    const raceId = `horse-${meet}-${raceNo}-${rcDate}`;
+
+    let race = raceMap.get(raceId);
+    if (!race) {
+      // Parse start time from schStTime (ISO format)
+      const startTime = item.schStTime
+        ? new Date(item.schStTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+        : '';
+
+      race = {
+        id: raceId,
+        type: 'horse',
+        raceNo: raceNo,
+        track: item.meet || '서울',
+        startTime: startTime,
+        grade: item.rank,
+        status: 'finished',
+        entries: [],
+      };
+      raceMap.set(raceId, race);
+    }
+
+    // Add entry to race
+    if (item.hrName) {
+      race.entries = race.entries || [];
+      race.entries.push({
+        no: item.chulNo || race.entries.length + 1,
+        name: item.hrName,
+        jockey: item.jkName,
+        age: item.age,
+      });
+    }
+  }
+
+  return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
 }
 
 // Helper function to parse odds value from string

@@ -1,7 +1,8 @@
 // src/components/StatusBadge.tsx
 import React from 'react';
 
-export type RaceStatus = 'live' | 'upcoming' | 'completed' | 'cancelled';
+// Align with Race.status type in types/index.ts
+export type RaceStatus = 'live' | 'upcoming' | 'finished' | 'canceled';
 
 interface StatusBadgeProps {
   status: RaceStatus;
@@ -17,11 +18,11 @@ const statusConfig: Record<RaceStatus, { label: string; className: string }> = {
     label: '예정',
     className: 'status-upcoming',
   },
-  completed: {
+  finished: {
     label: '완료',
     className: 'status-completed',
   },
-  cancelled: {
+  canceled: {
     label: '취소',
     className: 'status-cancelled',
   },

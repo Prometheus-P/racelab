@@ -181,11 +181,11 @@ describe('TodayRaces Component', () => {
       expect(liveStatus).toHaveTextContent('진행중');
     });
 
-    it('should display completed status badge for completed races', async () => {
-      const completedRace: Race[] = [
-        { id: 'horse-done', type: 'horse', raceNo: 1, track: '서울', startTime: '11:30', distance: 1200, status: 'completed', entries: [] },
+    it('should display finished status badge for finished races', async () => {
+      const finishedRace: Race[] = [
+        { id: 'horse-done', type: 'horse', raceNo: 1, track: '서울', startTime: '11:30', distance: 1200, status: 'finished', entries: [] },
       ];
-      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(completedRace);
+      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(finishedRace);
       (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
       (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
 

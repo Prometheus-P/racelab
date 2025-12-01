@@ -10,27 +10,53 @@ describe('API Client', () => {
   beforeEach(() => {
     jest.resetModules(); // Important to clear module cache for env variables
     process.env = { ...originalEnv }; // Make a copy of the original environment
-    
+
     // Mock the global fetch function before each test
     global.fetch = jest.fn((url: RequestInfo | URL) =>
       Promise.resolve({
         ok: true,
         json: () => {
-          if (typeof url === 'string' && url.includes('B551015')) { // KRA API (Horse)
-            // Mock response for KRA horse race schedules with basic entry data
+          if (typeof url === 'string' && url.includes('API299')) { // KRA API299 (Horse Race Results)
+            // Mock response for KRA API299 경주결과종합
             return Promise.resolve({
               response: {
                 header: { resultCode: '00', resultMsg: 'NORMAL SERVICE' },
                 body: {
                   items: {
                     item: [
-                      { meet: '1', rcNo: '1', rcDate: '20240115', rcTime: '11:30', rcDist: '1200', chulNo: '12', rank: '국산5등급',
-                        // Adding mock entry data for testing purposes
-                        hrNo: '1', hrName: '말1', jkName: '기수1', trName: '조교사1', age: '3', wgHr: '54', rcRst: '1-2-3'
+                      {
+                        meet: '서울',
+                        rcDate: 20240115,
+                        rcNo: 1,
+                        chulNo: 1,
+                        ord: 1,
+                        hrName: '말1',
+                        hrNo: '001',
+                        jkName: '기수1',
+                        jkNo: '101',
+                        rcTime: 72.5,
+                        age: 3,
+                        rank: '국산5등급',
+                        schStTime: '2024-01-15T11:30:00',
+                      },
+                      {
+                        meet: '서울',
+                        rcDate: 20240115,
+                        rcNo: 1,
+                        chulNo: 2,
+                        ord: 2,
+                        hrName: '말2',
+                        hrNo: '002',
+                        jkName: '기수2',
+                        jkNo: '102',
+                        rcTime: 73.1,
+                        age: 4,
+                        rank: '국산5등급',
+                        schStTime: '2024-01-15T11:30:00',
                       },
                     ],
                   },
-                  numOfRows: 50, pageNo: 1, totalCount: 1,
+                  numOfRows: 100, pageNo: 1, totalCount: 2,
                 },
               },
             });
@@ -91,7 +117,7 @@ describe('API Client', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('http://apis.data.go.kr/B551015/API214_17/raceHorse_1'),
+      expect.stringContaining('https://apis.data.go.kr/B551015/API299/Race_Result_total'),
       expect.anything()
     );
     expect(schedules).toBeInstanceOf(Array);
@@ -101,20 +127,17 @@ describe('API Client', () => {
     expect(schedules[0]).toHaveProperty('raceNo');
     expect(schedules[0]).toHaveProperty('track');
     expect(schedules[0]).toHaveProperty('startTime');
-    expect(schedules[0]).toHaveProperty('distance');
     expect(schedules[0]).toHaveProperty('grade');
+    expect(schedules[0]).toHaveProperty('status', 'finished');
 
-    // New assertions for entries
+    // Entries from API299 are grouped by race
     expect(schedules[0].entries).toBeInstanceOf(Array);
     expect(schedules[0].entries.length).toBeGreaterThan(0);
     const entry = schedules[0].entries[0];
     expect(entry).toHaveProperty('no');
     expect(entry).toHaveProperty('name');
     expect(entry).toHaveProperty('jockey');
-    expect(entry).toHaveProperty('trainer');
     expect(entry).toHaveProperty('age');
-    expect(entry).toHaveProperty('weight');
-    expect(entry).toHaveProperty('recentRecord');
   });
 
   it('should return dummy horse race data when KRA_API_KEY is not set', async () => {
@@ -129,7 +152,6 @@ describe('API Client', () => {
     expect(schedules[0]).toHaveProperty('type', 'horse');
     expect(schedules[0]).toHaveProperty('track');
     expect(schedules[0]).toHaveProperty('startTime');
-    expect(schedules[0]).toHaveProperty('distance');
   });
 
   it('should fetch cycle race schedules from KSPO API when API key is set and include entry details', async () => {
@@ -220,11 +242,14 @@ describe('API Client', () => {
 
   it('should fetch a specific race by its ID', async () => {
     process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+    // API299 returns meet as '서울' which maps to '1', raceNo 1, date 20240115
     const race = await fetchRaceById('horse-1-1-20240115');
 
     expect(race).not.toBeNull();
     expect(race?.id).toBe('horse-1-1-20240115');
     expect(race?.type).toBe('horse');
+    expect(race?.track).toBe('서울');
+    expect(race?.status).toBe('finished');
     expect(global.fetch).toHaveBeenCalled();
   });
 

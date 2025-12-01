@@ -15,13 +15,13 @@ describe('StatusBadge', () => {
       expect(screen.getByText('예정')).toBeInTheDocument();
     });
 
-    it('should render completed status with correct text', () => {
-      render(<StatusBadge status="completed" />);
+    it('should render finished status with correct text', () => {
+      render(<StatusBadge status="finished" />);
       expect(screen.getByText('완료')).toBeInTheDocument();
     });
 
-    it('should render cancelled status with correct text', () => {
-      render(<StatusBadge status="cancelled" />);
+    it('should render canceled status with correct text', () => {
+      render(<StatusBadge status="canceled" />);
       expect(screen.getByText('취소')).toBeInTheDocument();
     });
   });
@@ -45,14 +45,14 @@ describe('StatusBadge', () => {
       expect(badge).toHaveClass('status-upcoming');
     });
 
-    it('should apply status-completed class for completed status', () => {
-      render(<StatusBadge status="completed" />);
+    it('should apply status-completed class for finished status', () => {
+      render(<StatusBadge status="finished" />);
       const badge = screen.getByText('완료');
       expect(badge).toHaveClass('status-completed');
     });
 
-    it('should apply status-cancelled class for cancelled status', () => {
-      render(<StatusBadge status="cancelled" />);
+    it('should apply status-cancelled class for canceled status', () => {
+      render(<StatusBadge status="canceled" />);
       const badge = screen.getByText('취소');
       expect(badge).toHaveClass('status-cancelled');
     });
@@ -71,7 +71,7 @@ describe('StatusBadge', () => {
     });
 
     it('should not have aria-live for non-live statuses', () => {
-      render(<StatusBadge status="completed" />);
+      render(<StatusBadge status="finished" />);
       const badge = screen.getByText('완료');
       expect(badge).not.toHaveAttribute('aria-live');
     });

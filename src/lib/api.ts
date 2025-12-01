@@ -1,16 +1,16 @@
 // src/lib/api.ts
 import { Race, Entry } from '@/types';
 import {
-  mapKRAHorseRaceToRace,
   mapKSPOCycleRaceToRace,
   mapKSPOBoatRaceToRace,
-  KRAHorseRaceItem,
-  KSPORaceItem
+  mapKRA299ToRaces,
+  KSPORaceItem,
+  KRA299ResultItem,
 } from './api-helpers/mappers';
 import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces } from './api-helpers/dummy';
 
 
-const KRA_BASE_URL = 'http://apis.data.go.kr/B551015';
+const KRA_BASE_URL = 'https://apis.data.go.kr/B551015';
 const KSPO_BASE_URL = 'http://apis.data.go.kr/B551014';
 
 // Helper function to aggregate races with the same ID
@@ -32,7 +32,7 @@ function aggregateRaces(races: Race[]): Race[] {
 }
 
 
-// Generic API fetch function
+// Generic API fetch function with flexible date parameter
 async function fetchApi<T>(
   baseUrl: string,
   endpoint: string,
@@ -41,6 +41,7 @@ async function fetchApi<T>(
   getDummyData: (rcDate: string) => T[],
   rcDate: string,
   apiName: string,
+  dateParamName: string = 'rc_date',
 ): Promise<unknown[]> {
   if (!apiKey) {
     console.warn(`${apiName}_API_KEY is not set. Returning dummy data.`);
@@ -49,9 +50,9 @@ async function fetchApi<T>(
 
   const url = new URL(`${baseUrl}${endpoint}`);
   url.searchParams.append('serviceKey', apiKey);
-  url.searchParams.append('numOfRows', '50');
+  url.searchParams.append('numOfRows', '100');
   url.searchParams.append('pageNo', '1');
-  url.searchParams.append('rc_date', rcDate);
+  url.searchParams.append(dateParamName, rcDate);
   url.searchParams.append('_type', 'json');
 
   // Add any additional parameters
@@ -90,18 +91,20 @@ async function fetchApi<T>(
 export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
   const KRA_API_KEY = process.env.KRA_API_KEY;
 
+  // Try API299 (경주결과종합) first - works with our API key
   const rawItems = await fetchApi(
     KRA_BASE_URL,
-    '/API214_17/raceHorse_1',
+    '/API299/Race_Result_total',
     KRA_API_KEY,
-    {}, // No extra params for now
+    {},
     getDummyHorseRaces,
     rcDate,
-    'KRA'
+    'KRA API299'
   );
 
-  const races = (rawItems as KRAHorseRaceItem[]).map(mapKRAHorseRaceToRace);
-  return aggregateRaces(races);
+  // API299 returns grouped race result data
+  const races = mapKRA299ToRaces(rawItems as KRA299ResultItem[]);
+  return races;
 }
 
 export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
