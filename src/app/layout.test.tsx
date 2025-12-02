@@ -1,7 +1,7 @@
 // src/app/layout.test.tsx
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
-import RootLayout from './layout';
+import RootLayout, { metadata, resolveSiteUrl } from './layout';
 
 // Mock next/navigation for Header component (useSearchParams)
 jest.mock('next/navigation', () => ({
@@ -37,7 +37,6 @@ describe('RootLayout', () => {
   const OLD_ENV = process.env;
 
   beforeEach(() => {
-    jest.resetModules();
     process.env = { ...OLD_ENV }; // Make a copy
     mockScript.mockClear();
   });
@@ -149,6 +148,46 @@ describe('RootLayout', () => {
       expect.objectContaining({
         src: expect.stringContaining('googletagmanager'),
       })
+    );
+  });
+
+  it('falls back to canonical domain when NEXT_PUBLIC_SITE_URL lacks protocol', () => {
+    expect(resolveSiteUrl('racelab.kr')).toBe('https://racelab.kr');
+    expect(metadata.metadataBase).toEqual(new URL('https://racelab.kr'));
+  });
+
+  it('normalizes the site url before embedding JSON-LD structured data', () => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://racelab.kr/';
+
+    render(
+      <RootLayout>
+        <main>
+          <p>Main Content</p>
+        </main>
+      </RootLayout>
+    );
+
+    const organizationSchemaCall = mockScript.mock.calls.find(
+      ([props]) => props.id === 'organization-schema'
+    )?.[0];
+
+    const websiteSchemaCall = mockScript.mock.calls.find(
+      ([props]) => props.id === 'website-schema'
+    )?.[0];
+
+    const organizationSchema = organizationSchemaCall
+      ? JSON.parse(organizationSchemaCall.dangerouslySetInnerHTML?.__html || '{}')
+      : {};
+
+    const websiteSchema = websiteSchemaCall
+      ? JSON.parse(websiteSchemaCall.dangerouslySetInnerHTML?.__html || '{}')
+      : {};
+
+    expect(organizationSchema.url).toBe('https://racelab.kr');
+    expect(organizationSchema.logo).toBe('https://racelab.kr/icon.svg');
+    expect(websiteSchema.url).toBe('https://racelab.kr');
+    expect(websiteSchema.potentialAction?.target?.urlTemplate).toBe(
+      'https://racelab.kr/?q={search_term_string}'
     );
   });
 });

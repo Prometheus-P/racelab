@@ -56,7 +56,7 @@ npm run start
 |--------|------|------|
 | `KRA_API_KEY` | ✅ | 한국마사회 API 키 |
 | `KSPO_API_KEY` | ✅ | 국민체육진흥공단 API 키 |
-| `NEXT_PUBLIC_SITE_URL` | ✅ | 사이트 URL |
+| `NEXT_PUBLIC_SITE_URL` | ✅ | 프로토콜을 포함한 사이트 URL (예: https://localhost:3000) |
 | `NEXT_PUBLIC_GA_ID` | ❌ | Google Analytics ID |
 | `NEXT_PUBLIC_ADSENSE_ID` | ❌ | AdSense Publisher ID |
 

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { GET } from './route';
+import { GET, dynamic, fetchCache } from './route';
 import { NextRequest } from 'next/server';
 
 describe('GET /api/results', () => {
@@ -105,5 +105,29 @@ describe('GET /api/results', () => {
     expect(response.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.data).toHaveProperty('items');
+  });
+
+  it('should opt out of static rendering and send caching headers', async () => {
+    const url = `http://localhost:3000/api/results`;
+    const request = new NextRequest(url);
+
+    const response = await GET(request);
+
+    expect(dynamic).toBe('force-dynamic');
+    expect(fetchCache).toBe('force-no-store');
+    expect(response.headers.get('cache-control')).toBe('public, s-maxage=300, stale-while-revalidate=60');
+  });
+
+  it('should reject invalid pagination parameters', async () => {
+    const url = `http://localhost:3000/api/results?page=0&limit=0`;
+    const request = new NextRequest(url);
+
+    const response = await GET(request);
+    const json = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe('INVALID_PAGINATION');
+    expect(response.headers.get('cache-control')).toBe('no-store');
   });
 });

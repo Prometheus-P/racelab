@@ -101,11 +101,16 @@ KSPO_API_KEY=your_kspo_api_key_here
 # └─────────────────────────────────────────────────────────────┘
 
 # 사이트 URL (SEO, OG 태그용)
+# 프로토콜을 포함한 절대 경로로 설정 (예: https://racelab.kr)
 NEXT_PUBLIC_SITE_URL=https://racelab.kr
 
 # Google Analytics 4 측정 ID
 # 발급: https://analytics.google.com/
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+
+# Google Search Console 소유권 확인 코드
+# 발급: https://search.google.com/search-console
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your_verification_token
 
 # Google AdSense 게시자 ID
 # 발급: https://www.google.com/adsense/
@@ -486,7 +491,7 @@ Error: 429 Too Many Requests
 |--------|------|--------|------|
 | `KRA_API_KEY` | ✅ | - | 한국마사회 API 키 |
 | `KSPO_API_KEY` | ✅ | - | 국민체육진흥공단 API 키 |
-| `NEXT_PUBLIC_SITE_URL` | - | localhost:3000 | 사이트 URL |
+| `NEXT_PUBLIC_SITE_URL` | - | https://localhost:3000 | 프로토콜을 포함한 사이트 URL |
 | `NEXT_PUBLIC_GA_ID` | - | - | Google Analytics ID |
 | `NEXT_PUBLIC_ADSENSE_ID` | - | - | Google AdSense ID |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | - | false | Mock 데이터 사용 |

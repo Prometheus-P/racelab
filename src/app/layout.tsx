@@ -7,7 +7,33 @@ import Footer from '@/components/Footer'
 import { Analytics } from '@vercel/analytics/react'
 import { HeaderSkeleton } from '@/components/Skeletons'
 
+export const DEFAULT_SITE_URL = 'https://racelab.kr'
+
+export const resolveSiteUrl = (envValue?: string) => {
+  if (!envValue) return DEFAULT_SITE_URL
+
+  const trimmedValue = envValue.trim()
+
+  if (!/^https?:\/\//.test(trimmedValue)) return DEFAULT_SITE_URL
+
+  try {
+    return new URL(trimmedValue).toString().replace(/\/+$/, '')
+  } catch {
+    return DEFAULT_SITE_URL
+  }
+}
+
+export const getSiteConfig = (env: NodeJS.ProcessEnv = process.env) => {
+  const siteUrl = resolveSiteUrl(env.NEXT_PUBLIC_SITE_URL)
+  const googleSiteVerification = env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+
+  return { siteUrl, googleSiteVerification }
+}
+
+const { siteUrl, googleSiteVerification } = getSiteConfig()
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'KRace - 경마 경륜 경정 통합 정보',
     template: '%s | KRace'
@@ -24,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://racelab.kr',
+    url: siteUrl,
     siteName: 'KRace',
     title: 'KRace - 경마 경륜 경정 통합 정보',
     description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
@@ -42,9 +68,11 @@ export const metadata: Metadata = {
     title: 'KRace - 경마 경륜 경정 통합 정보',
     description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+  verification: googleSiteVerification
+    ? {
+        google: googleSiteVerification,
+      }
+    : undefined,
 }
 
 export default function RootLayout({
@@ -52,7 +80,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+  const { siteUrl: baseUrl } = getSiteConfig()
 
   // JSON-LD structured data for Organization and WebSite
   const organizationSchema = {

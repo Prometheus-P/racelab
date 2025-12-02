@@ -85,7 +85,7 @@ GitHub 연동 시 자동 배포:
 |------|-------------|---------|------------|
 | `KRA_API_KEY` | 테스트 키 | 테스트 키 | 프로덕션 키 |
 | `KSPO_API_KEY` | 테스트 키 | 테스트 키 | 프로덕션 키 |
-| `NEXT_PUBLIC_SITE_URL` | localhost | preview URL | racelab.kr |
+| `NEXT_PUBLIC_SITE_URL` | https://localhost:3000 | preview URL (https) | https://racelab.kr |
 | `NEXT_PUBLIC_GA_ID` | - | - | G-XXXXXXXX |
 | `NEXT_PUBLIC_ADSENSE_ID` | - | - | ca-pub-XXX |
 
