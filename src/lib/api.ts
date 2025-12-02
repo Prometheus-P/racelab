@@ -33,7 +33,7 @@ async function fetchApi<T>(
   }
 
   const url = new URL(`${baseUrl}${endpoint}`);
-  url.searchParams.append('serviceKey', apiKey);
+
   url.searchParams.append('numOfRows', '100');
   url.searchParams.append('pageNo', '1');
   url.searchParams.append(dateParamName, rcDate);
@@ -44,8 +44,12 @@ async function fetchApi<T>(
     url.searchParams.append(key, value);
   });
 
+  // serviceKey must be pre-encoded (from data.go.kr "Encoding" key)
+  // Append directly to avoid double-encoding by URLSearchParams
+  const finalUrl = `${url.toString()}&serviceKey=${apiKey}`;
+
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(finalUrl, {
       next: { revalidate: 60 }
     });
 
