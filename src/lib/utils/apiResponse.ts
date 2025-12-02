@@ -16,10 +16,19 @@ export interface ApiResponse<T> {
 // Generic handler for API requests
 export async function handleApiRequest<T>(
   fetchFunction: (date: string) => Promise<T[]>,
-  apiName: string
+  apiName: string,
+  request?: Request
 ): Promise<NextResponse<ApiResponse<T[]>>> {
   try {
-    const rcDate = getTodayYYYYMMDD();
+    // Use date from query parameter if provided, otherwise use today
+    let rcDate = getTodayYYYYMMDD();
+    if (request) {
+      const url = new URL(request.url);
+      const dateParam = url.searchParams.get('date');
+      if (dateParam && /^\d{8}$/.test(dateParam)) {
+        rcDate = dateParam;
+      }
+    }
 
     const data: T[] = await fetchFunction(rcDate);
 

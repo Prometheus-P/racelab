@@ -22,6 +22,13 @@ describe('GET /api/races/horse', () => {
     },
   ];
 
+  const createMockRequest = (date?: string) => {
+    const url = date
+      ? `http://localhost:3000/api/races/horse?date=${date}`
+      : 'http://localhost:3000/api/races/horse';
+    return new Request(url);
+  };
+
   beforeEach(() => {
     (fetchHorseRaceSchedules as jest.Mock).mockClear();
     (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(mockHorseRaces);
@@ -29,7 +36,7 @@ describe('GET /api/races/horse', () => {
 
   describe('Success Cases', () => {
     it('should_return_200_with_horse_races', async () => {
-      const response = await GET();
+      const response = await GET(createMockRequest());
 
       expect(response.status).toBe(200);
       expect(response.headers.get('Content-Type')).toContain('application/json');
@@ -41,7 +48,7 @@ describe('GET /api/races/horse', () => {
     });
 
     it('should_call_api_with_date_string', async () => {
-      await GET();
+      await GET(createMockRequest());
 
       expect(fetchHorseRaceSchedules).toHaveBeenCalledTimes(1);
       expect(fetchHorseRaceSchedules).toHaveBeenCalledWith(expect.stringMatching(/^\d{8}$/));
@@ -50,12 +57,18 @@ describe('GET /api/races/horse', () => {
     it('should_return_empty_array_when_no_races', async () => {
       (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue([]);
 
-      const response = await GET();
+      const response = await GET(createMockRequest());
       const jsonResponse = await response.json();
 
       expect(response.status).toBe(200);
       expect(jsonResponse.success).toBe(true);
       expect(jsonResponse.data).toEqual([]);
+    });
+
+    it('should_use_date_from_query_parameter', async () => {
+      await GET(createMockRequest('20251130'));
+
+      expect(fetchHorseRaceSchedules).toHaveBeenCalledWith('20251130');
     });
   });
 
@@ -63,7 +76,7 @@ describe('GET /api/races/horse', () => {
     it('should_return_500_when_api_fails', async () => {
       (fetchHorseRaceSchedules as jest.Mock).mockRejectedValue(new Error('API error'));
 
-      const response = await GET();
+      const response = await GET(createMockRequest());
 
       expect(response.status).toBe(500);
       const jsonResponse = await response.json();
@@ -75,7 +88,7 @@ describe('GET /api/races/horse', () => {
       const errorMessage = 'Connection timeout';
       (fetchHorseRaceSchedules as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-      const response = await GET();
+      const response = await GET(createMockRequest());
       const jsonResponse = await response.json();
 
       expect(jsonResponse.error.message).toContain(errorMessage);
@@ -84,21 +97,21 @@ describe('GET /api/races/horse', () => {
     it('should_handle_network_errors', async () => {
       (fetchHorseRaceSchedules as jest.Mock).mockRejectedValue(new Error('ECONNREFUSED'));
 
-      const response = await GET();
+      const response = await GET(createMockRequest());
       expect(response.status).toBe(500);
     });
   });
 
   describe('Response Format', () => {
     it('should_include_timestamp_in_iso_format', async () => {
-      const response = await GET();
+      const response = await GET(createMockRequest());
       const jsonResponse = await response.json();
 
       expect(jsonResponse.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
     it('should_return_correct_race_type', async () => {
-      const response = await GET();
+      const response = await GET(createMockRequest());
       const jsonResponse = await response.json();
 
       expect(jsonResponse.data[0].type).toBe('horse');

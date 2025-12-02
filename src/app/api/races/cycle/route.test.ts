@@ -28,6 +28,13 @@ describe('GET /api/races/cycle', () => {
     },
   ];
 
+  const createMockRequest = (date?: string) => {
+    const url = date
+      ? `http://localhost:3000/api/races/cycle?date=${date}`
+      : 'http://localhost:3000/api/races/cycle';
+    return new Request(url);
+  };
+
   beforeEach(() => {
     // Reset the mock before each test
     (fetchCycleRaceSchedules as jest.Mock).mockClear();
@@ -37,7 +44,7 @@ describe('GET /api/races/cycle', () => {
   });
 
   it('should return cycle race schedules successfully', async () => {
-    const response = await GET(); // Call the exported GET function
+    const response = await GET(createMockRequest());
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toContain('application/json');
@@ -55,7 +62,7 @@ describe('GET /api/races/cycle', () => {
   it('should handle errors from fetchCycleRaceSchedules', async () => {
     (fetchCycleRaceSchedules as jest.Mock).mockRejectedValue(new Error('API error'));
 
-    const response = await GET();
+    const response = await GET(createMockRequest());
 
     expect(response.status).toBe(500);
     expect(response.headers.get('Content-Type')).toContain('application/json');
@@ -65,5 +72,11 @@ describe('GET /api/races/cycle', () => {
     expect(jsonResponse).toHaveProperty('error');
     expect(jsonResponse.error.code).toBe('SERVER_ERROR');
     expect(jsonResponse.error.message).toContain('API error');
+  });
+
+  it('should use date from query parameter', async () => {
+    await GET(createMockRequest('20251130'));
+
+    expect(fetchCycleRaceSchedules).toHaveBeenCalledWith('20251130');
   });
 });
