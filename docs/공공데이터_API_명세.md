@@ -1,6 +1,6 @@
 # 공공데이터 API 명세서
 
-> 최종 업데이트: 2025-12-01
+> 최종 업데이트: 2025-12-02
 > 활용기간: 2025-12-01 ~ 2027-12-01
 
 ## 개요
@@ -61,24 +61,27 @@ GET https://apis.data.go.kr/B551015/API299/Race_Result_total
 
 | API명 | 엔드포인트 | 설명 페이지 | 현재 사용 |
 |-------|-----------|------------|----------|
-| **출주표_GW** | `/SRVC_OD_API_CRA_RACE_ORGAN` | [링크](https://www.data.go.kr/data/15107830/openapi.do) | 미사용 |
+| **출주표_GW** | `/SRVC_OD_API_CRA_RACE_ORGAN` | [링크](https://www.data.go.kr/data/15107830/openapi.do) | ✅ 사용 중 |
 | 경주결과_GW | `/SRVC_TODZ_CRA_RACE_RESULT` | [링크](https://www.data.go.kr/data/15107816/openapi.do) | |
 | 배당률_GW | `/SRVC_OD_API_CRA_PAYOFF` | [링크](https://www.data.go.kr/data/15107845/openapi.do) | |
 | 선수정보 | `/SRVC_CRA_RACER_INFO` | [링크](https://www.data.go.kr/data/15107844/openapi.do) | |
 | 경주결과순위 정보 | `/SRVC_CRA_RACE_RANK` | [링크](https://www.data.go.kr/data/15143989/openapi.do) | |
 | 운영 정보_GW | `/SRVC_OD_API_CRA_CYCLE_EXER` | [링크](https://www.data.go.kr/data/15107870/openapi.do) | |
 
-### 현재 코드 상태
+### SRVC_OD_API_CRA_RACE_ORGAN (출주표) - 현재 사용 중
 
-현재 코드는 레거시 API를 사용 중:
 ```
-/API214_01/raceCycle_1  (미승인 - 더미 데이터 반환)
+GET https://apis.data.go.kr/B551014/SRVC_OD_API_CRA_RACE_ORGAN/TODZ_API_CRA_RACE_ORGAN_I
 ```
 
-승인된 API로 전환 필요:
-```
-/SRVC_OD_API_CRA_RACE_ORGAN
-```
+**응답 필드:**
+- `meet_nm`: 경기장명 (광명/창원/부산)
+- `race_no`: 경주번호
+- `back_no`: 배번
+- `racer_nm`: 선수명
+- `racer_age`: 선수연령
+- `win_rate`: 승률
+- `gear_rate`: 기어배율
 
 ---
 
@@ -88,51 +91,55 @@ GET https://apis.data.go.kr/B551015/API299/Race_Result_total
 
 | API명 | 엔드포인트 | 설명 페이지 | 현재 사용 |
 |-------|-----------|------------|----------|
-| **출주표_GW** | `/SRVC_OD_API_VWEB_MBR_RACE_INFO` | [링크](https://www.data.go.kr/data/15107808/openapi.do) | 미사용 |
+| **출주표_GW** | `/SRVC_OD_API_VWEB_MBR_RACE_INFO` | [링크](https://www.data.go.kr/data/15107808/openapi.do) | ✅ 사용 중 |
 | 경주결과_GW | `/SRVC_OD_API_MBR_RACE_RESULT` | [링크](https://www.data.go.kr/data/15107847/openapi.do) | |
 | 배당률_GW | `/SRVC_OD_API_MBR_PAYOFF` | [링크](https://www.data.go.kr/data/15107811/openapi.do) | |
 | 선수정보 | `/SRVC_VWEB_MBR_RACER_INFO` | [링크](https://www.data.go.kr/data/15107809/openapi.do) | |
 | 경주결과순위 정보 | `/SRVC_MRA_RACE_RANK` | [링크](https://www.data.go.kr/data/15143984/openapi.do) | |
 | 운영 정보_GW | `/SRVC_OD_API_MRA_SUPP_CD` | [링크](https://www.data.go.kr/data/15107867/openapi.do) | |
 
-### 현재 코드 상태
+### SRVC_OD_API_VWEB_MBR_RACE_INFO (출주표) - 현재 사용 중
 
-현재 코드는 레거시 API를 사용 중:
 ```
-/API214_02/raceBoat_1  (미승인 - 더미 데이터 반환)
+GET https://apis.data.go.kr/B551014/SRVC_OD_API_VWEB_MBR_RACE_INFO/TODZ_API_VWEB_MBR_RACE_I
 ```
 
-승인된 API로 전환 필요:
-```
-/SRVC_OD_API_VWEB_MBR_RACE_INFO
-```
+**응답 필드:**
+- `meet_nm`: 경기장명 (미사리)
+- `race_no`: 경주번호
+- `back_no`: 배번
+- `racer_nm`: 선수명
+- `racer_age`: 선수연령
+- `motor_no`: 모터번호
+- `boat_no`: 보트번호
+- `tms_6_avg_rank_scr`: 최근6회차 평균착순점수
 
 ---
 
 ## 인증키 정보
 
+환경변수에는 Decoding 버전 사용 (Next.js가 자동 인코딩 처리)
+
 ```bash
-# 일반 인증키 (Encoding) - URL 파라미터용
-XGfQh5wSOANNzDwscJG05YrhKK0RNBSStvbxDCAHBsMSGcUt%2FXRx98qXZiFcvNkL8G%2FNwDgcOxqrcyMgmtFd6w%3D%3D
-
-# 일반 인증키 (Decoding) - 환경변수용
-XGfQh5wSOANNzDwscJG05YrhKK0RNBSStvbxDCAHBsMSGcUt/XRx98qXZiFcvNkL8G/NwDgcOxqrcyMgmtFd6w==
+# .env.local
+KRA_API_KEY=your_decoding_key_here
+KSPO_API_KEY=your_decoding_key_here
 ```
-
-**참고:** Next.js에서는 Decoding 버전 사용 (자동 인코딩 처리)
 
 ---
 
-## TODO: API 전환 작업
+## API 연동 현황
 
-### Phase 1 (현재)
-- [x] API299 (경마 결과) - 작동 중
+| 종목 | 엔드포인트 | 상태 |
+|------|-----------|------|
+| 경마 | `/API299/Race_Result_total` | ✅ 연동 완료 |
+| 경륜 | `/SRVC_OD_API_CRA_RACE_ORGAN/TODZ_API_CRA_RACE_ORGAN_I` | ✅ 연동 완료 |
+| 경정 | `/SRVC_OD_API_VWEB_MBR_RACE_INFO/TODZ_API_VWEB_MBR_RACE_I` | ✅ 연동 완료 |
 
-### Phase 2 (예정)
-- [ ] 경륜: `API214_01` → `SRVC_OD_API_CRA_RACE_ORGAN` 전환
-- [ ] 경정: `API214_02` → `SRVC_OD_API_VWEB_MBR_RACE_INFO` 전환
+### 향후 작업 (Phase 2)
 - [ ] 배당률 API 연동
 - [ ] 경주결과 API 연동
+- [ ] 선수정보 API 연동
 
 ---
 
