@@ -50,8 +50,8 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          KSPO_API_URL: ${{ vars.KSPO_API_URL_PREVIEW }}
-          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY_PREVIEW }}
+          KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
+          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
 
       - name: Deploy to Vercel Preview
         id: deploy

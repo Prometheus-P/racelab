@@ -116,9 +116,9 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # Use vars for non-sensitive URL, secrets for sensitive API key
-          KSPO_API_URL: ${{ vars.KSPO_API_URL_TEST }}
-          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY_TEST }}
+          # Use secrets for sensitive API keys
+          KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
+          KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
 
       - name: Run E2E tests
         run: npm run test:e2e
@@ -156,8 +156,8 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # Use vars for non-sensitive URL, secrets for sensitive API key
-          KSPO_API_URL: ${{ vars.KSPO_API_URL }}
+          # Use secrets for sensitive API keys
+          KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
           KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
 
       - name: Upload build artifacts
