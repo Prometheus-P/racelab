@@ -50,4 +50,63 @@ export interface RaceResult {
   payout?: number;        // 배당금 (원)
 }
 
-// Additional types will be added here as needed.
+// ============================================
+// Historical Race Results Types
+// ============================================
+
+export type DividendType = 'win' | 'place' | 'quinella';
+
+export interface Dividend {
+  type: DividendType;
+  entries: number[];
+  amount: number;
+}
+
+export interface HistoricalRaceResult {
+  rank: number;
+  entryNo: number;
+  name: string;
+  jockey?: string;
+  trainer?: string;
+  time?: string;
+  timeDiff?: string;
+}
+
+export interface HistoricalRace {
+  id: string;
+  type: RaceType;
+  raceNo: number;
+  track: string;
+  date: string;
+  startTime: string;
+  distance?: number;
+  grade?: string;
+  status: 'finished' | 'canceled';
+  results: HistoricalRaceResult[];
+  dividends: Dividend[];
+}
+
+export interface ResultsSearchParams {
+  dateFrom?: string;
+  dateTo?: string;
+  types?: RaceType[];
+  track?: string;
+  jockey?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResults<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Track information by race type
+export interface Track {
+  code: string;
+  name: string;
+  raceType: RaceType;
+}

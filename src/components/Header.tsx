@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 
 interface NavItem {
   href: string;
@@ -47,10 +47,12 @@ const navItems: NavItem[] = [
 
 const Header: React.FC = () => {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const currentTab = searchParams.get('tab');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (tab: string) => currentTab === tab;
+  const isResultsPage = pathname === '/results';
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -100,6 +102,28 @@ const Header: React.FC = () => {
                 )}
               </Link>
             ))}
+            {/* Results link */}
+            <Link
+              href="/results"
+              aria-current={isResultsPage ? 'page' : undefined}
+              title="경기 결과 보기"
+              className={`
+                relative min-h-[44px] min-w-[44px] px-4 py-2
+                font-medium rounded-lg
+                transition-all duration-150 ease-out
+                focus:outline-none focus:ring-2 focus:ring-offset-2
+                ${isResultsPage
+                  ? 'text-primary bg-gray-100 focus:ring-current'
+                  : 'text-gray-700 hover:text-primary hover:bg-gray-50 focus:ring-gray-400'
+                }
+              `}
+            >
+              <span aria-hidden="true">📊</span>{' '}
+              <span>결과</span>
+              {isResultsPage && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-current rounded-full" />
+              )}
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -178,6 +202,30 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
               ))}
+              {/* Results link in mobile menu */}
+              <li>
+                <Link
+                  href="/results"
+                  aria-current={isResultsPage ? 'page' : undefined}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`
+                    flex items-center min-h-[44px] px-4 py-3
+                    font-medium rounded-lg
+                    transition-all duration-150 ease-out
+                    focus:outline-none focus:ring-2 focus:ring-offset-2
+                    ${isResultsPage
+                      ? 'text-primary bg-gray-100 focus:ring-current'
+                      : 'text-gray-700 hover:text-primary hover:bg-gray-50 focus:ring-gray-400'
+                    }
+                  `}
+                >
+                  <span aria-hidden="true" className="mr-3 text-xl">📊</span>
+                  <span>결과</span>
+                  {isResultsPage && (
+                    <span className="ml-auto text-sm">현재 페이지</span>
+                  )}
+                </Link>
+              </li>
             </ul>
           </nav>
         )}

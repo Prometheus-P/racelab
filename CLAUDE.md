@@ -103,3 +103,10 @@ Required in `.env.local`:
 - `NEXT_PUBLIC_SITE_URL` - Site URL for SEO
 
 When API keys are missing, the app falls back to dummy data from `lib/api-helpers/dummy.ts`.
+
+## Active Technologies
+- TypeScript 5.9 + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4 (001-race-results-history)
+- N/A (external API data, cached via Next.js fetch caching) (001-race-results-history)
+
+## Recent Changes
+- 001-race-results-history: Added TypeScript 5.9 + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4

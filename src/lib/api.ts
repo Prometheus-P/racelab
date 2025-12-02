@@ -1,5 +1,5 @@
 // src/lib/api.ts
-import { Race, Entry } from '@/types';
+import { Race, Entry, HistoricalRace, ResultsSearchParams, PaginatedResults } from '@/types';
 import {
   mapKRA299ToRaces,
   mapKSPOCycleRaceOrganToRaces,
@@ -8,7 +8,7 @@ import {
   KSPOCycleRaceOrganItem,
   KSPOBoatRaceInfoItem,
 } from './api-helpers/mappers';
-import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces } from './api-helpers/dummy';
+import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces, getDummyHistoricalResults, getDummyHistoricalRaceById } from './api-helpers/dummy';
 
 
 const KRA_BASE_URL = 'https://apis.data.go.kr/B551015';
@@ -199,4 +199,65 @@ export async function fetchRaceResults(raceId: string): Promise<RaceResult[] | n
   // In the future, this will call the actual API for race results
   // For completed races, it will return actual results
   return [];
+}
+
+// ============================================
+// Historical Race Results API
+// ============================================
+
+/**
+ * Fetch historical race results with filtering and pagination
+ */
+export async function fetchHistoricalResults(
+  params: ResultsSearchParams
+): Promise<PaginatedResults<HistoricalRace>> {
+  const {
+    dateFrom,
+    dateTo,
+    types,
+    track,
+    jockey,
+    page = 1,
+    limit = 20,
+  } = params;
+
+  // Default to today if no dates provided
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const fromDate = dateFrom || today;
+  const toDate = dateTo || today;
+
+  // For now, use dummy data
+  // In the future, this will call the actual APIs (KRA API299, KSPO APIs)
+  let results = getDummyHistoricalResults(fromDate, toDate, types, track);
+
+  // Filter by jockey name if provided
+  if (jockey) {
+    results = results.filter(race =>
+      race.results.some(r => r.jockey?.includes(jockey))
+    );
+  }
+
+  // Calculate pagination
+  const total = results.length;
+  const totalPages = Math.ceil(total / limit);
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const items = results.slice(startIndex, endIndex);
+
+  return {
+    items,
+    total,
+    page,
+    limit,
+    totalPages,
+  };
+}
+
+/**
+ * Fetch a single historical race result by ID
+ */
+export async function fetchHistoricalResultById(id: string): Promise<HistoricalRace | null> {
+  // For now, use dummy data
+  // In the future, this will call the actual API based on race type
+  return getDummyHistoricalRaceById(id);
 }

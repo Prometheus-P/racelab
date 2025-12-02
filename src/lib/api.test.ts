@@ -1,4 +1,4 @@
-import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules, fetchRaceById } from '../lib/api';
+import { fetchHorseRaceSchedules, fetchCycleRaceSchedules, fetchBoatRaceSchedules, fetchRaceById, fetchHistoricalResults, fetchHistoricalResultById } from '../lib/api';
 
 describe('API Client', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -274,5 +274,114 @@ describe('API Client', () => {
     const race = await fetchRaceById('invalid-id');
 
     expect(race).toBeNull();
+  });
+});
+
+// Historical Results API Tests
+describe('Historical Results API', () => {
+  beforeEach(() => {
+    // No API keys set - should use dummy data
+    delete process.env.KRA_API_KEY;
+    delete process.env.KSPO_API_KEY;
+  });
+
+  it('should fetch historical results with pagination', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const result = await fetchHistoricalResults({
+      dateFrom: today,
+      dateTo: today,
+      page: 1,
+      limit: 20,
+    });
+
+    expect(result).toHaveProperty('items');
+    expect(result).toHaveProperty('total');
+    expect(result).toHaveProperty('page', 1);
+    expect(result).toHaveProperty('limit', 20);
+    expect(result).toHaveProperty('totalPages');
+    expect(result.items).toBeInstanceOf(Array);
+  });
+
+  it('should filter historical results by race type', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const result = await fetchHistoricalResults({
+      dateFrom: today,
+      dateTo: today,
+      types: ['horse'],
+    });
+
+    expect(result.items).toBeInstanceOf(Array);
+    result.items.forEach(race => {
+      expect(race.type).toBe('horse');
+    });
+  });
+
+  it('should filter historical results by track', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const result = await fetchHistoricalResults({
+      dateFrom: today,
+      dateTo: today,
+      types: ['horse'],
+      track: '서울',
+    });
+
+    expect(result.items).toBeInstanceOf(Array);
+    result.items.forEach(race => {
+      expect(race.track).toBe('서울');
+    });
+  });
+
+  it('should filter historical results by jockey name', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const result = await fetchHistoricalResults({
+      dateFrom: today,
+      dateTo: today,
+      types: ['horse'],
+      jockey: '김',
+    });
+
+    expect(result.items).toBeInstanceOf(Array);
+    // Each result should have at least one entry with jockey containing '김'
+    result.items.forEach(race => {
+      const hasMatchingJockey = race.results.some(r => r.jockey?.includes('김'));
+      expect(hasMatchingJockey).toBe(true);
+    });
+  });
+
+  it('should fetch a single historical result by ID', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const id = `horse-1-1-${today}`;
+    const result = await fetchHistoricalResultById(id);
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(id);
+    expect(result?.type).toBe('horse');
+    expect(result?.results).toBeInstanceOf(Array);
+    expect(result?.dividends).toBeInstanceOf(Array);
+  });
+
+  it('should return null for invalid historical result ID', async () => {
+    const result = await fetchHistoricalResultById('invalid-id');
+    expect(result).toBeNull();
+  });
+
+  it('should include dividend information in historical results', async () => {
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const result = await fetchHistoricalResults({
+      dateFrom: today,
+      dateTo: today,
+      page: 1,
+      limit: 5,
+    });
+
+    expect(result.items.length).toBeGreaterThan(0);
+    const race = result.items[0];
+    expect(race.dividends).toBeInstanceOf(Array);
+    expect(race.dividends.length).toBeGreaterThan(0);
+
+    const dividend = race.dividends[0];
+    expect(dividend).toHaveProperty('type');
+    expect(dividend).toHaveProperty('entries');
+    expect(dividend).toHaveProperty('amount');
   });
 });
