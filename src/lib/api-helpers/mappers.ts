@@ -55,6 +55,7 @@ export interface KRA299ResultItem {
   seS1fAccTime?: number; // 출발 1F 누적시간
 }
 
+// Legacy API214 format (deprecated)
 export interface KSPORaceItem {
   meet?: string;
   rcNo?: string;
@@ -65,6 +66,37 @@ export interface KSPORaceItem {
   hrName?: string;
   age?: string;
   recentRecord?: string;
+}
+
+// New approved API format: SRVC_OD_API_CRA_RACE_ORGAN (경륜 출주표)
+export interface KSPOCycleRaceOrganItem {
+  meet_nm?: string;      // 경기장명 (광명/창원/부산)
+  stnd_yr?: string;      // 기준년도
+  week_tcnt?: string;    // 주회차
+  day_tcnt?: string;     // 일회차
+  race_no?: string;      // 경주번호
+  back_no?: string;      // 배번
+  racer_nm?: string;     // 선수명
+  racer_age?: string;    // 선수연령
+  win_rate?: string;     // 승률
+  gear_rate?: string;    // 기어배율
+  rec_200m_scr?: string; // 200m 기록
+}
+
+// New approved API format: SRVC_OD_API_VWEB_MBR_RACE_INFO (경정 출주표)
+export interface KSPOBoatRaceInfoItem {
+  meet_nm?: string;      // 경기장명 (미사리)
+  stnd_yr?: string;      // 기준년도
+  week_tcnt?: string;    // 주회차
+  day_tcnt?: string;     // 일회차
+  race_no?: string;      // 경주번호
+  back_no?: string;      // 배번
+  racer_nm?: string;     // 선수명
+  racer_age?: string;    // 선수연령
+  wght?: string;         // 체중
+  motor_no?: string;     // 모터번호
+  boat_no?: string;      // 보트번호
+  tms_6_avg_rank_scr?: string; // 최근6회차 평균착순점수
 }
 
 /**
@@ -170,6 +202,87 @@ export function mapKSPOBoatRaceToRace(item: KSPORaceItem): Race {
     status: 'upcoming',
     entries: entries,
   };
+}
+
+/**
+ * Map new SRVC_OD_API_CRA_RACE_ORGAN items to Race objects
+ * Groups entries by race number for cycle races
+ */
+export function mapKSPOCycleRaceOrganToRaces(items: KSPOCycleRaceOrganItem[], rcDate: string): Race[] {
+  const raceMap = new Map<string, Race>();
+
+  for (const item of items) {
+    const raceNo = item.race_no || '0';
+    const meetCode = item.meet_nm === '광명' ? '1' : item.meet_nm === '창원' ? '2' : '3';
+    const raceId = `cycle-${meetCode}-${raceNo}-${rcDate}`;
+
+    let race = raceMap.get(raceId);
+    if (!race) {
+      race = {
+        id: raceId,
+        type: 'cycle',
+        raceNo: parseInt(raceNo),
+        track: item.meet_nm || '광명',
+        startTime: '',
+        status: 'upcoming',
+        entries: [],
+      };
+      raceMap.set(raceId, race);
+    }
+
+    // Add entry to race
+    if (item.racer_nm) {
+      race.entries = race.entries || [];
+      race.entries.push({
+        no: item.back_no ? parseInt(item.back_no) : race.entries.length + 1,
+        name: item.racer_nm,
+        age: item.racer_age ? parseInt(item.racer_age) : undefined,
+        recentRecord: item.win_rate ? `승률 ${item.win_rate}%` : undefined,
+      });
+    }
+  }
+
+  return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
+}
+
+/**
+ * Map new SRVC_OD_API_VWEB_MBR_RACE_INFO items to Race objects
+ * Groups entries by race number for boat races
+ */
+export function mapKSPOBoatRaceInfoToRaces(items: KSPOBoatRaceInfoItem[], rcDate: string): Race[] {
+  const raceMap = new Map<string, Race>();
+
+  for (const item of items) {
+    const raceNo = item.race_no || '0';
+    const raceId = `boat-1-${raceNo}-${rcDate}`;
+
+    let race = raceMap.get(raceId);
+    if (!race) {
+      race = {
+        id: raceId,
+        type: 'boat',
+        raceNo: parseInt(raceNo),
+        track: item.meet_nm || '미사리',
+        startTime: '',
+        status: 'upcoming',
+        entries: [],
+      };
+      raceMap.set(raceId, race);
+    }
+
+    // Add entry to race
+    if (item.racer_nm) {
+      race.entries = race.entries || [];
+      race.entries.push({
+        no: item.back_no ? parseInt(item.back_no) : race.entries.length + 1,
+        name: item.racer_nm,
+        age: item.racer_age ? parseInt(item.racer_age) : undefined,
+        recentRecord: item.tms_6_avg_rank_scr ? `평균착순 ${item.tms_6_avg_rank_scr}` : undefined,
+      });
+    }
+  }
+
+  return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
 }
 
 /**

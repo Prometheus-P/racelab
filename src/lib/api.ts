@@ -1,35 +1,18 @@
 // src/lib/api.ts
 import { Race, Entry } from '@/types';
 import {
-  mapKSPOCycleRaceToRace,
-  mapKSPOBoatRaceToRace,
   mapKRA299ToRaces,
-  KSPORaceItem,
+  mapKSPOCycleRaceOrganToRaces,
+  mapKSPOBoatRaceInfoToRaces,
   KRA299ResultItem,
+  KSPOCycleRaceOrganItem,
+  KSPOBoatRaceInfoItem,
 } from './api-helpers/mappers';
 import { getDummyHorseRaces, getDummyCycleRaces, getDummyBoatRaces } from './api-helpers/dummy';
 
 
 const KRA_BASE_URL = 'https://apis.data.go.kr/B551015';
-const KSPO_BASE_URL = 'http://apis.data.go.kr/B551014';
-
-// Helper function to aggregate races with the same ID
-// API returns flat data with one row per entry, so we need to combine entries for the same race
-function aggregateRaces(races: Race[]): Race[] {
-  const raceMap = new Map<string, Race>();
-
-  for (const race of races) {
-    const existing = raceMap.get(race.id);
-    if (existing) {
-      // Merge entries
-      existing.entries = [...(existing.entries || []), ...(race.entries || [])];
-    } else {
-      raceMap.set(race.id, { ...race, entries: [...(race.entries || [])] });
-    }
-  }
-
-  return Array.from(raceMap.values());
-}
+const KSPO_BASE_URL = 'https://apis.data.go.kr/B551014';
 
 
 // Generic API fetch function with flexible date parameter
@@ -112,37 +95,41 @@ export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
 export async function fetchCycleRaceSchedules(rcDate: string): Promise<Race[]> {
   const KSPO_API_KEY = process.env.KSPO_API_KEY;
 
+  // Use approved API: SRVC_OD_API_CRA_RACE_ORGAN (경륜 출주표)
   const rawItems = await fetchApi(
     KSPO_BASE_URL,
-    '/API214_01/raceCycle_1',
+    '/SRVC_OD_API_CRA_RACE_ORGAN/TODZ_API_CRA_RACE_ORGAN_I',
     KSPO_API_KEY,
-    {}, // No extra params for now
+    { resultType: 'json' },
     getDummyCycleRaces,
     rcDate,
     'KSPO Cycle',
     'KSPO_API_KEY'
   );
 
-  const races = (rawItems as KSPORaceItem[]).map(mapKSPOCycleRaceToRace);
-  return aggregateRaces(races);
+  // Use new mapper for approved API format
+  const races = mapKSPOCycleRaceOrganToRaces(rawItems as KSPOCycleRaceOrganItem[], rcDate);
+  return races;
 }
 
 export async function fetchBoatRaceSchedules(rcDate: string): Promise<Race[]> {
   const KSPO_API_KEY = process.env.KSPO_API_KEY;
 
+  // Use approved API: SRVC_OD_API_VWEB_MBR_RACE_INFO (경정 출주표)
   const rawItems = await fetchApi(
     KSPO_BASE_URL,
-    '/API214_02/raceBoat_1',
+    '/SRVC_OD_API_VWEB_MBR_RACE_INFO/TODZ_API_VWEB_MBR_RACE_I',
     KSPO_API_KEY,
-    {}, // No extra params for now
+    { resultType: 'json' },
     getDummyBoatRaces,
     rcDate,
     'KSPO Boat',
     'KSPO_API_KEY'
   );
 
-  const races = (rawItems as KSPORaceItem[]).map(mapKSPOBoatRaceToRace);
-  return aggregateRaces(races);
+  // Use new mapper for approved API format
+  const races = mapKSPOBoatRaceInfoToRaces(rawItems as KSPOBoatRaceInfoItem[], rcDate);
+  return races;
 }
 
 export async function fetchRaceById(id: string): Promise<Race | null> {

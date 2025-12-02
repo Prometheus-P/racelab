@@ -60,17 +60,25 @@ describe('API Client', () => {
                 },
               },
             });
-          } else if (typeof url === 'string' && url.includes('API214_01')) { // KSPO API (Cycle)
-            // Mock response for KSPO cycle race schedules with basic entry data
+          } else if (typeof url === 'string' && url.includes('SRVC_OD_API_CRA_RACE_ORGAN')) { // KSPO Cycle (New approved API)
+            // Mock response for KSPO cycle race schedules (new approved API format)
             return Promise.resolve({
               response: {
                 header: { resultCode: '00', resultMsg: 'NORMAL SERVICE' },
                 body: {
                   items: {
                     item: [
-                      { meet: '1', rcNo: '1', rcTime: '11:00', rcDist: '1000',
-                        // Adding mock entry data for testing purposes
-                        hrNo: '1', hrName: '선수1', age: '25', recentRecord: '1-2-3'
+                      {
+                        meet_nm: '광명',
+                        stnd_yr: '2024',
+                        week_tcnt: '1',
+                        day_tcnt: '1',
+                        race_no: '1',
+                        back_no: '1',
+                        racer_nm: '선수1',
+                        racer_age: '25',
+                        win_rate: '15.5',
+                        gear_rate: '3.92',
                       },
                     ],
                   },
@@ -78,17 +86,27 @@ describe('API Client', () => {
                 },
               },
             });
-          } else if (typeof url === 'string' && url.includes('API214_02')) { // KSPO API (Boat)
-            // Mock response for KSPO boat race schedules with basic entry data
+          } else if (typeof url === 'string' && url.includes('SRVC_OD_API_VWEB_MBR_RACE_INFO')) { // KSPO Boat (New approved API)
+            // Mock response for KSPO boat race schedules (new approved API format)
             return Promise.resolve({
               response: {
                 header: { resultCode: '00', resultMsg: 'NORMAL SERVICE' },
                 body: {
                   items: {
                     item: [
-                      { meet: '1', rcNo: '1', rcTime: '10:30',
-                        // Adding mock entry data for testing purposes
-                        hrNo: '1', hrName: '선수1', age: '28', recentRecord: '1-2-3'
+                      {
+                        meet_nm: '미사리',
+                        stnd_yr: '2024',
+                        week_tcnt: '1',
+                        day_tcnt: '1',
+                        race_no: '1',
+                        back_no: '1',
+                        racer_nm: '선수1',
+                        racer_age: '28',
+                        wght: '52',
+                        motor_no: '15',
+                        boat_no: '23',
+                        tms_6_avg_rank_scr: '3.2',
                       },
                     ],
                   },
@@ -161,7 +179,7 @@ describe('API Client', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('http://apis.data.go.kr/B551014/API214_01/raceCycle_1'),
+      expect.stringContaining('https://apis.data.go.kr/B551014/SRVC_OD_API_CRA_RACE_ORGAN'),
       expect.anything()
     );
     expect(schedules).toBeInstanceOf(Array);
@@ -171,7 +189,6 @@ describe('API Client', () => {
     expect(schedules[0]).toHaveProperty('raceNo');
     expect(schedules[0]).toHaveProperty('track');
     expect(schedules[0]).toHaveProperty('startTime');
-    expect(schedules[0]).toHaveProperty('distance');
 
     // New assertions for entries
     expect(schedules[0].entries).toBeInstanceOf(Array);
@@ -195,7 +212,6 @@ describe('API Client', () => {
     expect(schedules[0]).toHaveProperty('type', 'cycle');
     expect(schedules[0]).toHaveProperty('track');
     expect(schedules[0]).toHaveProperty('startTime');
-    expect(schedules[0]).toHaveProperty('distance');
   });
 
   it('should fetch boat race schedules from KSPO API when API key is set and include entry details', async () => {
@@ -205,7 +221,7 @@ describe('API Client', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('http://apis.data.go.kr/B551014/API214_02/raceBoat_1'),
+      expect.stringContaining('https://apis.data.go.kr/B551014/SRVC_OD_API_VWEB_MBR_RACE_INFO'),
       expect.anything()
     );
     expect(schedules).toBeInstanceOf(Array);
