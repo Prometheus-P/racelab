@@ -102,20 +102,20 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T014 [P] [US1] Write failing test for ResultCard component in src/components/ResultCard.test.tsx
-- [ ] T015 [P] [US1] Write failing test for ResultsList component in src/components/ResultsList.test.tsx
-- [ ] T016 [P] [US1] Write failing test for results page in src/app/results/page.test.tsx
-- [ ] T017 [P] [US1] Write failing E2E test for browse results in e2e/tests/results.spec.ts
+- [x] T014 [P] [US1] Write failing test for ResultCard component in src/components/ResultCard.test.tsx
+- [x] T015 [P] [US1] Write failing test for ResultsList component in src/components/ResultsList.test.tsx
+- [x] T016 [P] [US1] Write failing test for results page in src/app/results/page.test.tsx
+- [x] T017 [P] [US1] Write failing E2E test for browse results in e2e/tests/results.spec.ts
 
 ### Implementation
 
-- [ ] T018 [P] [US1] Create ResultCard component (extends M3Card) displaying race summary in src/components/ResultCard.tsx
-- [ ] T019 [P] [US1] Create DividendDisplay component for payout info in src/components/DividendDisplay.tsx
-- [ ] T020 [US1] Create ResultsList component with pagination in src/components/ResultsList.tsx
-- [ ] T021 [US1] Create Pagination component in src/components/Pagination.tsx
-- [ ] T022 [US1] Implement results page with data fetching in src/app/results/page.tsx
-- [ ] T023 [US1] Add loading skeleton for results page (M3 skeleton pattern) in src/components/Skeletons.tsx
-- [ ] T024 [US1] Create results page object for E2E tests in e2e/pages/results.page.ts
+- [x] T018 [P] [US1] Create ResultCard component (extends M3Card) displaying race summary in src/components/ResultCard.tsx
+- [x] T019 [P] [US1] Create DividendDisplay component for payout info in src/components/DividendDisplay.tsx
+- [x] T020 [US1] Create ResultsList component with pagination in src/components/ResultsList.tsx
+- [x] T021 [US1] Create Pagination component in src/components/Pagination.tsx
+- [x] T022 [US1] Implement results page with data fetching in src/app/results/page.tsx
+- [x] T023 [US1] Add loading skeleton for results page (M3 skeleton pattern) in src/components/Skeletons.tsx
+- [x] T024 [US1] Create results page object for E2E tests in e2e/pages/results.page.ts
 
 **Checkpoint**: User Story 1 complete - users can browse recent results with pagination
 

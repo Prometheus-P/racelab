@@ -63,3 +63,51 @@ export function HeaderSkeleton() {
     </header>
   );
 }
+
+export function ResultsSkeleton() {
+  return (
+    <div
+      className="space-y-4"
+      aria-label="결과 로딩 중"
+      role="status"
+      data-testid="results-skeleton"
+    >
+      {/* Count skeleton */}
+      <div className="h-5 bg-gray-200 rounded w-24 animate-pulse" />
+
+      {/* Result cards skeleton */}
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-m3-md shadow-m3-1 p-4 border-l-4 border-gray-200 animate-pulse"
+        >
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-8 w-8 bg-gray-200 rounded-full" />
+            <div>
+              <div className="h-4 bg-gray-200 rounded w-32 mb-1" />
+              <div className="h-3 bg-gray-200 rounded w-24" />
+            </div>
+          </div>
+
+          {/* Results */}
+          <div className="space-y-2">
+            {[1, 2, 3].map((j) => (
+              <div key={j} className="flex items-center gap-3">
+                <div className="h-6 w-6 bg-gray-200 rounded-full" />
+                <div className="h-4 bg-gray-200 rounded flex-1 max-w-[120px]" />
+                <div className="h-3 bg-gray-200 rounded w-16" />
+              </div>
+            ))}
+          </div>
+
+          {/* Dividend */}
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="h-4 bg-gray-200 rounded w-28" />
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">경주 결과를 불러오는 중입니다</span>
+    </div>
+  );
+}
