@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { ResultsList } from '@/components/ResultsList';
+import { ResultFiltersClient } from '@/components/ResultFiltersClient';
 import { ResultsSkeleton } from '@/components/Skeletons';
 import { HistoricalRace, PaginatedResults } from '@/types';
 import { ApiResponse } from '@/lib/utils/apiResponse';
@@ -78,6 +79,13 @@ export default async function ResultsPage({ searchParams }: ResultsPageProps) {
         <p className="text-body-large text-on-surface-variant">
           최근 경마, 경륜, 경정 결과를 확인하세요
         </p>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6">
+        <Suspense fallback={null}>
+          <ResultFiltersClient />
+        </Suspense>
       </div>
 
       {/* Results */}

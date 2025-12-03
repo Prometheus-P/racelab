@@ -202,3 +202,371 @@ test.describe('Results Page - Accessibility', () => {
     await expect(resultsPage.resultCards.first()).toBeFocused();
   });
 });
+
+test.describe('Results Page - Filter by Date and Type (US2)', () => {
+  let resultsPage: ResultsPage;
+
+  test.beforeEach(async ({ page }) => {
+    resultsPage = new ResultsPage(page);
+    await resultsPage.goto();
+    await resultsPage.waitForResults();
+  });
+
+  test('should display filter controls', async () => {
+    // Date range filter
+    await expect(resultsPage.dateFromInput).toBeVisible();
+    await expect(resultsPage.dateToInput).toBeVisible();
+
+    // Race type filter chips
+    await expect(resultsPage.horseTypeChip).toBeVisible();
+    await expect(resultsPage.cycleTypeChip).toBeVisible();
+    await expect(resultsPage.boatTypeChip).toBeVisible();
+  });
+
+  test('should filter by date range', async ({ page }) => {
+    // Set date range
+    await resultsPage.setDateFrom('2023-12-01');
+    await resultsPage.setDateTo('2023-12-31');
+
+    // Wait for filtered results
+    await resultsPage.waitForResults();
+
+    // URL should reflect date filters
+    expect(page.url()).toContain('dateFrom=2023-12-01');
+    expect(page.url()).toContain('dateTo=2023-12-31');
+  });
+
+  test('should filter by horse race type', async ({ page }) => {
+    // Click horse filter
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // URL should reflect type filter
+    expect(page.url()).toContain('types=horse');
+
+    // All visible cards should be horse races
+    const firstCard = resultsPage.resultCards.first();
+    await expect(firstCard.locator('[data-testid="race-type-icon"]')).toContainText('🐎');
+  });
+
+  test('should filter by cycle race type', async ({ page }) => {
+    await resultsPage.selectRaceType('cycle');
+    await resultsPage.waitForResults();
+
+    expect(page.url()).toContain('types=cycle');
+
+    const firstCard = resultsPage.resultCards.first();
+    await expect(firstCard.locator('[data-testid="race-type-icon"]')).toContainText('🚴');
+  });
+
+  test('should filter by boat race type', async ({ page }) => {
+    await resultsPage.selectRaceType('boat');
+    await resultsPage.waitForResults();
+
+    expect(page.url()).toContain('types=boat');
+
+    const firstCard = resultsPage.resultCards.first();
+    await expect(firstCard.locator('[data-testid="race-type-icon"]')).toContainText('🚤');
+  });
+
+  test('should filter by multiple race types', async ({ page }) => {
+    // Select both horse and cycle
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.selectRaceType('cycle');
+    await resultsPage.waitForResults();
+
+    // URL should contain both types
+    expect(page.url()).toMatch(/types=.*horse/);
+    expect(page.url()).toMatch(/types=.*cycle/);
+  });
+
+  test('should combine date and type filters', async ({ page }) => {
+    // Set date range
+    await resultsPage.setDateFrom('2023-12-01');
+
+    // Select horse type
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Both filters in URL
+    expect(page.url()).toContain('dateFrom=2023-12-01');
+    expect(page.url()).toContain('types=horse');
+  });
+
+  test('should show clear filter button when filters active', async () => {
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    await expect(resultsPage.clearFiltersButton).toBeVisible();
+  });
+
+  test('should clear all filters when clear button clicked', async ({ page }) => {
+    // Apply filters
+    await resultsPage.setDateFrom('2023-12-01');
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Clear filters
+    await resultsPage.clearFilters();
+    await resultsPage.waitForResults();
+
+    // URL should not have filters
+    expect(page.url()).not.toContain('dateFrom');
+    expect(page.url()).not.toContain('types');
+  });
+
+  test('should update results count after filtering', async () => {
+    const initialCount = await resultsPage.getTotalCount();
+
+    // Apply filter
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Count should update (may be same or different)
+    const filteredCount = await resultsPage.getTotalCount();
+    expect(filteredCount).toBeTruthy();
+  });
+
+  test('should reset pagination when filter changes', async ({ page }) => {
+    // Go to page 2
+    await page.goto('/results?page=2');
+    await resultsPage.waitForResults();
+
+    // Apply filter
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Should reset to page 1
+    expect(page.url()).not.toContain('page=2');
+  });
+
+  test('should preserve filters on page navigation', async ({ page }) => {
+    // Apply filter
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Go to next page
+    await resultsPage.goToNextPage();
+    await resultsPage.waitForResults();
+
+    // Filter should persist
+    expect(page.url()).toContain('types=horse');
+  });
+});
+
+test.describe('Results Page - Filter Mobile (US2)', () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test('should collapse filters by default on mobile', async ({ page }) => {
+    const resultsPage = new ResultsPage(page);
+    await resultsPage.goto();
+    await resultsPage.waitForResults();
+
+    // Filter toggle should be visible
+    await expect(resultsPage.filterToggle).toBeVisible();
+  });
+
+  test('should expand filters when toggle clicked', async ({ page }) => {
+    const resultsPage = new ResultsPage(page);
+    await resultsPage.goto();
+    await resultsPage.waitForResults();
+
+    // Click toggle
+    await resultsPage.filterToggle.click();
+
+    // Filters should be visible
+    await expect(resultsPage.dateFromInput).toBeVisible();
+    await expect(resultsPage.horseTypeChip).toBeVisible();
+  });
+
+  test('should show active filter count on mobile', async ({ page }) => {
+    const resultsPage = new ResultsPage(page);
+    await page.goto('/results?types=horse&dateFrom=2023-12-01');
+    await resultsPage.waitForResults();
+
+    // Filter count badge should show
+    await expect(resultsPage.filterCountBadge).toBeVisible();
+    await expect(resultsPage.filterCountBadge).toContainText(/\d+/);
+  });
+});
+
+test.describe('Results Page - Search by Jockey (US4)', () => {
+  let resultsPage: ResultsPage;
+
+  test.beforeEach(async ({ page }) => {
+    resultsPage = new ResultsPage(page);
+    await resultsPage.goto();
+    await resultsPage.waitForResults();
+  });
+
+  test('should display search input', async () => {
+    await expect(resultsPage.searchInput).toBeVisible();
+  });
+
+  test('should search by jockey name', async ({ page }) => {
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    // URL should reflect search query
+    expect(page.url()).toContain('jockey=');
+  });
+
+  test('should highlight matching jockey name in results', async () => {
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    // Check for highlight in result card
+    const firstCard = resultsPage.resultCards.first();
+    const highlight = firstCard.locator('[data-testid="search-highlight"], mark');
+    // If results exist and contain the search term, there should be highlight
+    const cardText = await firstCard.textContent();
+    if (cardText?.includes('김기수')) {
+      await expect(highlight).toBeVisible();
+    }
+  });
+
+  test('should show no results message when search has no matches', async () => {
+    await resultsPage.search('존재하지않는이름12345');
+    await resultsPage.waitForResults();
+
+    // Should show empty state
+    await expect(resultsPage.emptyState).toBeVisible();
+  });
+
+  test('should clear search when clear button clicked', async ({ page }) => {
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    await resultsPage.clearSearch();
+    await resultsPage.waitForResults();
+
+    // URL should not have search param
+    expect(page.url()).not.toContain('jockey=');
+  });
+
+  test('should combine search with filters', async ({ page }) => {
+    // Apply type filter
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Apply search
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    // Both in URL
+    expect(page.url()).toContain('types=horse');
+    expect(page.url()).toContain('jockey=');
+  });
+
+  test('should reset pagination when search changes', async ({ page }) => {
+    // Go to page 2
+    await page.goto('/results?page=2');
+    await resultsPage.waitForResults();
+
+    // Search
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    // Should reset to page 1
+    expect(page.url()).not.toContain('page=2');
+  });
+
+  test('should preserve search on pagination', async ({ page }) => {
+    await resultsPage.search('김기수');
+    await resultsPage.waitForResults();
+
+    // Go to next page
+    await resultsPage.goToNextPage();
+    await resultsPage.waitForResults();
+
+    // Search should persist
+    expect(page.url()).toContain('jockey=');
+  });
+});
+
+test.describe('Results Page - Filter by Track (US3)', () => {
+  let resultsPage: ResultsPage;
+
+  test.beforeEach(async ({ page }) => {
+    resultsPage = new ResultsPage(page);
+    await resultsPage.goto();
+    await resultsPage.waitForResults();
+  });
+
+  test('should display track filter dropdown', async () => {
+    await expect(resultsPage.trackSelect).toBeVisible();
+  });
+
+  test('should show all tracks when no race type selected', async () => {
+    // Track dropdown should contain tracks from all types
+    await expect(resultsPage.trackSelect).toContainText('서울');
+    await expect(resultsPage.trackSelect).toContainText('광명');
+    await expect(resultsPage.trackSelect).toContainText('미사리');
+  });
+
+  test('should filter track options based on race type', async ({ page }) => {
+    // Select horse type
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Track dropdown should only show horse tracks
+    const options = resultsPage.trackSelect.locator('option');
+    const optionTexts = await options.allTextContents();
+
+    expect(optionTexts.join('')).toContain('서울');
+    expect(optionTexts.join('')).not.toContain('광명');
+  });
+
+  test('should filter results by selected track', async ({ page }) => {
+    // Select a track
+    await resultsPage.selectTrack('서울');
+    await resultsPage.waitForResults();
+
+    // URL should reflect track filter
+    expect(page.url()).toContain('track=서울');
+
+    // All visible cards should be from Seoul track
+    const firstCard = resultsPage.resultCards.first();
+    await expect(firstCard).toContainText('서울');
+  });
+
+  test('should combine track with other filters', async ({ page }) => {
+    // Apply type filter first
+    await resultsPage.selectRaceType('horse');
+    await resultsPage.waitForResults();
+
+    // Then apply track filter
+    await resultsPage.selectTrack('서울');
+    await resultsPage.waitForResults();
+
+    // Both filters in URL
+    expect(page.url()).toContain('types=horse');
+    expect(page.url()).toContain('track=서울');
+  });
+
+  test('should clear track when clear filters clicked', async ({ page }) => {
+    // Apply track filter
+    await resultsPage.selectTrack('서울');
+    await resultsPage.waitForResults();
+
+    // Clear filters
+    await resultsPage.clearFilters();
+    await resultsPage.waitForResults();
+
+    // URL should not have track filter
+    expect(page.url()).not.toContain('track=');
+  });
+
+  test('should preserve track filter on pagination', async ({ page }) => {
+    // Apply track filter
+    await resultsPage.selectTrack('서울');
+    await resultsPage.waitForResults();
+
+    // Go to next page
+    await resultsPage.goToNextPage();
+    await resultsPage.waitForResults();
+
+    // Track filter should persist
+    expect(page.url()).toContain('track=서울');
+  });
+});

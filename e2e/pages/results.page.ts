@@ -12,6 +12,19 @@ export class ResultsPage {
   readonly emptyState: Locator;
   readonly totalCount: Locator;
 
+  // Filter elements
+  readonly dateFromInput: Locator;
+  readonly dateToInput: Locator;
+  readonly horseTypeChip: Locator;
+  readonly cycleTypeChip: Locator;
+  readonly boatTypeChip: Locator;
+  readonly trackSelect: Locator;
+  readonly searchInput: Locator;
+  readonly searchClearButton: Locator;
+  readonly clearFiltersButton: Locator;
+  readonly filterToggle: Locator;
+  readonly filterCountBadge: Locator;
+
   constructor(page: Page) {
     this.page = page;
     this.header = page.locator('header');
@@ -22,6 +35,19 @@ export class ResultsPage {
     this.loadingSkeleton = page.locator('[data-testid="results-skeleton"]');
     this.emptyState = page.locator('[data-testid="empty-state"]');
     this.totalCount = page.locator('[data-testid="total-count"]');
+
+    // Filter elements
+    this.dateFromInput = page.locator('input[aria-label*="시작일"]');
+    this.dateToInput = page.locator('input[aria-label*="종료일"]');
+    this.horseTypeChip = page.locator('button[aria-label*="경마"]');
+    this.cycleTypeChip = page.locator('button[aria-label*="경륜"]');
+    this.boatTypeChip = page.locator('button[aria-label*="경정"]');
+    this.trackSelect = page.locator('select[aria-label*="경기장"]');
+    this.searchInput = page.locator('input[type="search"], input[aria-label*="검색"]');
+    this.searchClearButton = page.locator('button[aria-label*="지우기"], button[aria-label*="초기화"]').first();
+    this.clearFiltersButton = page.locator('button[aria-label*="필터 초기화"]');
+    this.filterToggle = page.locator('button[aria-label*="필터"]').first();
+    this.filterCountBadge = page.locator('[data-testid="filter-count"]');
   }
 
   async goto() {
@@ -70,5 +96,44 @@ export class ResultsPage {
 
   async getTotalCount(): Promise<string | null> {
     return this.totalCount.textContent();
+  }
+
+  // Filter methods
+  async setDateFrom(date: string) {
+    await this.dateFromInput.fill(date);
+  }
+
+  async setDateTo(date: string) {
+    await this.dateToInput.fill(date);
+  }
+
+  async selectRaceType(type: 'horse' | 'cycle' | 'boat') {
+    const chipMap = {
+      horse: this.horseTypeChip,
+      cycle: this.cycleTypeChip,
+      boat: this.boatTypeChip,
+    };
+    await chipMap[type].click();
+  }
+
+  async clearFilters() {
+    await this.clearFiltersButton.click();
+  }
+
+  async toggleFilters() {
+    await this.filterToggle.click();
+  }
+
+  async selectTrack(track: string) {
+    await this.trackSelect.selectOption(track);
+  }
+
+  async search(query: string) {
+    await this.searchInput.fill(query);
+    await this.searchInput.press('Enter');
+  }
+
+  async clearSearch() {
+    await this.searchClearButton.click();
   }
 }

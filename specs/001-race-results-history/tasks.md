@@ -77,18 +77,18 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T005 [P] Write failing test for fetchHistoricalResults function in src/lib/api.test.ts
-- [ ] T006 [P] Write failing test for mapHistoricalRaceResult mapper in src/lib/api-helpers/mappers.test.ts
-- [ ] T007 [P] Write failing API route test for GET /api/results in src/app/api/results/route.test.ts
-- [ ] T008 [P] Write failing API route test for GET /api/results/[id] in src/app/api/results/[id]/route.test.ts
+- [x] T005 [P] Write failing test for fetchHistoricalResults function in src/lib/api.test.ts
+- [x] T006 [P] Write failing test for mapHistoricalRaceResult mapper in src/lib/api-helpers/mappers.test.ts
+- [x] T007 [P] Write failing API route test for GET /api/results in src/app/api/results/route.test.ts
+- [x] T008 [P] Write failing API route test for GET /api/results/[id] in src/app/api/results/[id]/route.test.ts
 
 ### Implementation
 
-- [ ] T009 Implement mapHistoricalRaceResult mapper function in src/lib/api-helpers/mappers.ts
-- [ ] T010 Implement fetchHistoricalResults function in src/lib/api.ts
-- [ ] T011 Implement GET /api/results route handler in src/app/api/results/route.ts
-- [ ] T012 Implement GET /api/results/[id] route handler in src/app/api/results/[id]/route.ts
-- [ ] T013 Add results link to Header navigation in src/components/Header.tsx
+- [x] T009 Implement mapHistoricalRaceResult mapper function in src/lib/api-helpers/mappers.ts
+- [x] T010 Implement fetchHistoricalResults function in src/lib/api.ts
+- [x] T011 Implement GET /api/results route handler in src/app/api/results/route.ts
+- [x] T012 Implement GET /api/results/[id] route handler in src/app/api/results/[id]/route.ts
+- [x] T013 Add results link to Header navigation in src/components/Header.tsx
 
 **Checkpoint**: Foundation ready - API endpoints work, user story implementation can begin
 
@@ -129,18 +129,18 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T025 [P] [US2] Write failing test for DateRangeFilter component in src/components/DateRangeFilter.test.tsx
-- [ ] T026 [P] [US2] Write failing test for RaceTypeFilter component in src/components/RaceTypeFilter.test.tsx
-- [ ] T027 [P] [US2] Write failing test for ResultFilters component in src/components/ResultFilters.test.tsx
-- [ ] T028 [P] [US2] Write failing E2E test for date/type filtering in e2e/tests/results.spec.ts
+- [x] T025 [P] [US2] Write failing test for DateRangeFilter component in src/components/DateRangeFilter.test.tsx
+- [x] T026 [P] [US2] Write failing test for RaceTypeFilter component in src/components/RaceTypeFilter.test.tsx
+- [x] T027 [P] [US2] Write failing test for ResultFilters component in src/components/ResultFilters.test.tsx
+- [x] T028 [P] [US2] Write failing E2E test for date/type filtering in e2e/tests/results.spec.ts
 
 ### Implementation
 
-- [ ] T029 [P] [US2] Create DateRangeFilter component with date picker in src/components/DateRangeFilter.tsx
-- [ ] T030 [P] [US2] Create RaceTypeFilter component (uses M3Chip) with multi-select in src/components/RaceTypeFilter.tsx
-- [ ] T031 [US2] Create ResultFilters container component in src/components/ResultFilters.tsx
-- [ ] T032 [US2] Integrate filters with URL state (searchParams) in src/app/results/page.tsx
-- [ ] T033 [US2] Add filter clear functionality in src/components/ResultFilters.tsx
+- [x] T029 [P] [US2] Create DateRangeFilter component with date picker in src/components/DateRangeFilter.tsx
+- [x] T030 [P] [US2] Create RaceTypeFilter component (uses M3Chip) with multi-select in src/components/RaceTypeFilter.tsx
+- [x] T031 [US2] Create ResultFilters container component in src/components/ResultFilters.tsx
+- [x] T032 [US2] Integrate filters with URL state (searchParams) in src/app/results/page.tsx
+- [x] T033 [US2] Add filter clear functionality in src/components/ResultFilters.tsx
 
 **Checkpoint**: User Story 2 complete - users can filter by date and race type
 
@@ -154,14 +154,14 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T034 [P] [US3] Write failing test for TrackFilter component in src/components/TrackFilter.test.tsx
-- [ ] T035 [P] [US3] Write failing E2E test for track filtering in e2e/tests/results.spec.ts
+- [x] T034 [P] [US3] Write failing test for TrackFilter component in src/components/TrackFilter.test.tsx
+- [x] T035 [P] [US3] Write failing E2E test for track filtering in e2e/tests/results.spec.ts
 
 ### Implementation
 
-- [ ] T036 [US3] Create TrackFilter component with type-aware options in src/components/TrackFilter.tsx
-- [ ] T037 [US3] Integrate TrackFilter with ResultFilters in src/components/ResultFilters.tsx
-- [ ] T038 [US3] Update API route to handle track filter parameter in src/app/api/results/route.ts
+- [x] T036 [US3] Create TrackFilter component with type-aware options in src/components/TrackFilter.tsx
+- [x] T037 [US3] Integrate TrackFilter with ResultFilters in src/components/ResultFilters.tsx
+- [x] T038 [US3] Update API route to handle track filter parameter in src/app/api/results/route.ts
 
 **Checkpoint**: User Story 3 complete - users can filter by track location
 
@@ -175,16 +175,16 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T039 [P] [US4] Write failing test for ResultSearch component in src/components/ResultSearch.test.tsx
-- [ ] T040 [P] [US4] Write failing test for name highlighting in ResultCard in src/components/ResultCard.test.tsx
-- [ ] T041 [P] [US4] Write failing E2E test for jockey search in e2e/tests/results.spec.ts
+- [x] T039 [P] [US4] Write failing test for ResultSearch component in src/components/ResultSearch.test.tsx
+- [x] T040 [P] [US4] Write failing test for name highlighting in ResultCard in src/components/ResultCard.test.tsx
+- [x] T041 [P] [US4] Write failing E2E test for jockey search in e2e/tests/results.spec.ts
 
 ### Implementation
 
-- [ ] T042 [US4] Create ResultSearch component (uses M3SearchBar) with debounced input in src/components/ResultSearch.tsx
-- [ ] T043 [US4] Add search highlighting to ResultCard component in src/components/ResultCard.tsx
-- [ ] T044 [US4] Integrate search with URL state in src/app/results/page.tsx
-- [ ] T045 [US4] Create NoResults component with suggestions in src/components/NoResults.tsx
+- [x] T042 [US4] Create ResultSearch component (uses M3SearchBar) with debounced input in src/components/ResultSearch.tsx
+- [x] T043 [US4] Add search highlighting to ResultCard component in src/components/ResultCard.tsx
+- [x] T044 [US4] Integrate search with URL state in src/app/results/page.tsx
+- [x] T045 [US4] Create NoResults component with suggestions in src/components/NoResults.tsx
 
 **Checkpoint**: User Story 4 complete - users can search by jockey/rider name
 
@@ -198,14 +198,14 @@
 
 ### Tests (TDD - write first, ensure FAIL)
 
-- [ ] T046 [P] [US5] Write failing test for ResultDetail component in src/components/ResultDetail.test.tsx
-- [ ] T047 [P] [US5] Write failing E2E test for detail expansion in e2e/tests/results.spec.ts
+- [x] T046 [P] [US5] Write failing test for ResultDetail component in src/components/ResultDetail.test.tsx
+- [x] T047 [P] [US5] Write failing E2E test for detail expansion in e2e/tests/results.spec.ts
 
 ### Implementation
 
-- [ ] T048 [US5] Create ResultDetail component with full finisher list in src/components/ResultDetail.tsx
-- [ ] T049 [US5] Add expand/collapse functionality (uses useCardExpansion hook) to ResultCard in src/components/ResultCard.tsx
-- [ ] T050 [US5] Display complete dividend breakdown in ResultDetail in src/components/ResultDetail.tsx
+- [x] T048 [US5] Create ResultDetail component with full finisher list in src/components/ResultDetail.tsx
+- [x] T049 [US5] Add expand/collapse functionality (uses useCardExpansion hook) to ResultCard in src/components/ResultCard.tsx
+- [x] T050 [US5] Display complete dividend breakdown in ResultDetail in src/components/ResultDetail.tsx
 
 **Checkpoint**: User Story 5 complete - users can view complete race details
 
@@ -215,14 +215,14 @@
 
 **Purpose**: Error handling, edge cases, performance, and final validation
 
-- [ ] T051 [P] Add error state handling for API failures in src/app/results/page.tsx
-- [ ] T052 [P] Add empty state for no results found in src/components/NoResults.tsx
-- [ ] T053 [P] Add canceled race visual indicator in src/components/ResultCard.tsx
-- [ ] T054 Handle missing dividend data gracefully in src/components/DividendDisplay.tsx
-- [ ] T055 Add mobile-responsive styles to all result components
-- [ ] T056 Run full E2E test suite with npm run test:e2e
-- [ ] T057 Validate quickstart.md scenarios manually
-- [ ] T058 Update Header navigation active state for /results
+- [x] T051 [P] Add error state handling for API failures in src/app/results/page.tsx
+- [x] T052 [P] Add empty state for no results found in src/components/NoResults.tsx
+- [x] T053 [P] Add canceled race visual indicator in src/components/ResultCard.tsx
+- [x] T054 Handle missing dividend data gracefully in src/components/DividendDisplay.tsx
+- [x] T055 Add mobile-responsive styles to all result components
+- [x] T056 Run full E2E test suite with npm run test:e2e
+- [x] T057 Validate quickstart.md scenarios manually
+- [x] T058 Update Header navigation active state for /results
 
 ---
 
