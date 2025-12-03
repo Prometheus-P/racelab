@@ -1,13 +1,14 @@
 // src/components/HorseEntryTable.tsx
 import React from 'react';
-import { Race } from '@/types';
+import { Race, Entry } from '@/types';
 
 interface HorseEntryTableProps {
   race: Race;
+  entries?: Entry[];
 }
 
-export default function HorseEntryTable({ race }: HorseEntryTableProps) {
-  const entries = race.entries || [];
+export default function HorseEntryTable({ race, entries }: HorseEntryTableProps) {
+  const renderedEntries = entries?.length ? entries : race.entries || [];
 
   return (
     <section
@@ -27,7 +28,7 @@ export default function HorseEntryTable({ race }: HorseEntryTableProps) {
         </div>
       </header>
 
-      {entries.length === 0 ? (
+      {renderedEntries.length === 0 ? (
         <p className="text-sm text-gray-500">등록된 선수 정보가 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -42,7 +43,7 @@ export default function HorseEntryTable({ race }: HorseEntryTableProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {entries.map(entry => (
+              {renderedEntries.map(entry => (
                 <tr key={entry.no}>
                   <td className="py-2 pr-4 font-semibold">{entry.no}</td>
                   <td className="py-2 pr-4">{entry.name}</td>

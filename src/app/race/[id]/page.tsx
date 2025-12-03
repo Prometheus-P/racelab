@@ -1,10 +1,11 @@
 // src/app/race/[id]/page.tsx
-import { fetchRaceById } from '@/lib/api';
+import { fetchRaceById, fetchHorseEntryDetail } from '@/lib/api';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
 import OddsDisplay from '@/components/OddsDisplay';
 import ResultsTable from '@/components/ResultsTable';
-import { RaceResult } from '@/types';
+import HorseEntryTable from '@/components/HorseEntryTable';
+import { RaceResult, Entry } from '@/types';
 import {
   RaceNotFound,
   BackNavigation,
@@ -83,6 +84,19 @@ export default async function RaceDetailPage({ params }: Props) {
     return <RaceNotFound />;
   }
 
+  const horseEntryDetails = race.type === 'horse'
+    ? await fetchHorseEntryDetail(race.date)
+    : [];
+  const detailedEntries: Entry[] = horseEntryDetails.map(detail => ({
+    no: detail.entryNo,
+    name: detail.horseName,
+    trainer: detail.trainer,
+    jockey: detail.jockey,
+    age: detail.age ? parseInt(detail.age, 10) : undefined,
+    weight: detail.weight ? parseFloat(detail.weight) : undefined,
+    recentRecord: detail.recentRecord || undefined,
+  }));
+
   const isFinished = race.status === 'finished';
   const results = getMockResults(race.status, race.entries);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
@@ -157,6 +171,9 @@ export default async function RaceDetailPage({ params }: Props) {
         <BackNavigation raceType={race.type} />
         <RaceHeader race={race} />
         <EntriesSection race={race} />
+        {race.type === 'horse' && detailedEntries.length > 0 && (
+          <HorseEntryTable race={race} entries={detailedEntries} />
+        )}
 
       {/* Odds section */}
       <section

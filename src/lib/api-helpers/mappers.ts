@@ -198,6 +198,27 @@ export interface KRAHorseEntryDetailItem {
   trNameEn: string;
   owNameEn: string;
 }
+
+export interface HorseEntryDetail {
+  track: string;
+  raceDate: string;
+  raceDay: string;
+  raceNo: number;
+  entryNo: number;
+  horseName: string;
+  horseNumber: string;
+  trainer: string;
+  owner: string;
+  jockey: string;
+  rating: string;
+  age: string;
+  sex: string;
+  weight: string;
+  prizeCondition: string;
+  distance: string;
+  startTime: string;
+  recentRecord: string;
+}
 // API301 확정배당율 종합
 export interface KRAHorseDividendSummaryItem {
   hrName: string;
@@ -1144,10 +1165,13 @@ export function mapKRAHorseEntryDetails(items: KRAHorseEntryDetailItem[]) {
     owner: item.owName,
     jockey: item.jkName,
     rating: item.rating,
+    age: item.age,
+    sex: item.sex,
     weight: item.wgBudam,
     prizeCondition: item.prizeCond,
     distance: item.rcDist,
     startTime: item.stTime,
+    recentRecord: item.chaksunT,
   }));
 }
 
