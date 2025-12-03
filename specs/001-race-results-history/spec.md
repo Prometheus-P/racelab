@@ -139,3 +139,48 @@ A user wants to see complete details for a specific race, including all finisher
 - Users primarily access results on mobile devices, consistent with the project's mobile-first design principle
 - Date range of 90 days provides sufficient history for typical user needs while managing data volume
 - Search functionality works on Korean names as the primary use case
+
+## Design System
+
+### Material Design 3 (M3) Adoption
+
+This feature adopts Material Design 3 as the foundational design system, customized for the Korean racing industry audience.
+
+**Color Strategy**:
+- **Primary Brand**: M3 neutral/professional palette for app-wide consistency
+- **Semantic Race Colors**: Established race type colors preserved as accent colors
+  - Horse (경마): Green `#2d5a27` - 전통적 경마 색상
+  - Cycle (경륜): Red `#dc2626` - 역동적 경륜 색상
+  - Boat (경정): Blue `#0369a1` - 해양 경정 색상
+- **Target Audience**: 경마/경륜/경정 소비자층 (40-60대 남성 중심) - 가독성과 신뢰감 우선
+
+**Typography**: M3 Type Scale with Pretendard font family
+- **Font**: Pretendard (한국어 최적화, 숫자 가독성 우수)
+- **Weights**: 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
+- **Scale**: Display (36-57px), Headline (24-32px), Body (14-16px), Label (12-14px)
+- **Line Height**: 1.5 for body text (40-60대 가독성 고려)
+
+**Components**: M3 components adapted for touch-friendly mobile racing data display
+- **Result Cards**: M3 Elevated Cards - 각 경주 결과를 독립 카드로 표시, 큰 터치 영역 (min 48px touch target)
+- **Filters**: M3 Filter Chips - 레이스 타입/트랙 필터링
+- **Search**: M3 Search Bar - 기수/선수 검색
+- **Navigation**: M3 Top App Bar + Navigation Rail (tablet+)
+
+**Motion & Interaction**:
+- **Card Expansion**: In-place expansion (아코디언 스타일) - 카드 클릭 시 제자리에서 확장하여 상세 정보 표시
+- **Transition**: M3 standard easing (300ms) - 부드러운 확장/축소 애니메이션
+- **Context Preservation**: 페이지 이동 없이 현재 스크롤 위치 유지 (40-60대 사용자 친화적)
+
+**Theme**:
+- **Initial Release**: Light mode only - 40-60대 사용자층 친화적, 안정성 우선
+- **Future**: 다크 모드 추후 확장 가능 (prefers-color-scheme 기반)
+
+## Clarifications
+
+### Session 2025-12-02
+
+- Q: M3 색상 시스템과 기존 레이스 타입 색상 통합 방식? → A: Option B - M3를 기본 브랜드로 사용하고, 레이스 색상(green/red/blue)은 시맨틱 악센트로 유지. 경마/경륜/경정 소비자층에 맞는 색상 적용
+- Q: 경주 결과 표시에 사용할 M3 컴포넌트? → A: Option B - M3 Cards (Elevated)를 메인 결과 컨테이너로 사용. 40-60대 사용자 터치 친화적, 경주별 명확한 구분
+- Q: 한국어 최적화 폰트 선택? → A: Option B - Pretendard. 한국어 최적화, 숫자(배당금/순위) 가독성 우수, M3 Type Scale과 조화
+- Q: 카드 상세 정보 표시 인터랙션? → A: Option A - In-place Expansion (아코디언). 페이지 이동 없이 제자리 확장, 컨텍스트 유지
+- Q: 다크 모드 지원 전략? → A: Option A - Light Only (초기 출시). 40-60대 사용자층 친화적, 복잡도 감소, 추후 확장
