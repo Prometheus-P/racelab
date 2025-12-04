@@ -219,6 +219,9 @@
 - [x] T052 [P] Add empty state for no results found in src/components/NoResults.tsx
 - [x] T053 [P] Add canceled race visual indicator in src/components/ResultCard.tsx
 - [x] T054 Handle missing dividend data gracefully in src/components/DividendDisplay.tsx
+- [x] T054a [P] Handle missing finisher data (null name/position) gracefully in src/components/ResultCard.tsx
+- [x] T054b [P] Handle missing track info gracefully in src/components/ResultCard.tsx
+- [x] T054c [P] Add unit tests for missing data scenarios in src/components/ResultCard.test.tsx
 - [x] T055 Add mobile-responsive styles to all result components
 - [x] T056 Run full E2E test suite with npm run test:e2e
 - [x] T057 Validate quickstart.md scenarios manually

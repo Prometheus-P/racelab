@@ -105,7 +105,7 @@ A user wants to see complete details for a specific race, including all finisher
 - **FR-003**: System MUST allow filtering results by single date or date range (up to 90 days in the past)
 - **FR-004**: System MUST allow filtering by race type (horse, cycle, boat) with multi-select capability
 - **FR-005**: System MUST allow filtering by track location with options appropriate to the selected race type(s)
-- **FR-006**: System MUST support searching by jockey/rider name with partial match capability
+- **FR-006**: System MUST support searching by jockey/rider name with case-insensitive substring match (e.g., "김" matches "김기수", "박김수")
 - **FR-007**: System MUST display race time/record for each finishing entry where available
 - **FR-008**: System MUST indicate the race type visually using the established color scheme (horse=green, cycle=red, boat=blue)
 - **FR-009**: System MUST paginate results to maintain performance (20 results per page default)
@@ -124,7 +124,7 @@ A user wants to see complete details for a specific race, including all finisher
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can find results for a specific race within 30 seconds using filters
+- **SC-001**: Users can find results for a specific race within 30 seconds measured from first filter interaction to target result visible on screen
 - **SC-002**: Results page loads initial content within 2 seconds on standard connections
 - **SC-003**: Filter/search operations return results within 1 second
 - **SC-004**: 90% of users successfully complete a search for specific race results on first attempt
