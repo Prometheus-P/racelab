@@ -8,6 +8,7 @@ import {
   mapKSPOCycleRaceOrganToRaces,
   mapKSPOBoatRaceInfoToRaces,
   mapKSPOBoatRaceRankings,
+  mapKSPOBoatRaceResults,
   mapKSPOCycleRaceRankings,
   mapKSPOCycleRacerInfo,
   mapKSPOCycleRaceResults,
@@ -22,6 +23,7 @@ import {
   KRAHorseDividendSummaryItem,
   KSPOCycleRaceOrganItem,
   KSPOBoatRaceInfoItem,
+  KSPOBoatRaceResultItem,
   KSPOCycleRaceResultItem,
   KSPOCycleRaceRankItem,
   KSPOCycleRacerInfoItem,
@@ -605,3 +607,19 @@ export const fetchCycleInspectStats = (rcDate: string) =>
 export const fetchCycleInOutStats = (rcDate: string) =>
   fetchServiceItems(KSPO_BASE_URL, '/SRVC_OD_API_CRA_INOUT', process.env.KSPO_API_KEY, rcDate, 'KSPO Cycle InOut', 'KSPO_API_KEY')
     .then(items => mapKSPOCycleInOut(items as KSPOCycleInOutItem[]));
+
+/**
+ * Fetch boat race results (SRVC_OD_API_MBR_RACE_RESULT)
+ * Returns historical race data with rankings and dividends
+ */
+export const fetchBoatRaceResults = async (rcDate: string): Promise<HistoricalRace[]> => {
+  const items = await fetchServiceItems(
+    KSPO_BASE_URL,
+    '/SRVC_OD_API_MBR_RACE_RESULT',
+    process.env.KSPO_API_KEY,
+    rcDate,
+    'KSPO Boat Race Result',
+    'KSPO_API_KEY'
+  );
+  return mapKSPOBoatRaceResults(items as KSPOBoatRaceResultItem[], rcDate);
+};
