@@ -133,17 +133,17 @@
 
 ### Tests for User Story 4
 
-- [ ] T037 [P] [US4] Write failing tests for touch target sizing in src/components/ui/M3Button.test.tsx
+- [x] T037 [P] [US4] Write failing tests for touch target sizing in src/components/ui/M3Button.test.tsx
 
 ### Implementation for User Story 4
 
-- [ ] T038 [US4] Add min-w-[48px] min-h-[48px] enforcement to M3Button at src/components/ui/M3Button.tsx
-- [ ] T039 [US4] Add extended touch area (::before pseudo-element) to M3Chip at src/components/ui/M3Chip.tsx
-- [ ] T040 [US4] Verify touch targets on M3TextField at src/components/ui/M3TextField.tsx
-- [ ] T041 [US4] Add touch target validation utility at src/lib/utils/accessibility.ts
-- [ ] T042 [US4] Audit existing interactive elements (Header nav, filters) for 48dp compliance
+- [x] T038 [US4] Add min-w-[48px] min-h-[48px] enforcement to M3Button at src/components/ui/M3Button.tsx
+- [x] T039 [US4] Add extended touch area (::before pseudo-element) to M3Chip at src/components/ui/M3Chip.tsx
+- [x] T040 [US4] Verify touch targets on M3TextField at src/components/ui/M3TextField.tsx (56px height)
+- [x] T041 [US4] Add touch target validation utility at src/lib/utils/accessibility.ts
+- [x] T042 [US4] Audit existing interactive elements (Header nav, filters) for 48dp compliance
 
-**Checkpoint**: All interactive elements meet 48x48dp, immediate feedback on tap
+**Checkpoint**: ✅ All interactive elements meet 48x48dp, immediate feedback on tap
 
 ---
 

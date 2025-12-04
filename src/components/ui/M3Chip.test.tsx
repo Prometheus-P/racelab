@@ -61,10 +61,19 @@ describe('M3Chip', () => {
     expect(screen.getByTestId('icon')).toBeInTheDocument();
   });
 
-  it('has proper touch target size (min 48px height)', () => {
+  it('has proper touch target size (min 48px width)', () => {
     render(<M3Chip label="Touch" data-testid="chip" />);
     const chip = screen.getByTestId('chip');
-    expect(chip).toHaveClass('min-h-[32px]');
+    expect(chip).toHaveClass('min-w-[48px]');
+  });
+
+  it('has extended touch area for vertical tapping', () => {
+    render(<M3Chip label="Touch" data-testid="chip" />);
+    const chip = screen.getByTestId('chip');
+    expect(chip).toHaveClass('relative');
+    // Check for the extended touch area span
+    const touchArea = chip.querySelector('[aria-hidden="true"]');
+    expect(touchArea).toBeInTheDocument();
   });
 
   it('has proper padding for label text', () => {

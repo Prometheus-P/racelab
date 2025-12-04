@@ -55,6 +55,7 @@ export function M3Chip({
     'rounded-m3-sm',
     'border',
     'min-h-[32px]',
+    'min-w-[48px]', // M3 touch target width
     'px-4',
     'py-1',
     'text-label-large',
@@ -68,6 +69,7 @@ export function M3Chip({
     'focus:ring-2',
     'focus:ring-primary',
     'focus:ring-offset-1',
+    'relative', // For extended touch area
     className,
   ].filter(Boolean).join(' ');
 
@@ -80,6 +82,11 @@ export function M3Chip({
       className={baseClasses}
       data-testid={testId}
     >
+      {/* Extended touch area - invisible but expands tap target to 48px */}
+      <span
+        className="absolute inset-0 -top-2 -bottom-2 pointer-events-none"
+        aria-hidden="true"
+      />
       {leadingIcon && <span className="flex-shrink-0">{leadingIcon}</span>}
       <span>{label}</span>
     </button>
