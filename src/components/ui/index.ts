@@ -28,6 +28,10 @@ export { M3SearchBar } from './M3SearchBar';
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps, SkeletonVariant } from './Skeleton';
 
-// Note: Additional components will be added as they are implemented:
-// - M3Dialog (Phase 9)
-// - M3Snackbar (Phase 9)
+// Dialog components
+export { M3Dialog } from './M3Dialog';
+export type { M3DialogProps, M3DialogMaxWidth } from './M3Dialog';
+
+// Feedback components
+export { M3Snackbar } from './M3Snackbar';
+export type { M3SnackbarProps, SnackbarSeverity, SnackbarPosition } from './M3Snackbar';
