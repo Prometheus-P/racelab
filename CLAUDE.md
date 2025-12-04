@@ -107,6 +107,8 @@ When API keys are missing, the app falls back to dummy data from `lib/api-helper
 ## Active Technologies
 - TypeScript 5.9 + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4 (001-race-results-history)
 - N/A (external API data, cached via Next.js fetch caching) (001-race-results-history)
+- TypeScript 5.9 + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4 + Tailwind CSS (styling), Pretendard (typography), existing M3 tokens in `src/styles/tokens.ts` (002-design-system)
+- N/A (design system - no data persistence) (002-design-system)
 
 ## Recent Changes
 - 001-race-results-history: Added TypeScript 5.9 + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4
