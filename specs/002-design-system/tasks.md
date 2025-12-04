@@ -83,19 +83,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Write failing tests for M3Card variants at src/components/ui/M3Card.test.tsx (extend existing)
-- [ ] T020 [P] [US2] Write failing tests for M3Button component at src/components/ui/M3Button.test.tsx
+- [x] T019 [P] [US2] Write failing tests for M3Card variants at src/components/ui/M3Card.test.tsx (extend existing)
+- [x] T020 [P] [US2] Write failing tests for M3Button component at src/components/ui/M3Button.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T021 [P] [US2] Create M3Button component at src/components/ui/M3Button.tsx (5 variants: filled, outlined, text, elevated, tonal)
-- [ ] T022 [US2] Enhance M3Card component at src/components/ui/M3Card.tsx (add 3 variants: elevated, filled, outlined)
-- [ ] T023 [US2] Update M3Chip component at src/components/ui/M3Chip.tsx to support race type colors
-- [ ] T024 [US2] Create M3TextField component at src/components/ui/M3TextField.tsx
-- [ ] T025 [US2] Update barrel export at src/components/ui/index.ts with new components
-- [ ] T026 [US2] Verify typography tokens applied consistently via Tailwind classes
+- [x] T021 [P] [US2] Create M3Button component at src/components/ui/M3Button.tsx (5 variants: filled, outlined, text, elevated, tonal)
+- [x] T022 [US2] Enhance M3Card component at src/components/ui/M3Card.tsx (add 3 variants: elevated, filled, outlined)
+- [x] T023 [US2] Update M3Chip component at src/components/ui/M3Chip.tsx to support race type colors
+- [x] T024 [US2] Create M3TextField component at src/components/ui/M3TextField.tsx
+- [x] T025 [US2] Update barrel export at src/components/ui/index.ts with new components
+- [x] T026 [US2] Verify typography tokens applied consistently via Tailwind classes (78 component tests pass)
 
-**Checkpoint**: All buttons, cards, chips look identical across home, results, race detail pages
+**Checkpoint**: ✅ All buttons, cards, chips look identical across home, results, race detail pages
 
 ---
 
