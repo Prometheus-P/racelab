@@ -45,7 +45,18 @@ const config: Config = {
           800: '#1e40af',
           900: '#1e3a8a',
         },
-        secondary: '#7c3aed',
+        'on-primary': {
+          DEFAULT: '#ffffff',
+        },
+        secondary: {
+          DEFAULT: '#7c3aed',
+          container: '#f3e8ff',
+          'on-container': '#581c87',
+        },
+        'on-secondary': {
+          DEFAULT: '#ffffff',
+          container: '#581c87',
+        },
         accent: '#f59e0b',
 
         // M3 Surface Colors
@@ -121,13 +132,14 @@ const config: Config = {
           'on-container': '#991b1b',
         },
       },
-      // M3 Elevation (Box Shadow)
+      // M3 Elevation (Box Shadow) - Dual-shadow technique per M3 spec
       boxShadow: {
-        'm3-1': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'm3-2': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'm3-3': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        'm3-4': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-        'm3-5': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        'm3-0': 'none',
+        'm3-1': '0px 1px 2px 0px rgb(0 0 0 / 30%), 0px 1px 3px 1px rgb(0 0 0 / 15%)',
+        'm3-2': '0px 1px 2px 0px rgb(0 0 0 / 30%), 0px 2px 6px 2px rgb(0 0 0 / 15%)',
+        'm3-3': '0px 1px 3px 0px rgb(0 0 0 / 30%), 0px 4px 8px 3px rgb(0 0 0 / 15%)',
+        'm3-4': '0px 2px 3px 0px rgb(0 0 0 / 30%), 0px 6px 10px 4px rgb(0 0 0 / 15%)',
+        'm3-5': '0px 4px 4px 0px rgb(0 0 0 / 30%), 0px 8px 12px 6px rgb(0 0 0 / 15%)',
       },
       // M3 Border Radius
       borderRadius: {
@@ -148,6 +160,27 @@ const config: Config = {
         'm3-short': '150ms',
         'm3-medium': '300ms',
         'm3-long': '500ms',
+      },
+      // M3 Animations
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        ripple: {
+          from: { transform: 'scale(0)', opacity: '0.4' },
+          to: { transform: 'scale(4)', opacity: '0' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 1.5s infinite ease-in-out',
+        ripple: 'ripple 300ms ease-out forwards',
+      },
+      // M3 Opacity tokens
+      opacity: {
+        '8': '0.08',
+        '12': '0.12',
+        '38': '0.38',
       },
     },
   },

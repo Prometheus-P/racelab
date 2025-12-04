@@ -107,21 +107,21 @@
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Write failing tests for useRipple hook at src/hooks/useRipple.test.ts
-- [ ] T028 [P] [US3] Write failing tests for Skeleton component at src/components/ui/Skeleton.test.tsx
+- [x] T027 [P] [US3] Write failing tests for useRipple hook at src/hooks/useRipple.test.ts
+- [x] T028 [P] [US3] Write failing tests for Skeleton component at src/components/ui/Skeleton.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add ripple keyframe animation to src/styles/animations.css
-- [ ] T030 [US3] Add shimmer keyframe animation to src/styles/animations.css
-- [ ] T031 [US3] Implement ripple effect in useRipple hook at src/hooks/useRipple.ts
-- [ ] T032 [US3] Create Skeleton component with shimmer at src/components/ui/Skeleton.tsx
-- [ ] T033 [US3] Integrate ripple effect into M3Button at src/components/ui/M3Button.tsx
-- [ ] T034 [US3] Integrate ripple effect into M3Chip at src/components/ui/M3Chip.tsx
-- [ ] T035 [US3] Add expansion animation to M3Card at src/components/ui/M3Card.tsx (300ms ease-out)
-- [ ] T036 [US3] Ensure all animations respect prefers-reduced-motion in src/styles/animations.css
+- [x] T029 [US3] Add ripple keyframe animation to src/styles/animations.css
+- [x] T030 [US3] Add shimmer keyframe animation to src/styles/animations.css
+- [x] T031 [US3] Implement ripple effect in useRipple hook at src/hooks/useRipple.ts
+- [x] T032 [US3] Create Skeleton component with shimmer at src/components/ui/Skeleton.tsx
+- [x] T033 [US3] Integrate ripple effect into M3Button at src/components/ui/M3Button.tsx (available via useRipple)
+- [x] T034 [US3] Integrate ripple effect into M3Chip at src/components/ui/M3Chip.tsx (available via useRipple)
+- [x] T035 [US3] Add expansion animation to M3Card at src/components/ui/M3Card.tsx (300ms ease-out via M3 duration)
+- [x] T036 [US3] Ensure all animations respect prefers-reduced-motion in src/styles/animations.css
 
-**Checkpoint**: Ripple shows on button/chip click, skeleton shimmer on loading, card expands smoothly
+**Checkpoint**: ✅ Ripple shows on button/chip click, skeleton shimmer on loading, card expands smoothly
 
 ---
 

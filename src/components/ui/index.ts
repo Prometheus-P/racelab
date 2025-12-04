@@ -24,7 +24,10 @@ export type { M3TextFieldProps, M3TextFieldVariant, M3TextFieldType } from './M3
 // Search components
 export { M3SearchBar } from './M3SearchBar';
 
+// Loading components
+export { Skeleton } from './Skeleton';
+export type { SkeletonProps, SkeletonVariant } from './Skeleton';
+
 // Note: Additional components will be added as they are implemented:
-// - Skeleton (Phase 5)
 // - M3Dialog (Phase 9)
 // - M3Snackbar (Phase 9)
