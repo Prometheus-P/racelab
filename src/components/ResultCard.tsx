@@ -31,6 +31,28 @@ const raceTypeBgColors: Record<RaceType, string> = {
   boat: 'bg-boat-container',
 };
 
+/**
+ * Returns display name for a finisher, with fallback for missing data.
+ * T054a: Handle missing finisher data gracefully
+ */
+function getFinisherDisplayName(name: string | null | undefined, entryNo: number): string {
+  if (name && name.trim()) {
+    return name;
+  }
+  return `출전마 #${entryNo}`;
+}
+
+/**
+ * Returns display name for a track, with fallback for missing data.
+ * T054b: Handle missing track info gracefully
+ */
+function getTrackDisplayName(track: string | null | undefined): string {
+  if (track && track.trim()) {
+    return track;
+  }
+  return '경주장 미정';
+}
+
 export function ResultCard({
   race,
   onClick,
@@ -63,7 +85,7 @@ export function ResultCard({
             </span>
             <div>
               <div className="text-title-medium font-medium text-on-surface">
-                {race.track} {race.raceNo}경주
+                {getTrackDisplayName(race.track)} {race.raceNo}경주
               </div>
               <div className="text-body-small text-on-surface-variant">
                 {race.date} {race.startTime}
@@ -99,7 +121,7 @@ export function ResultCard({
                   {result.rank}
                 </span>
                 <span className="flex-1 text-body-medium text-on-surface">
-                  {result.name}
+                  {getFinisherDisplayName(result.name, result.entryNo)}
                 </span>
                 {result.jockey && (
                   <span className="text-body-small text-on-surface-variant">
@@ -138,7 +160,7 @@ export function ResultCard({
                     {result.rank}
                   </span>
                   <span className="flex-1 text-body-medium text-on-surface">
-                    {result.name}
+                    {getFinisherDisplayName(result.name, result.entryNo)}
                   </span>
                   {result.jockey && (
                     <span className="text-body-small text-on-surface-variant">
