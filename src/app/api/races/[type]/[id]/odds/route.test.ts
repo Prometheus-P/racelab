@@ -19,7 +19,7 @@ describe('GET /api/races/[type]/[id]/odds', () => {
     it('should return odds for a valid race', async () => {
         (api.fetchRaceOdds as jest.Mock).mockResolvedValue(mockOdds);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/odds');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/odds');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         expect(response.status).toBe(200);
@@ -32,7 +32,7 @@ describe('GET /api/races/[type]/[id]/odds', () => {
     it('should return 404 when race not found', async () => {
         (api.fetchRaceOdds as jest.Mock).mockResolvedValue(null);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/invalid-id/odds');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/invalid-id/odds');
         const response = await GET(request, { params: { type: 'horse', id: 'invalid-id' } });
 
         expect(response.status).toBe(404);
@@ -44,7 +44,7 @@ describe('GET /api/races/[type]/[id]/odds', () => {
     it('should handle API errors gracefully', async () => {
         (api.fetchRaceOdds as jest.Mock).mockRejectedValue(new Error('API error'));
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/odds');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/odds');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         expect(response.status).toBe(500);
@@ -56,7 +56,7 @@ describe('GET /api/races/[type]/[id]/odds', () => {
     it('should return odds with correct structure', async () => {
         (api.fetchRaceOdds as jest.Mock).mockResolvedValue(mockOdds);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/odds');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/odds');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         const data = await response.json();

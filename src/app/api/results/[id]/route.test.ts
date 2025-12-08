@@ -42,7 +42,7 @@ describe('GET /api/results/[id]', () => {
   it('should return a single historical race result', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const id = `horse-1-1-${today}`;
-    const url = `http://localhost:3000/api/results/${id}`;
+    const url = `https://racelab.kr/api/results/${id}`;
     const request = new NextRequest(url);
 
     const response = await GET(request, { params: Promise.resolve({ id }) });
@@ -59,7 +59,7 @@ describe('GET /api/results/[id]', () => {
   });
 
   it('should return 404 for non-existent race', async () => {
-    const url = `http://localhost:3000/api/results/invalid-id`;
+    const url = `https://racelab.kr/api/results/invalid-id`;
     const request = new NextRequest(url);
 
     const response = await GET(request, { params: Promise.resolve({ id: 'invalid-id' }) });
@@ -71,7 +71,7 @@ describe('GET /api/results/[id]', () => {
   });
 
   it('should return 400 for invalid ID format', async () => {
-    const url = `http://localhost:3000/api/results/`;
+    const url = `https://racelab.kr/api/results/`;
     const request = new NextRequest(url);
 
     const response = await GET(request, { params: Promise.resolve({ id: '' }) });
@@ -85,7 +85,7 @@ describe('GET /api/results/[id]', () => {
   it('should include all finishers in results', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const id = `horse-1-1-${today}`;
-    const url = `http://localhost:3000/api/results/${id}`;
+    const url = `https://racelab.kr/api/results/${id}`;
     const request = new NextRequest(url);
 
     const response = await GET(request, { params: Promise.resolve({ id }) });
@@ -103,7 +103,7 @@ describe('GET /api/results/[id]', () => {
   it('should include dividend information', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const id = `horse-1-1-${today}`;
-    const url = `http://localhost:3000/api/results/${id}`;
+    const url = `https://racelab.kr/api/results/${id}`;
     const request = new NextRequest(url);
 
     const response = await GET(request, { params: Promise.resolve({ id }) });

@@ -29,8 +29,8 @@ describe('GET /api/races/boat', () => {
 
   const createMockRequest = (date?: string) => {
     const url = date
-      ? `http://localhost:3000/api/races/boat?date=${date}`
-      : 'http://localhost:3000/api/races/boat';
+      ? `https://racelab.kr/api/races/boat?date=${date}`
+      : 'https://racelab.kr/api/races/boat';
     return new Request(url);
   };
 

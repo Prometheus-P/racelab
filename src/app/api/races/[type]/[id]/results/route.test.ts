@@ -19,7 +19,7 @@ describe('GET /api/races/[type]/[id]/results', () => {
     it('should return results for a completed race', async () => {
         (api.fetchRaceResults as jest.Mock).mockResolvedValue(mockResults);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/results');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/results');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         expect(response.status).toBe(200);
@@ -32,7 +32,7 @@ describe('GET /api/races/[type]/[id]/results', () => {
     it('should return 404 when race not found', async () => {
         (api.fetchRaceResults as jest.Mock).mockResolvedValue(null);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/invalid-id/results');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/invalid-id/results');
         const response = await GET(request, { params: { type: 'horse', id: 'invalid-id' } });
 
         expect(response.status).toBe(404);
@@ -44,7 +44,7 @@ describe('GET /api/races/[type]/[id]/results', () => {
     it('should return empty array for race without results', async () => {
         (api.fetchRaceResults as jest.Mock).mockResolvedValue([]);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/results');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/results');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         expect(response.status).toBe(200);
@@ -56,7 +56,7 @@ describe('GET /api/races/[type]/[id]/results', () => {
     it('should handle API errors gracefully', async () => {
         (api.fetchRaceResults as jest.Mock).mockRejectedValue(new Error('API error'));
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/results');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/results');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         expect(response.status).toBe(500);
@@ -68,7 +68,7 @@ describe('GET /api/races/[type]/[id]/results', () => {
     it('should return results with correct structure', async () => {
         (api.fetchRaceResults as jest.Mock).mockResolvedValue(mockResults);
 
-        const request = new NextRequest('http://localhost:3000/api/races/horse/horse-1-1-20240115/results');
+        const request = new NextRequest('https://racelab.kr/api/races/horse/horse-1-1-20240115/results');
         const response = await GET(request, { params: { type: 'horse', id: 'horse-1-1-20240115' } });
 
         const data = await response.json();

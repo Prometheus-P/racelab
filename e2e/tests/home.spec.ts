@@ -13,7 +13,7 @@ test.describe('Homepage', () => {
     test('should load homepage successfully', async () => {
         // Check page title
         const title = await homePage.getTitle();
-        expect(title).toContain('KRace');
+        expect(title).toContain('RaceLab');
 
         // Check header is visible
         await expect(homePage.header).toBeVisible();

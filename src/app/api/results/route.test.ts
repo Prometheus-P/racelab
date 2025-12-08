@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 describe('GET /api/results', () => {
   it('should return paginated historical results', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `http://localhost:3000/api/results?dateFrom=${today}&dateTo=${today}`;
+    const url = `https://racelab.kr/api/results?dateFrom=${today}&dateTo=${today}`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -26,7 +26,7 @@ describe('GET /api/results', () => {
 
   it('should filter by race type', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `http://localhost:3000/api/results?dateFrom=${today}&dateTo=${today}&types=horse`;
+    const url = `https://racelab.kr/api/results?dateFrom=${today}&dateTo=${today}&types=horse`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -41,7 +41,7 @@ describe('GET /api/results', () => {
 
   it('should filter by multiple race types', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `http://localhost:3000/api/results?dateFrom=${today}&dateTo=${today}&types=horse,cycle`;
+    const url = `https://racelab.kr/api/results?dateFrom=${today}&dateTo=${today}&types=horse,cycle`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -56,7 +56,7 @@ describe('GET /api/results', () => {
 
   it('should filter by track', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `http://localhost:3000/api/results?dateFrom=${today}&dateTo=${today}&types=horse&track=서울`;
+    const url = `https://racelab.kr/api/results?dateFrom=${today}&dateTo=${today}&types=horse&track=서울`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -71,7 +71,7 @@ describe('GET /api/results', () => {
 
   it('should handle pagination parameters', async () => {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `http://localhost:3000/api/results?dateFrom=${today}&dateTo=${today}&page=1&limit=5`;
+    const url = `https://racelab.kr/api/results?dateFrom=${today}&dateTo=${today}&page=1&limit=5`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -84,7 +84,7 @@ describe('GET /api/results', () => {
   });
 
   it('should return error for invalid date range', async () => {
-    const url = `http://localhost:3000/api/results?dateFrom=20241202&dateTo=20241201`;
+    const url = `https://racelab.kr/api/results?dateFrom=20241202&dateTo=20241201`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
@@ -96,7 +96,7 @@ describe('GET /api/results', () => {
   });
 
   it('should use default date (today) when not provided', async () => {
-    const url = `http://localhost:3000/api/results`;
+    const url = `https://racelab.kr/api/results`;
     const request = new NextRequest(url);
 
     const response = await GET(request);
