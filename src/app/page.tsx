@@ -74,13 +74,123 @@ function AnnouncementBanner() {
     >
       <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
         <span aria-hidden="true">📊</span>
-        KRace 베타 서비스
+        RaceLab 베타 서비스
       </h2>
       <p className="text-white/90 text-sm leading-relaxed">
         경마, 경륜, 경정 정보를 한 곳에서 확인하세요.
         실시간 배당률과 경주 결과를 무료로 제공합니다.
       </p>
     </aside>
+  );
+}
+
+// GEO 최적화: 경주 종목 안내 섹션
+function RaceTypesGuide() {
+  return (
+    <section aria-labelledby="race-types-heading" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 id="race-types-heading" className="text-xl font-bold text-gray-900 mb-4">
+        경마 · 경륜 · 경정이란?
+      </h2>
+      <p className="text-gray-600 mb-6">
+        대한민국에서 합법적으로 운영되는 세 가지 공영 경주 스포츠입니다.
+        각 경주는 고유한 특성과 매력을 가지고 있으며, RaceLab에서 모든 정보를 한눈에 확인할 수 있습니다.
+      </p>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* 경마 */}
+        <article className="p-4 rounded-lg bg-horse/5 border border-horse/20">
+          <h3 className="font-semibold text-horse mb-2 flex items-center gap-2">
+            <span aria-hidden="true">🐎</span>
+            경마 (Horse Racing)
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            말과 기수가 함께 달리는 경주. 서울(과천), 부산경남, 제주에서 개최됩니다.
+          </p>
+          <ul className="text-xs text-gray-500 space-y-1">
+            <li>• 주관: 한국마사회 (KRA)</li>
+            <li>• 경기장: 서울, 부산경남, 제주</li>
+            <li>• 거리: 1,000m ~ 2,000m</li>
+          </ul>
+        </article>
+
+        {/* 경륜 */}
+        <article className="p-4 rounded-lg bg-cycle/5 border border-cycle/20">
+          <h3 className="font-semibold text-cycle mb-2 flex items-center gap-2">
+            <span aria-hidden="true">🚴</span>
+            경륜 (Cycle Racing)
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            사이클 선수들이 경쟁하는 트랙 경주. 광명에서 개최됩니다.
+          </p>
+          <ul className="text-xs text-gray-500 space-y-1">
+            <li>• 주관: 국민체육진흥공단 (KSPO)</li>
+            <li>• 경기장: 광명스피돔</li>
+            <li>• 거리: 1,500m ~ 2,400m</li>
+          </ul>
+        </article>
+
+        {/* 경정 */}
+        <article className="p-4 rounded-lg bg-boat/5 border border-boat/20">
+          <h3 className="font-semibold text-boat mb-2 flex items-center gap-2">
+            <span aria-hidden="true">🚤</span>
+            경정 (Boat Racing)
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            모터보트 선수들의 수상 경주. 미사리에서 개최됩니다.
+          </p>
+          <ul className="text-xs text-gray-500 space-y-1">
+            <li>• 주관: 국민체육진흥공단 (KSPO)</li>
+            <li>• 경기장: 미사리경정공원</li>
+            <li>• 거리: 600m (3바퀴)</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+// GEO 최적화: 배당률 안내 섹션
+function OddsGuideSection() {
+  return (
+    <section aria-labelledby="odds-guide-heading" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 id="odds-guide-heading" className="text-xl font-bold text-gray-900 mb-4">
+        배당률 이해하기
+      </h2>
+      <p className="text-gray-600 mb-4">
+        경주 배당률은 각 출전 선수/마필의 승리 예상 확률을 나타냅니다.
+        배당률이 낮을수록 우승 확률이 높다고 예상되며, 높을수록 이변의 가능성을 의미합니다.
+      </p>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <caption className="sr-only">베팅 유형별 설명</caption>
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">베팅 유형</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">설명</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">난이도</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            <tr>
+              <td className="py-2 px-3 font-medium">단승식</td>
+              <td className="py-2 px-3 text-gray-600">1위를 정확히 맞추는 방식</td>
+              <td className="py-2 px-3"><span className="text-green-600">쉬움</span></td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium">복승식</td>
+              <td className="py-2 px-3 text-gray-600">1~2위를 순서 상관없이 맞추기</td>
+              <td className="py-2 px-3"><span className="text-yellow-600">보통</span></td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium">쌍승식</td>
+              <td className="py-2 px-3 text-gray-600">1~2위를 순서대로 맞추기</td>
+              <td className="py-2 px-3"><span className="text-red-600">어려움</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -200,6 +310,8 @@ export default function Home({ searchParams }: { searchParams: { tab?: string } 
         </section>
         <RaceTabs currentTab={currentTab} />
         <AnnouncementBanner />
+        <RaceTypesGuide />
+        <OddsGuideSection />
       </div>
     </>
   );
