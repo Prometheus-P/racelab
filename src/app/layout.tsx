@@ -9,18 +9,33 @@ import { Analytics } from '@vercel/analytics/react'
 import { HeaderSkeleton } from '@/components/Skeletons'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://racelab.kr'),
   title: {
     default: 'RaceLab - 경마 경륜 경정 통합 정보',
     template: '%s | RaceLab'
   },
-  description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에. 출마표, 배당률, 경주결과를 무료로 제공합니다.',
-  keywords: ['경마', '경륜', '경정', '배당률', '출마표', '경주결과', '한국마사회', '스피드온', 'RaceLab'],
-  authors: [{ name: 'RaceLab' }],
+  description: '대한민국 모든 경주(경마, 경륜, 경정)의 실시간 결과, 출주표, 배당률 분석 및 AI 기반 예상 정보를 제공합니다. 공공데이터포털 KRA·KSPO 공식 데이터 활용.',
+  keywords: [
+    '경마', '경륜', '경정',
+    '경마 결과', '경륜 결과', '경정 결과',
+    '부산경남경마', '과천경마', '서울경마', '제주경마',
+    '배당률', '출마표', '경주결과',
+    '한국마사회', '스피드온', 'KRA', 'KSPO',
+    'RaceLab', 'racelab.kr'
+  ],
+  authors: [{ name: 'RaceLab', url: 'https://racelab.kr' }],
   creator: 'RaceLab',
   publisher: 'RaceLab',
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   openGraph: {
     type: 'website',
@@ -28,7 +43,7 @@ export const metadata: Metadata = {
     url: 'https://racelab.kr',
     siteName: 'RaceLab',
     title: 'RaceLab - 경마 경륜 경정 통합 정보',
-    description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
+    description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에. 공공데이터포털 공식 데이터로 출마표, 배당률, 경주결과를 무료로 제공합니다.',
     images: [
       {
         url: '/opengraph-image.svg',
@@ -43,8 +58,14 @@ export const metadata: Metadata = {
     title: 'RaceLab - 경마 경륜 경정 통합 정보',
     description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
   },
+  alternates: {
+    canonical: 'https://racelab.kr',
+  },
   verification: {
     google: 'your-google-verification-code',
+    other: {
+      'naver-site-verification': 'your-naver-verification-code',
+    },
   },
 }
 

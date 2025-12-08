@@ -34,6 +34,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'hourly',
             priority: 1,
         },
+        {
+            url: `${baseUrl}/results`,
+            lastModified: new Date(),
+            changeFrequency: 'always', // 실시간 업데이트됨을 명시
+            priority: 0.9,
+        },
     ];
 
     // Dynamic race routes
