@@ -2,117 +2,250 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   RaceLab Design System V1.0 - Global Styles
+   핵심 원칙: CLARITY (명확성), BALANCE (균형), COMFORT (편안함)
+   ============================================================================= */
+
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 250, 250, 250;
+  /* Neutral Colors */
+  --rl-background: #FFFFFF;
+  --rl-text-primary: #27272A;
+  --rl-text-secondary: #71717A;
+  --rl-border: #D4D4D8;
+  --rl-divider: #E4E4E7;
+  --rl-table-row-alt: #F4F4F5;
+
+  /* Primary Colors - 로고 기반 */
+  --rl-horse: #81C784;      /* Sage Green - 경마 */
+  --rl-cycle: #E57373;      /* Soft Coral - 경륜 */
+  --rl-boat: #64B5F6;       /* Steel Blue - 경정 */
+
+  /* Legacy support */
+  --foreground-rgb: 39, 39, 42;
+  --background-rgb: 255, 255, 255;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  color: var(--rl-text-primary);
+  background: var(--rl-background);
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-/* 경마/경륜/경정 색상 테마 */
+/* =============================================================================
+   경마/경륜/경정 색상 테마
+   ============================================================================= */
+
 .theme-horse {
-  --theme-color: #2d5a27;
+  --theme-color: #81C784;
+  --theme-container: #E8F5E9;
+  --theme-on-container: #2E7D32;
 }
 
 .theme-cycle {
-  --theme-color: #dc2626;
+  --theme-color: #E57373;
+  --theme-container: #FFEBEE;
+  --theme-on-container: #C62828;
 }
 
 .theme-boat {
-  --theme-color: #0369a1;
+  --theme-color: #64B5F6;
+  --theme-container: #E3F2FD;
+  --theme-on-container: #1565C0;
 }
 
-/* 배당률 표시 */
-.odds {
+/* =============================================================================
+   배당률/데이터 표시 - ExtraBold + tabular-nums
+   ============================================================================= */
+
+.odds,
+.data-value {
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 800;
+  text-align: right;
 }
 
 .odds-up {
-  color: #dc2626;
+  color: #E57373;
 }
 
 .odds-down {
-  color: #2563eb;
+  color: #64B5F6;
 }
 
-/* 카드 스타일 */
+/* =============================================================================
+   카드 스타일 - 부드러운 그림자
+   ============================================================================= */
+
 .card {
-  @apply bg-white rounded-lg shadow-sm border border-gray-100 p-4;
+  @apply bg-white rounded-rl-lg border border-neutral-border p-6;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08);
 }
 
 .card-hover {
-  @apply transition-shadow hover:shadow-md;
+  @apply transition-shadow duration-rl-normal ease-rl-standard;
 }
 
-/* 배지 스타일 */
+.card-hover:hover {
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.12);
+}
+
+/* =============================================================================
+   배지 스타일 - 새 컬러 시스템
+   ============================================================================= */
+
 .badge {
-  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  @apply inline-flex items-center px-3 py-1 rounded-full text-label-medium font-medium;
 }
 
 .badge-horse {
-  @apply bg-green-100 text-green-800;
+  background-color: #E8F5E9;
+  color: #2E7D32;
 }
 
 .badge-cycle {
-  @apply bg-red-100 text-red-800;
+  background-color: #FFEBEE;
+  color: #C62828;
 }
 
 .badge-boat {
-  @apply bg-blue-100 text-blue-800;
+  background-color: #E3F2FD;
+  color: #1565C0;
 }
 
-/* 상태 배지 스타일 - 소비자 친화적 컬러 */
+/* =============================================================================
+   상태 배지 스타일 - 최소 48px 터치 영역
+   ============================================================================= */
+
 .status-badge {
-  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-label-medium font-semibold min-h-touch;
 }
 
 .status-live {
-  @apply bg-amber-100 text-amber-800 border border-amber-300;
+  background-color: #FFF8E1;
+  color: #F57C00;
+  border: 1px solid #FFB74D;
 }
 
 .status-live::before {
   content: '';
-  @apply w-2 h-2 rounded-full bg-amber-500 animate-pulse;
+  @apply w-2 h-2 rounded-full animate-pulse;
+  background-color: #FFB74D;
 }
 
 .status-upcoming {
-  @apply bg-blue-100 text-blue-800 border border-blue-300;
+  background-color: #E3F2FD;
+  color: #1565C0;
+  border: 1px solid #64B5F6;
 }
 
 .status-completed {
-  @apply bg-gray-100 text-gray-600 border border-gray-300;
+  background-color: #F4F4F5;
+  color: #71717A;
+  border: 1px solid #D4D4D8;
 }
 
 .status-cancelled {
-  @apply bg-red-100 text-red-800 border border-red-300;
-}
-
-/* 테이블 */
-.table-race {
-  @apply w-full text-sm;
-}
-
-.table-race th {
-  @apply bg-gray-50 px-3 py-2 text-left font-medium text-gray-600;
-}
-
-.table-race td {
-  @apply px-3 py-2 border-b border-gray-100;
-}
-
-/* 로딩 스피너 */
-.spinner {
-  @apply animate-spin h-5 w-5 border-2 border-gray-300 rounded-full;
-  border-top-color: #1a56db;
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #E57373;
 }
 
 /* =============================================================================
-   REDUCED MOTION SUPPORT
+   버튼 스타일 - 둥근 모서리, 최소 48px 높이
+   ============================================================================= */
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply min-h-touch px-6 py-3;
+  @apply font-semibold text-body-medium;
+  @apply rounded-rl-md;
+  @apply transition-all duration-rl-fast ease-rl-standard;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+/* Primary Button - Soft Coral (CTA) */
+.btn-primary {
+  @apply bg-cycle text-white;
+  @apply hover:bg-cycle-dark;
+  @apply focus:ring-cycle;
+}
+
+/* Secondary Button - Steel Blue */
+.btn-secondary {
+  @apply bg-boat text-white;
+  @apply hover:bg-boat-dark;
+  @apply focus:ring-boat;
+}
+
+/* Outlined Button */
+.btn-outlined {
+  @apply bg-transparent border-2;
+  @apply border-neutral-border text-on-surface;
+  @apply hover:bg-surface-dim;
+  @apply focus:ring-neutral-border;
+}
+
+/* =============================================================================
+   데이터 테이블 - Zebra Stripes, 우측 정렬 숫자
+   ============================================================================= */
+
+.table-race {
+  @apply w-full text-body-medium;
+}
+
+.table-race thead {
+  background-color: #F4F4F5;
+}
+
+.table-race th {
+  @apply px-4 py-3 text-left font-semibold;
+  color: #27272A;
+}
+
+.table-race th.numeric {
+  text-align: right;
+}
+
+.table-race tbody tr {
+  @apply min-h-touch;
+}
+
+/* Zebra Stripes */
+.table-race tbody tr:nth-child(even) {
+  background-color: #F4F4F5;
+}
+
+.table-race tbody tr:nth-child(odd) {
+  background-color: #FFFFFF;
+}
+
+.table-race td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid #E4E4E7;
+}
+
+/* 숫자 데이터 우측 정렬 */
+.table-race td.numeric,
+.table-race th.numeric {
+  @apply text-right font-extrabold;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================================
+   로딩 스피너 - 브랜드 컬러
+   ============================================================================= */
+
+.spinner {
+  @apply animate-spin h-6 w-6 rounded-full;
+  border: 3px solid #E4E4E7;
+  border-top-color: #E57373;
+}
+
+/* =============================================================================
+   REDUCED MOTION SUPPORT (접근성)
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,7 +260,7 @@ body {
 }
 
 /* =============================================================================
-   M3 STATE LAYERS
+   STATE LAYERS (인터랙티브 요소)
    ============================================================================= */
 
 /* Hover state layer (8% opacity) */
@@ -146,10 +279,70 @@ body {
 }
 
 /* =============================================================================
-   FOCUS RING
+   FOCUS RING (접근성)
    ============================================================================= */
 
 .focus-ring:focus-visible {
-  outline: 2px solid var(--theme-color, #1d4ed8);
+  outline: 2px solid var(--theme-color, #E57373);
   outline-offset: 2px;
+}
+
+/* =============================================================================
+   ANIMATIONS - 차트 로딩 (우상향 메시지)
+   ============================================================================= */
+
+.animate-fade-in-up {
+  animation: fade-in-up 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-grow-up {
+  animation: grow-up 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grow-up {
+  0% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+/* =============================================================================
+   LINK STYLES - Steel Blue
+   ============================================================================= */
+
+a {
+  color: #1565C0;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a:hover {
+  color: #0D47A1;
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid #64B5F6;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Navigation links - no underline */
+nav a:hover {
+  text-decoration: none;
 }
