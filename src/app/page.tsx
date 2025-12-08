@@ -161,7 +161,9 @@ function OddsGuideSection() {
         배당률이 낮을수록 우승 확률이 높다고 예상되며, 높을수록 이변의 가능성을 의미합니다.
       </p>
 
-      <div className="overflow-x-auto">
+      {/* H3: 베팅 유형 소개 */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">베팅 유형 소개</h3>
+      <div className="overflow-x-auto mb-6">
         <table className="w-full text-sm">
           <caption className="sr-only">베팅 유형별 설명</caption>
           <thead>
@@ -169,6 +171,7 @@ function OddsGuideSection() {
               <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">베팅 유형</th>
               <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">설명</th>
               <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">난이도</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">평균 배당률</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -176,19 +179,213 @@ function OddsGuideSection() {
               <td className="py-2 px-3 font-medium">단승식</td>
               <td className="py-2 px-3 text-gray-600">1위를 정확히 맞추는 방식</td>
               <td className="py-2 px-3"><span className="text-green-600">쉬움</span></td>
+              <td className="py-2 px-3 text-gray-600">2~10배</td>
             </tr>
             <tr>
               <td className="py-2 px-3 font-medium">복승식</td>
               <td className="py-2 px-3 text-gray-600">1~2위를 순서 상관없이 맞추기</td>
               <td className="py-2 px-3"><span className="text-yellow-600">보통</span></td>
+              <td className="py-2 px-3 text-gray-600">5~30배</td>
             </tr>
             <tr>
               <td className="py-2 px-3 font-medium">쌍승식</td>
               <td className="py-2 px-3 text-gray-600">1~2위를 순서대로 맞추기</td>
               <td className="py-2 px-3"><span className="text-red-600">어려움</span></td>
+              <td className="py-2 px-3 text-gray-600">10~100배</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium">삼복승식</td>
+              <td className="py-2 px-3 text-gray-600">1~3위를 순서 상관없이 맞추기</td>
+              <td className="py-2 px-3"><span className="text-red-600">어려움</span></td>
+              <td className="py-2 px-3 text-gray-600">20~200배</td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* H3: 배당률 계산 원리 */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">배당률 계산 원리</h3>
+      <p className="text-gray-600 text-sm">
+        배당률은 총 베팅 금액에서 특정 선수/마필에 베팅된 금액의 비율로 결정됩니다.
+        많은 사람이 베팅할수록 배당률이 낮아지고, 적게 베팅할수록 배당률이 높아집니다.
+        경주 직전까지 배당률은 계속 변동됩니다.
+      </p>
+    </section>
+  );
+}
+
+// GEO 최적화: 경기장 안내 섹션
+function TrackGuideSection() {
+  return (
+    <section aria-labelledby="track-guide-heading" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 id="track-guide-heading" className="text-xl font-bold text-gray-900 mb-4">
+        전국 경기장 안내
+      </h2>
+      <p className="text-gray-600 mb-6">
+        대한민국의 공영 경주 경기장은 서울, 부산, 제주, 광명, 미사리에 위치하고 있습니다.
+        각 경기장의 특성과 개최 일정을 확인하세요.
+      </p>
+
+      {/* H3: 경마장 */}
+      <h3 className="text-lg font-semibold text-horse mb-3 flex items-center gap-2">
+        <span aria-hidden="true">🐎</span>
+        경마장 (한국마사회)
+      </h3>
+      <div className="overflow-x-auto mb-6">
+        <table className="w-full text-sm">
+          <caption className="sr-only">경마장 정보</caption>
+          <thead>
+            <tr className="border-b border-gray-200 bg-horse/5">
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">경기장</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">위치</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">개최 요일</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">특징</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            <tr>
+              <td className="py-2 px-3 font-medium">서울경마공원</td>
+              <td className="py-2 px-3 text-gray-600">경기도 과천시</td>
+              <td className="py-2 px-3 text-gray-600">토, 일</td>
+              <td className="py-2 px-3 text-gray-600">국내 최대 규모, 잔디 트랙</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium">부산경남경마공원</td>
+              <td className="py-2 px-3 text-gray-600">부산광역시 강서구</td>
+              <td className="py-2 px-3 text-gray-600">금, 토, 일</td>
+              <td className="py-2 px-3 text-gray-600">모래 트랙, 야간 경마</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium">제주경마공원</td>
+              <td className="py-2 px-3 text-gray-600">제주특별자치도</td>
+              <td className="py-2 px-3 text-gray-600">토, 일</td>
+              <td className="py-2 px-3 text-gray-600">조랑말 경주 특화</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* H3: 경륜/경정장 */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+        <span aria-hidden="true">🚴</span>
+        <span aria-hidden="true">🚤</span>
+        경륜 · 경정장 (국민체육진흥공단)
+      </h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <caption className="sr-only">경륜/경정장 정보</caption>
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">경기장</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">종목</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">위치</th>
+              <th scope="col" className="text-left py-2 px-3 font-semibold text-gray-900">개최 요일</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            <tr>
+              <td className="py-2 px-3 font-medium text-cycle">광명스피돔</td>
+              <td className="py-2 px-3 text-gray-600">경륜</td>
+              <td className="py-2 px-3 text-gray-600">경기도 광명시</td>
+              <td className="py-2 px-3 text-gray-600">금, 토, 일</td>
+            </tr>
+            <tr>
+              <td className="py-2 px-3 font-medium text-boat">미사리경정공원</td>
+              <td className="py-2 px-3 text-gray-600">경정</td>
+              <td className="py-2 px-3 text-gray-600">경기도 하남시</td>
+              <td className="py-2 px-3 text-gray-600">금, 토, 일</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// GEO 최적화: 초보자 가이드 섹션
+function BeginnerGuideSection() {
+  return (
+    <section aria-labelledby="beginner-guide-heading" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 id="beginner-guide-heading" className="text-xl font-bold text-gray-900 mb-4">
+        초보자를 위한 경주 관람 가이드
+      </h2>
+      <p className="text-gray-600 mb-6">
+        처음 경마, 경륜, 경정을 접하는 분들을 위한 기본 안내입니다.
+        경주 관람 전 알아두면 좋은 정보를 정리했습니다.
+      </p>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* 경주 관람 순서 */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">경주 관람 순서</h3>
+          <ol className="space-y-3">
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">1</span>
+              <div>
+                <strong className="text-gray-900">출마표 확인</strong>
+                <p className="text-sm text-gray-600">출전 마필/선수의 정보와 최근 성적을 확인합니다.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">2</span>
+              <div>
+                <strong className="text-gray-900">배당률 확인</strong>
+                <p className="text-sm text-gray-600">실시간 배당률을 확인하여 예상을 세웁니다.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">3</span>
+              <div>
+                <strong className="text-gray-900">경주 관람</strong>
+                <p className="text-sm text-gray-600">현장 또는 온라인으로 경주를 관람합니다.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-sm font-semibold">4</span>
+              <div>
+                <strong className="text-gray-900">결과 확인</strong>
+                <p className="text-sm text-gray-600">경주 종료 후 결과와 배당금을 확인합니다.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        {/* 알아두면 좋은 팁 */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">알아두면 좋은 팁</h3>
+          <ul className="space-y-2">
+            <li className="flex items-start gap-2 text-sm">
+              <span aria-hidden="true" className="text-green-600 mt-0.5">✓</span>
+              <span className="text-gray-600">
+                <strong className="text-gray-900">기록 분석:</strong> 최근 5경주 이상의 기록을 참고하세요.
+              </span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <span aria-hidden="true" className="text-green-600 mt-0.5">✓</span>
+              <span className="text-gray-600">
+                <strong className="text-gray-900">날씨 영향:</strong> 비 오는 날은 경주 결과에 영향을 줄 수 있습니다.
+              </span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <span aria-hidden="true" className="text-green-600 mt-0.5">✓</span>
+              <span className="text-gray-600">
+                <strong className="text-gray-900">트랙 특성:</strong> 각 경기장마다 트랙 특성이 다릅니다.
+              </span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <span aria-hidden="true" className="text-green-600 mt-0.5">✓</span>
+              <span className="text-gray-600">
+                <strong className="text-gray-900">마체중 변화:</strong> 급격한 체중 변화는 컨디션 지표입니다.
+              </span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <span aria-hidden="true" className="text-green-600 mt-0.5">✓</span>
+              <span className="text-gray-600">
+                <strong className="text-gray-900">기수/선수 성적:</strong> 숙련된 기수/선수가 유리합니다.
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
   );
@@ -312,6 +509,8 @@ export default function Home({ searchParams }: { searchParams: { tab?: string } 
         <AnnouncementBanner />
         <RaceTypesGuide />
         <OddsGuideSection />
+        <TrackGuideSection />
+        <BeginnerGuideSection />
       </div>
     </>
   );
