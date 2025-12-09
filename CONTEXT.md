@@ -1,6 +1,6 @@
 ---
 title: RaceLab 프로젝트 컨텍스트
-version: 1.1.0
+version: 1.4.0
 status: Approved
 owner: '@Prometheus-P'
 created: 2025-11-25
@@ -11,8 +11,9 @@ language: Korean (한국어)
 
 # CONTEXT.md - KRace 프로젝트 Single Source of Truth
 
-> **이 문서는 프로젝트의 모든 맥락을 담은 단일 진실 공급원(Single Source of Truth)입니다.**
-> AI 에이전트와 개발자 모두 이 문서를 참조하여 프로젝트를 이해합니다.
+> **이 문서는 RaceLab 프로젝트의 모든 맥락을 담은 단일 진실 공급원(Single Source of Truth)입니다.**
+> **최신 릴리즈 버전(`v1.4 Refine`)의 현황과 주요 기술/비즈니스 컨텍스트를 제공합니다.**
+> AI 에이전트와 개발자 모두 이 문서를 참조하여 프로젝트를 이해하고 일관된 방향성을 유지합니다.
 
 ---
 
@@ -21,6 +22,7 @@ language: Korean (한국어)
 | 버전  | 날짜       | 작성자        | 변경 내용 |
 | ----- | ---------- | ------------- | --------- |
 | 1.0.0 | 2025-11-25 | @Prometheus-P | 최초 작성 |
+| 1.4.0 | 2025-12-09 | @Prometheus-P | v1.4 Refine Cycle - 최소 프로덕션 수준으로 개선 |
 
 ## 관련 문서 (Related Documents)
 
@@ -39,7 +41,7 @@ language: Korean (한국어)
 | 항목           | 내용                 |
 | -------------- | -------------------- |
 | **프로젝트명** | KRace (케이레이스)   |
-| **버전**       | 1.1.0                |
+| **버전**       | 1.4.0                |
 | **도메인**     | racelab.kr           |
 | **저장소**     | Prometheus-P/racelab |
 | **라이선스**   | ISC                  |
@@ -441,11 +443,11 @@ npm run lint
 
 ### 8.3 알려진 이슈
 
-| ID  | 이슈                       | 상태 | 우선순위 |
-| --- | -------------------------- | ---- | -------- |
-| #1  | `/public/` 디렉토리 미생성 | Open | High     |
-| #2  | Analytics 통합 미완료      | Open | Medium   |
-| #3  | KSPO 매퍼 불완전           | Open | Medium   |
+| ID  | 이슈                       | 상태     | 우선순위 |
+| --- | -------------------------- | -------- | -------- |
+| #1  | `/public/` 디렉토리 미생성 | 해결됨   | High     |
+| #2  | Analytics 통합 미완료      | 진행중   | Medium   |
+| #3  | KSPO 매퍼 불완전           | 진행중   | Medium   |
 
 ---
 

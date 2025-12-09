@@ -4,7 +4,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
 
 ## Workstream 1: 문서/거버넌스 (Documentation/Governance)
 
-### Task: CONTEXT.md 업데이트 및 정리
+### Task: CONTEXT.md 업데이트 및 정리 [X]
 - **Label**: `docs`, `refactor`
 - **Description**: 현재 릴리즈 버전(v1.3.x)을 반영하여 `CONTEXT.md`의 버전 정보, 변경 이력, 알려진 이슈를 업데이트한다. 해결된 이슈는 제거하거나 "해결됨"으로 명시하여 레포 전체의 SSOT 역할을 강화한다.
 - **Target Files/Directories**: `CONTEXT.md`
@@ -15,7 +15,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
     - `CONTEXT.md` 상단에 "이 문서가 무엇을 책임지는지"를 3줄로 요약하는 인트로 섹션이 추가된다.
 - **Related Tasks**: None
 
-### Task: API 스펙 단일 진실 정의 및 문서 요약
+### Task: API 스펙 단일 진실 정의 및 문서 요약 [X]
 - **Label**: `docs`, `refactor`
 - **Description**: `docs/technical/API_README_v2.md`를 외부 API 최종 스펙으로 지정하고, `docs/technical/TECHNICAL_DESIGN.md` 내의 API 상세 테이블은 요약만 남기고 파라미터/필드/코드 목록은 `API_README_v2.md`로 위임한다.
 - **Target Files/Directories**:
@@ -30,7 +30,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
 
 ## Workstream 2: 도메인/타입/서비스 (Domain/Types/Services)
 
-### Task: Race 도메인 타입 확장 (ID 및 필수 필드)
+### Task: Race 도메인 타입 확장 (ID 및 필수 필드) [X]
 - **Label**: `enhancement`, `refactor`, `test`
 - **Description**: `Race` 도메인 타입에 `date` (YYYY-MM-DD), `meetCode` (원시 회차/시행 코드) 필드를 추가하고, `id` 필드를 "type-<meetCode>-<raceNo>-<date>" 형태로 안정적이고 결정적으로 생성되도록 규격화한다.
 - **Target Files/Directories**:
@@ -42,7 +42,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
     - 해당 변경에 대한 유닛 테스트(Jest)가 추가되고 통과한다. (ID 생성 결정성, 필수 필드 포함 여부)
 - **Related Tasks**: `Task: 하위 도메인 타입 (Entry/Runner) 정리`, `Task: 외부 API 클라이언트 모듈 분리`
 
-### Task: 하위 도메인 타입 (Entry/Runner) 정리
+### Task: 하위 도메인 타입 (Entry/Runner) 정리 [X]
 - **Label**: `enhancement`, `refactor`, `test`
 - **Description**: `Entry`/`Runner` 등 `Race`의 하위 도메인 타입을 경마/경륜/경정 종목별 요구사항에 맞춰 필드를 정리한다.
 - **Target Files/Directories**:
@@ -67,7 +67,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
     - `Race`/`Entry`/`Result`/`OddsSnapshot`에 대한 유닛 테스트 (스냅샷 테스트 포함)가 추가되고 통과한다.
 - **Related Tasks**: `Task: Race 도메인 타입 확장 (ID 및 필수 필드)`, `Task: 하위 도메인 타입 (Entry/Runner) 정리`, `Task: 외부 API 클라이언트 모듈 분리`
 
-### Task: 외부 API 클라이언트 모듈 분리 (KRA)
+### Task: 외부 API 클라이언트 모듈 분리 (KRA) [X]
 - **Label**: `refactor`, `enhancement`, `test`
 - **Description**: 한국마사회(KRA) 관련 외부 API 호출 로직을 `src/lib/api/kraClient.ts`로 분리한다. `API_README_v2.md` 내 어떤 스펙 섹션을 기준으로 했는지 주석으로 명시한다.
 - **Target Files/Directories**:
@@ -79,7 +79,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
     - 분리된 클라이언트 모듈에 대한 유닛 테스트가 추가되고 통과한다.
 - **Related Tasks**: `Task: 외부 API 클라이언트 모듈 분리 (KSPO 경륜)`, `Task: 외부 API 클라이언트 모듈 분리 (KSPO 경정)`
 
-### Task: 외부 API 클라이언트 모듈 분리 (KSPO 경륜)
+### Task: 외부 API 클라이언트 모듈 분리 (KSPO 경륜) [X]
 - **Label**: `refactor`, `enhancement`, `test`
 - **Description**: 국민체육진흥공단(KSPO) 경륜 관련 외부 API 호출 로직을 `src/lib/api/kspoCycleClient.ts`로 분리한다. `API_README_v2.md` 내 어떤 스펙 섹션을 기준으로 했는지 주석으로 명시한다.
 - **Target Files/Directories**:
@@ -91,7 +91,7 @@ This document outlines the detailed tasks for the v1.4 Refine Cycle, categorized
     - 분리된 클라이언트 모듈에 대한 유닛 테스트가 추가되고 통과한다.
 - **Related Tasks**: `Task: 외부 API 클라이언트 모듈 분리 (KRA)`, `Task: 외부 API 클라이언트 모듈 분리 (KSPO 경정)`
 
-### Task: 외부 API 클라이언트 모듈 분리 (KSPO 경정)
+### Task: 외부 API 클라이언트 모듈 분리 (KSPO 경정) [X]
 - **Label**: `refactor`, `enhancement`, `test`
 - **Description**: 국민체육진흥공단(KSPO) 경정 관련 외부 API 호출 로직을 `src/lib/api/kspoBoatClient.ts`로 분리한다. `API_README_v2.md` 내 어떤 스펙 섹션을 기준으로 했는지 주석으로 명시한다.
 - **Target Files/Directories**:

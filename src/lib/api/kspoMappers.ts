@@ -1,329 +1,21 @@
-// src/lib/api-helpers/mappers.ts
+// src/lib/api/kspoMappers.ts
+// KSPO(경륜/경정) 전용 매핑 모듈
+
 import {
   Race,
   Entry,
+  Odds,
+  KSPOOddsResponse,
   HistoricalRace,
   HistoricalRaceResult,
   Dividend,
+  Racer,
+  RaceType,
 } from '@/types';
+import { generateRaceId } from '../utils/race';
+import { parseOddsValue } from '../utils/parser';
 
-// Type definitions for raw API response items (legacy API214 format)
-export interface KRAHorseRaceItem {
-  meet?: string;
-  rcNo?: string;
-  rcDate?: string;
-  rcTime?: string;
-  rcDist?: string;
-  rank?: string;
-  hrNo?: string;
-  hrName?: string;
-  jkName?: string;
-  trName?: string;
-  age?: string;
-  wgHr?: string;
-  rcRst?: string;
-}
-
-// API323 출전등록현황 response format
-export interface KRA323EntryItem {
-  ag?: number; // 연령
-  gndr?: string; // 성별 (수/암/거)
-  hrnm?: string; // 마명
-  raceDt?: number; // 경주일자 (YYYYMMDD)
-  raceDotw?: string; // 경주요일
-  raceNo?: number; // 경주번호
-  ratg?: number; // 레이팅
-  rcptNo?: number; // 접수번호
-  trarNm?: string; // 조교사명
-  ownerNm?: string; // 마주명
-  prds?: string; // 산지 (한/미/일 등)
-  erngSump?: string; // 총상금
-  loyProdNm?: string; // 부마명
-}
-
-// API299 경주결과종합 response format
-export interface KRA299ResultItem {
-  meet?: string; // 경마장명
-  rcDate?: number; // 경주일자
-  rcNo?: number; // 경주번호
-  chulNo?: number; // 출전번호
-  ord?: number; // 순위
-  hrName?: string; // 마명
-  hrNo?: string; // 마번
-  jkName?: string; // 기수명
-  jkNo?: string; // 기수번호
-  rcTime?: number; // 주파기록
-  age?: number; // 연령
-  rank?: string; // 등급
-  schStTime?: string; // 발주예정시각
-  seG1fAccTime?: number; // 결승 1F 누적시간
-  seG3fAccTime?: number; // 결승 3F 누적시간
-  seS1fAccTime?: number; // 출발 1F 누적시간
-}
-
-// API156 / 15150068 경주결과상세
-export interface KRAHorseResultDetailItem {
-  schdRccrsNm: string;
-  schdRaceDt: string;
-  schdDotwNm: string;
-  schdRaceDyCnt: string;
-  schdRaceNo: string;
-  schdRaceNm: string;
-  cndRaceDs: string;
-  cndRaceClas: string;
-  cndBurdGb: string;
-  cndRatg: string;
-  cndAg: string;
-  cndGndr: string;
-  cndStrtPargTim: string;
-  pthrGtno: string;
-  pthrHrno: string;
-  pthrHrnm: string;
-  pthrNtnlty: string;
-  pthrAg: string;
-  pthrBthd: string;
-  pthrGndr: string;
-  pthrWeg: string;
-  pthrBurdWgt: string;
-  pthrRatg: string;
-  pthrEquip: string;
-  pthrLatstPtinDt: string;
-  hrmJckyId: string;
-  hrmJckyNm: string;
-  hrmJckyAlw: string;
-  hrmTrarId: string;
-  hrmTrarNm: string;
-  hrmOwnerId: string;
-  hrmOwnerNm: string;
-  rsutWetr: string;
-  rsutTrckStus: string;
-  rsutRlStrtTim: string;
-  rsutStrtTimChgRs: string;
-  rsutRk: string;
-  rsutRkRemk: string;
-  rsutRkPurse: string;
-  rsutRkAdmny: string;
-  rsutRaceRcd: string;
-  rsutMargin: string;
-  rsutWinPrice: string;
-  rsutQnlaPrice: string;
-}
-
-// API187 경마경주정보
-export interface KRAHorseRaceInfoItem {
-  meet: string;
-  rank: string;
-  rcKrFlag: string;
-  rcKrFlagText: string;
-  rccnt: number;
-  yyyymm: string;
-}
-
-// API23_1 출전 등록말 정보
-export interface KRAHorseEntryItem {
-  meet: string;
-  pgDate: string;
-  pgNo: string;
-  rcName: string;
-  rank: string;
-  rcDist: string;
-  budam: string;
-  prizeCond: string;
-  ageCond: string;
-  chaksun1: string;
-  chaksun2: string;
-  chaksun3: string;
-  chaksun4: string;
-  chaksun5: string;
-  enNo: string;
-  recentRating: string;
-  hrName: string;
-  hrNo: string;
-  name: string;
-  sex: string;
-  age: string;
-  trName: string;
-  trNo: string;
-  owName: string;
-  owNo: string;
-  prdName: string;
-  rcCntY: string;
-  calPrize_6m: string;
-  calPrizeY: string;
-  chaksunT: string;
-}
-
-// API26_2 출전표 상세
-export interface KRAHorseEntryDetailItem {
-  meet: string;
-  rcDate: string;
-  rcDay: string;
-  rcNo: string;
-  chulNo: string;
-  hrName: string;
-  hrNo: string;
-  prd: string;
-  sex: string;
-  age: string;
-  wgBudam: string;
-  rating: string;
-  jkName: string;
-  jkNo: string;
-  trName: string;
-  trNo: string;
-  owName: string;
-  owNo: string;
-  ilsu: string;
-  rcDist: string;
-  dusu: string;
-  rank: string;
-  prizeCond: string;
-  ageCond: string;
-  stTime: string;
-  budam: string;
-  rcName: string;
-  chaksun1: string;
-  chaksun2: string;
-  chaksun3: string;
-  chaksun4: string;
-  chaksun5: string;
-  chaksunT: string;
-  chaksunY: string;
-  chaksun_6m: string;
-  ord1CntT: string;
-  ord2CntT: string;
-  ord3CntT: string;
-  rcCntT: string;
-  ord1CntY: string;
-  ord2CntY: string;
-  ord3CntY: string;
-  rcCntY: string;
-  sexCond: string;
-  hrNameEn: string;
-  jkNameEn: string;
-  trNameEn: string;
-  owNameEn: string;
-}
-
-export interface HorseEntryDetail {
-  track: string;
-  raceDate: string;
-  raceDay: string;
-  raceNo: number;
-  entryNo: number;
-  horseName: string;
-  horseNumber: string;
-  trainer: string;
-  owner: string;
-  jockey: string;
-  rating: string;
-  age: string;
-  sex: string;
-  weight: string;
-  prizeCondition: string;
-  distance: string;
-  startTime: string;
-  recentRecord: string;
-}
-// API301 확정배당율 종합
-export interface KRAHorseDividendSummaryItem {
-  hrName: string;
-  hrNo: string;
-  name: string;
-  prdName: string;
-  age: string;
-  sex: string;
-  rcTime: string;
-  ord1CntT: string;
-  ord2CntT: string;
-  meet: string;
-  rcDate: string;
-  rcNo: string;
-  rank: string;
-  track: string;
-  ord: string;
-  chulNo: string;
-  rcCntT: string;
-  ord1CntY: string;
-  ord2CntY: string;
-  rcCntY: string;
-  jkAge: string;
-  jkCareer: string;
-  jkOrd1CntT: string;
-  jkOrd2CntT: string;
-  jkRcCntT: string;
-  jkOrd1CntY: string;
-  jkOrd2CntY: string;
-  jkRcCntY: string;
-  trAge: string;
-  trCareer: string;
-  trOrd1CntT: string;
-  trOrd2CntT: string;
-  trRcCntT: string;
-  trOrd1CntY: string;
-  trOrd2CntY: string;
-  trRcCntY: string;
-  wgHr: string;
-  wgBudam: string;
-  jkName: string;
-  jkNo: string;
-  trName: string;
-  trNo: string;
-  stTime: string;
-  schStTime: string;
-  startTimeChg: string;
-  stTimeChgReason: string;
-  noraceFlag: string;
-  finalBit: string;
-  hrOrd1CntT: string;
-  hrOrd2CntT: string;
-  hrRcCntT: string;
-  sjS1fOrd: string;
-  sj_1cOrd: string;
-  sj_2cOrd: string;
-  sj_3cOrd: string;
-  sjG3fOrd: string;
-  sj_4cOrd: string;
-  sjG1fOrd: string;
-  seS1fAccTime: string;
-  se_1cAccTime: string;
-  se_2cAccTime: string;
-  se_3cAccTime: string;
-  seG3fAccTime: string;
-  se_4cAccTime: string;
-  seG1fAccTime: string;
-  jeS1fTime: string;
-  je_1cTime: string;
-  je_2cTime: string;
-  je_3cTime: string;
-  jeG3fTime: string;
-  je_4cTime: string;
-  jeG1fTime: string;
-  buS1fOrd: string;
-  buG8fOrd: string;
-  buG6fOrd: string;
-  buG4fOrd: string;
-  buG3fOrd: string;
-  buG2fOrd: string;
-  buG1fOrd: string;
-  buS1fTime: string;
-  bu_10_8fTime: string;
-  bu_8_6fTime: string;
-  bu_6_4fTime: string;
-  bu_4_2fTime: string;
-  bu_2fGTime: string;
-  bu_3fGTime: string;
-  bu_1fGTime: string;
-  buS1fAccTime: string;
-  buG8fAccTime: string;
-  buG6fAccTime: string;
-  buG4fAccTime: string;
-  buG3fAccTime: string;
-  buG2fAccTime: string;
-  buG1fAccTime: string;
-}
-
-// Legacy API214 format (deprecated)
+// Raw API response item interfaces for KSPO
 export interface KSPORaceItem {
   meet?: string;
   rcNo?: string;
@@ -585,13 +277,13 @@ export interface KSPOCycleExerciseItem {
   starting_nope: number;
   eclnt_nope: number;
   get_eclet_nope: number;
+  tak_nope: number;
+  rora_nope: number;
+  repr_nope: number;
   stnd_yr: string;
   week_tcnt: number;
   day_tcnt: number;
   race_ymd: string;
-  tak_nope: number;
-  rora_nope: number;
-  repr_nope: number;
   row_num: string;
 }
 
@@ -658,62 +350,6 @@ export interface KSPOCycleRaceResultItem {
   row_num: string;
 }
 
-/**
- * Generate a unique race ID with validation
- * Throws error if required fields are missing to prevent invalid/duplicate IDs
- */
-function generateRaceId(
-  type: 'horse' | 'cycle' | 'boat',
-  meet: string | undefined,
-  rcNo: string | undefined,
-  rcDate: string | undefined
-): string {
-  if (!meet || !rcNo || !rcDate) {
-    // Log warning but don't throw to avoid breaking the app for bad API data
-    console.warn(
-      `Missing required fields for race ID generation: meet=${meet}, rcNo=${rcNo}, rcDate=${rcDate}`
-    );
-    // Generate a fallback ID with timestamp to ensure uniqueness
-    const timestamp = Date.now();
-    return `${type}-unknown-${timestamp}`;
-  }
-  return `${type}-${meet}-${rcNo}-${rcDate}`;
-}
-
-// Helper function to map KRA API response item to our internal Race type
-export function mapKRAHorseRaceToRace(item: KRAHorseRaceItem): Race {
-  // Extract entry data for horse races
-  const entries: Entry[] = [];
-  // For KRA API, entry data seems to be directly within the race item
-  // based on API_SPECIFICATION.md and test mock.
-  // Note: This is a simplified mapping. Real API might require separate calls for entries.
-  if (item.hrNo && item.hrName) {
-    // Check if entry data is present
-    entries.push({
-      no: parseInt(item.hrNo),
-      name: item.hrName,
-      jockey: item.jkName,
-      trainer: item.trName,
-      age: item.age ? parseInt(item.age) : undefined,
-      weight: item.wgHr ? parseInt(item.wgHr) : undefined,
-      recentRecord: item.rcRst,
-      // odds will be added in Phase 2
-    });
-  }
-
-  return {
-    id: generateRaceId('horse', item.meet, item.rcNo, item.rcDate),
-    type: 'horse',
-    raceNo: item.rcNo ? parseInt(item.rcNo) : 0,
-    track: item.meet === '1' ? '서울' : item.meet === '2' ? '부산경남' : '제주',
-    startTime: item.rcTime || '',
-    distance: item.rcDist ? parseInt(item.rcDist) : undefined,
-    grade: item.rank,
-    status: 'upcoming',
-    entries: entries,
-  };
-}
-
 // Helper function to map KSPO Cycle API response item to our internal Race type
 export function mapKSPOCycleRaceToRace(item: KSPORaceItem): Race {
   // Extract entry data for cycle races
@@ -732,7 +368,7 @@ export function mapKSPOCycleRaceToRace(item: KSPORaceItem): Race {
     id: generateRaceId('cycle', item.meet, item.rcNo, item.rcDate),
     type: 'cycle',
     raceNo: item.rcNo ? parseInt(item.rcNo) : 0,
-    track: item.meet === '1' ? '광명' : item.meet === '2' ? '창원' : '부산',
+    track: item.meet === '1' ? '광명' : item.meet === '2' ? '창원' : '3',
     startTime: item.rcTime || '',
     distance: item.rcDist ? parseInt(item.rcDist) : undefined,
     grade: undefined,
@@ -1094,27 +730,22 @@ export function mapKSPOCycleInspects(items: KSPOCycleInspectItem[]) {
     damageCode: item.dmag_cd,
     maxRaceDate: item.max_race_ymd,
     confirmInspectCount: item.cfm_insp_cnt,
-    beforeStarts: [
-      item.bf_strt1_tcnt,
-      item.bf_strt2_tcnt,
-      item.bf_strt3_tcnt,
-      item.bf_strt4_tcnt,
-      item.bf_strt5_tcnt,
-    ],
-    nowStarts: [
-      item.now_str1_tcnt,
-      item.now_str2_tcnt,
-      item.now_str3_tcnt,
-      item.now_str4_tcnt,
-      item.now_str5_tcnt,
-    ],
-    afterStarts: [
-      item.af_str1_tcnt,
-      item.af_str2_tcnt,
-      item.af_str3_tcnt,
-      item.af_str4_tcnt,
-      item.af_str5_tcnt,
-    ],
+    bf_strt1_tcnt: item.bf_strt1_tcnt,
+    bf_strt2_tcnt: item.bf_strt2_tcnt,
+    bf_strt3_tcnt: item.bf_strt3_tcnt,
+    bf_strt4_tcnt: item.bf_strt4_tcnt,
+    bf_strt5_tcnt: item.bf_strt5_tcnt,
+    now_str1_tcnt: item.now_str1_tcnt,
+    now_str2_tcnt: item.now_str2_tcnt,
+    now_str3_tcnt: item.now_str3_tcnt,
+    now_str4_tcnt: item.now_str4_tcnt,
+    now_str5_tcnt: item.now_str5_tcnt,
+    af_str1_tcnt: item.af_str1_tcnt,
+    af_str2_tcnt: item.af_str2_tcnt,
+    af_str3_tcnt: item.af_str3_tcnt,
+    af_str4_tcnt: item.af_str4_tcnt,
+    af_str5_tcnt: item.af_str5_tcnt,
+    row_num: item.row_num,
   }));
 }
 
@@ -1175,11 +806,9 @@ export function mapKRAHorseEntryRegistration(items: KRAHorseEntryItem[]): Race[]
       race = {
         id: raceId,
         type: 'horse',
-        raceNo,
-        track: item.meet || '서울',
+        raceNo: raceNo,
+        track: '서울',
         startTime: '',
-        distance: item.rcDist ? parseInt(item.rcDist, 10) : undefined,
-        grade: item.rank,
         status: 'upcoming',
         entries: [],
       };
@@ -1415,15 +1044,6 @@ export function mapKRA299ToRaces(items: KRA299ResultItem[]): Race[] {
   }
 
   return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
-}
-
-// Helper function to parse odds value from string
-function parseOddsValue(value: string | null | undefined): number | null {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? null : parsed;
 }
 
 // Helper function to map KSPO odds response to our internal Odds type
