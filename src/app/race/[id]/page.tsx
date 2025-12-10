@@ -4,7 +4,7 @@ import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
 import { RaceResult, Dividend } from '@/types';
 import { RaceNotFound, BackNavigation } from './components';
-import { RaceSummaryCard, EntryTable, RaceResultsOdds } from '@/components/race-detail';
+import { RaceSummaryCard, EntryTable, RaceResultsOdds, KeyInsightBlock } from '@/components/race-detail';
 
 type Props = {
   params: { id: string };
@@ -169,6 +169,7 @@ export default async function RaceDetailPage({ params }: Props) {
       <div className="space-y-6">
         <BackNavigation raceType={race.type} />
         <RaceSummaryCard race={race} />
+        <KeyInsightBlock race={race} results={results} />
         <EntryTable race={race} />
         <RaceResultsOdds race={race} results={results} dividends={dividends} />
       </div>

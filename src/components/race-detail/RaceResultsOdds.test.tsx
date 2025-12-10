@@ -1,7 +1,7 @@
 // src/components/race-detail/RaceResultsOdds.test.tsx
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import RaceResultsOdds from './RaceResultsOdds';
 import { Race, RaceType, RaceResult, Dividend } from '@/types';
 
@@ -30,8 +30,8 @@ function createMockDividends(): Dividend[] {
 function createMockRace(
   type: RaceType,
   status: 'upcoming' | 'live' | 'finished' | 'canceled',
-  results: RaceResult[] = [],
-  dividends: Dividend[] = []
+  _results: RaceResult[] = [],
+  _dividends: Dividend[] = []
 ): Race {
   return {
     id: `${type}-1-1-20251210`,
