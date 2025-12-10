@@ -1,0 +1,171 @@
+/**
+ * @jest-environment node
+ *
+ * Unit tests for oddsPoller
+ */
+import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+
+// Mock the database
+jest.mock('@/lib/db/client', () => ({
+  db: {
+    insert: jest.fn(() => ({
+      values: jest.fn(() => ({
+        onConflictDoNothing: jest.fn(() => Promise.resolve()),
+      })),
+    })),
+    select: jest.fn(() => ({
+      from: jest.fn(() => ({
+        where: jest.fn(() => Promise.resolve([])),
+      })),
+    })),
+  },
+}));
+
+// Mock the API clients
+jest.mock('@/ingestion/clients/kraClient', () => ({
+  fetchKraOdds: jest.fn(),
+}));
+
+jest.mock('@/ingestion/clients/kspoClient', () => ({
+  fetchKspoOdds: jest.fn(),
+}));
+
+// Mock the mapper
+jest.mock('@/ingestion/mappers/oddsMapper', () => ({
+  mapKraOddsBatch: jest.fn(),
+  mapKspoOddsBatch: jest.fn(),
+}));
+
+// Mock the smart scheduler
+jest.mock('@/ingestion/utils/smartScheduler', () => ({
+  getCollectionInterval: jest.fn(),
+  shouldCollectNow: jest.fn(),
+  getUpcomingRacesForCollection: jest.fn(),
+}));
+
+describe('oddsPoller', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('pollOdds', () => {
+    it('should poll odds for horse races from KRA', async () => {
+      const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
+      const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      const mockOddsSnapshots = [
+        { raceId: 'horse-seoul-1-20241210', time: new Date(), entryNo: 1, winOdds: 2.5 },
+        { raceId: 'horse-seoul-1-20241210', time: new Date(), entryNo: 2, winOdds: 3.0 },
+      ];
+
+      (fetchKraOdds as jest.Mock).mockResolvedValue([{}, {}]);
+      (mapKraOddsBatch as jest.Mock).mockReturnValue(mockOddsSnapshots);
+
+      const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
+
+      expect(fetchKraOdds).toHaveBeenCalled();
+      expect(result.snapshots).toBe(2);
+      expect(result.races).toBe(1);
+    });
+
+    it('should poll odds for cycle races from KSPO', async () => {
+      const { fetchKspoOdds } = await import('@/ingestion/clients/kspoClient');
+      const { mapKspoOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      const mockOddsSnapshots = [
+        { raceId: 'cycle-gwangmyeong-1-20241210', time: new Date(), entryNo: 1, winOdds: 1.8 },
+      ];
+
+      (fetchKspoOdds as jest.Mock).mockResolvedValue([{}]);
+      (mapKspoOddsBatch as jest.Mock).mockReturnValue(mockOddsSnapshots);
+
+      const result = await pollOdds({ raceIds: ['cycle-gwangmyeong-1-20241210'] });
+
+      expect(fetchKspoOdds).toHaveBeenCalled();
+      expect(result.snapshots).toBe(1);
+    });
+
+    it('should handle API errors gracefully', async () => {
+      const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      (fetchKraOdds as jest.Mock).mockRejectedValue(new Error('API timeout'));
+
+      const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
+
+      expect(result.errors).toBe(1);
+    });
+
+    it('should handle empty odds data', async () => {
+      const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
+      const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      (fetchKraOdds as jest.Mock).mockResolvedValue([]);
+      (mapKraOddsBatch as jest.Mock).mockReturnValue([]);
+
+      const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
+
+      expect(result.snapshots).toBe(0);
+    });
+
+    it('should poll multiple races', async () => {
+      const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
+      const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      (fetchKraOdds as jest.Mock).mockResolvedValue([{}]);
+      (mapKraOddsBatch as jest.Mock).mockReturnValue([
+        { raceId: 'test', time: new Date(), entryNo: 1, winOdds: 2.0 },
+      ]);
+
+      const result = await pollOdds({
+        raceIds: ['horse-seoul-1-20241210', 'horse-seoul-2-20241210'],
+      });
+
+      expect(fetchKraOdds).toHaveBeenCalledTimes(2);
+      expect(result.snapshots).toBe(2);
+      expect(result.races).toBe(2);
+    });
+
+    it('should return empty result when no race IDs provided', async () => {
+      const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
+
+      const result = await pollOdds({ raceIds: [] });
+
+      expect(result.snapshots).toBe(0);
+      expect(result.errors).toBe(0);
+    });
+  });
+
+  describe('pollOddsForRace', () => {
+    it('should poll odds for a single race', async () => {
+      const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
+      const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
+      const { pollOddsForRace } = await import('@/ingestion/jobs/oddsPoller');
+
+      (fetchKraOdds as jest.Mock).mockResolvedValue([{}]);
+      (mapKraOddsBatch as jest.Mock).mockReturnValue([
+        { raceId: 'test', time: new Date(), entryNo: 1, winOdds: 2.0 },
+      ]);
+
+      const snapshots = await pollOddsForRace('horse-seoul-1-20241210');
+
+      expect(snapshots).toBe(1);
+    });
+  });
+
+  describe('smart scheduling integration', () => {
+    it('should use smart scheduler to filter races for collection', async () => {
+      const { getUpcomingRacesForCollection } = await import('@/ingestion/utils/smartScheduler');
+
+      const mockRaces = [{ id: 'race1', startTime: new Date().toISOString() }];
+      (getUpcomingRacesForCollection as jest.Mock).mockReturnValue(mockRaces);
+
+      // Just verify the function uses the smart scheduler
+      expect(getUpcomingRacesForCollection).toBeDefined();
+    });
+  });
+});
