@@ -111,6 +111,11 @@ NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 # 발급: https://www.google.com/adsense/
 NEXT_PUBLIC_ADSENSE_ID=ca-pub-XXXXXXXXXX
 
+# Sentry DSN (에러 모니터링)
+# 발급: https://sentry.io/
+SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+
 # ┌─────────────────────────────────────────────────────────────┐
 # │ 개발 설정 (Development)                                     │
 # └─────────────────────────────────────────────────────────────┘
@@ -220,6 +225,34 @@ RaceLab은 다음 GA4 커스텀 이벤트를 추적합니다:
    ```bash
    NEXT_PUBLIC_ADSENSE_ID=ca-pub-XXXXXXXXXX
    ```
+
+### 3.6 Sentry 에러 모니터링 설정
+
+1. [Sentry](https://sentry.io/) 계정 생성
+2. 새 프로젝트 생성 > Next.js 선택
+3. DSN 복사
+4. `.env.local`에 추가:
+   ```bash
+   SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+   NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+   ```
+
+#### 에러 로깅 유틸리티
+
+에러 로깅 유틸리티: `src/lib/utils/errorLogger.ts`
+
+```typescript
+import { logError, logApiError, logExternalApiError } from '@/lib/utils/errorLogger';
+
+// 일반 에러 로깅
+logError(error, { severity: 'error', context: { userId: '123' } });
+
+// API 에러 로깅
+logApiError(error, { endpoint: '/api/races', method: 'GET', statusCode: 500 });
+
+// 외부 API 에러 로깅 (KRA, KSPO)
+logExternalApiError(error, 'KRA', 'https://kra.api.go.kr/races', 5000);
+```
 
 ---
 
@@ -506,6 +539,7 @@ Error: 429 Too Many Requests
 - [ ] SSL 인증서 활성화
 - [ ] Google Analytics 연동
 - [ ] Google AdSense 승인
+- [ ] Sentry 에러 모니터링 연동
 
 ### 9.2 환경 변수 전체 목록
 
@@ -516,6 +550,8 @@ Error: 429 Too Many Requests
 | `NEXT_PUBLIC_SITE_URL`      | -    | https://racelab.kr | 사이트 URL              |
 | `NEXT_PUBLIC_GA_ID`         | -    | -                  | Google Analytics ID     |
 | `NEXT_PUBLIC_ADSENSE_ID`    | -    | -                  | Google AdSense ID       |
+| `SENTRY_DSN`                | -    | -                  | Sentry DSN (서버용)     |
+| `NEXT_PUBLIC_SENTRY_DSN`    | -    | -                  | Sentry DSN (클라이언트) |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | -    | false              | Mock 데이터 사용        |
 | `DEBUG`                     | -    | false              | 디버그 모드             |
 
