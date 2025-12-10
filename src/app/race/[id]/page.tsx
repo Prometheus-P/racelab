@@ -2,11 +2,9 @@
 import { fetchRaceById } from '@/lib/api';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
-import OddsDisplay from '@/components/OddsDisplay';
-import ResultsTable from '@/components/ResultsTable';
-import { RaceResult } from '@/types';
+import { RaceResult, Dividend } from '@/types';
 import { RaceNotFound, BackNavigation } from './components';
-import { RaceSummaryCard, EntryTable } from '@/components/race-detail';
+import { RaceSummaryCard, EntryTable, RaceResultsOdds } from '@/components/race-detail';
 
 type Props = {
   params: { id: string };
@@ -75,6 +73,19 @@ function getMockResults(
   }));
 }
 
+// Mock dividends for demonstration (will be replaced with API data)
+function getMockDividends(raceStatus: string, results: RaceResult[]): Dividend[] {
+  if (raceStatus !== 'finished' || results.length < 2) {
+    return [];
+  }
+
+  return [
+    { type: 'win', entries: [results[0].no], amount: results[0].payout || 3500 },
+    { type: 'place', entries: [results[0].no, results[1].no], amount: 1200 },
+    { type: 'quinella', entries: [results[0].no, results[1].no], amount: 5600 },
+  ];
+}
+
 export default async function RaceDetailPage({ params }: Props) {
   const race = await fetchRaceById(params.id);
 
@@ -82,8 +93,8 @@ export default async function RaceDetailPage({ params }: Props) {
     return <RaceNotFound />;
   }
 
-  const isFinished = race.status === 'finished';
   const results = getMockResults(race.status, race.entries);
+  const dividends = getMockDividends(race.status, results);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
 
   // Race type in Korean
@@ -159,40 +170,7 @@ export default async function RaceDetailPage({ params }: Props) {
         <BackNavigation raceType={race.type} />
         <RaceSummaryCard race={race} />
         <EntryTable race={race} />
-
-        {/* Odds section */}
-        <section
-          className="rounded-xl bg-white p-4 shadow-sm md:p-6"
-          data-testid="odds"
-          aria-labelledby="odds-heading"
-        >
-          <h2
-            id="odds-heading"
-            className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900"
-          >
-            <span aria-hidden="true">💰</span>
-            단승 배당률
-          </h2>
-          <OddsDisplay entries={race.entries} raceType={race.type} />
-        </section>
-
-        {/* Results section (only for finished races) */}
-        {isFinished && results.length > 0 && (
-          <section
-            className="rounded-xl bg-white p-4 shadow-sm md:p-6"
-            data-testid="results"
-            aria-labelledby="results-heading"
-          >
-            <h2
-              id="results-heading"
-              className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900"
-            >
-              <span aria-hidden="true">🏆</span>
-              경주 결과
-            </h2>
-            <ResultsTable results={results} raceType={race.type} />
-          </section>
-        )}
+        <RaceResultsOdds race={race} results={results} dividends={dividends} />
       </div>
     </>
   );
