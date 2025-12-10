@@ -10,9 +10,8 @@ interface HorseEntryTableProps {
 
 export default function HorseEntryTable({ race, entries }: HorseEntryTableProps) {
   const renderedEntries = entries?.length ? entries : race.entries || [];
-  // Extract date from race ID (format: type-meet-raceNo-date)
-  const idParts = race.id.split('-');
-  const raceDate = idParts[idParts.length - 1] || '';
+  // Use race.date if available, otherwise extract from ID for backward compatibility
+  const raceDate = race.date || race.id.split('-').pop() || '';
 
   return (
     <M3Card density="compact" data-testid="horse-entry-table">
