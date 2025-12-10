@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     canonical: 'https://racelab.kr',
   },
   verification: {
-    google: 'your-google-verification-code',
+    google: 'i5Q0RtQZldOZKbs-upPl2eiP9boxog1a5QDxZd70pv4',
     other: {
       'naver-site-verification': 'your-naver-verification-code',
     },
