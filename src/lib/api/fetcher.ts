@@ -1,5 +1,19 @@
 // src/lib/api/fetcher.ts
 
+import { ExternalApiError, ApiErrorCode } from './errors';
+
+/** Timeout for API requests (10 seconds) */
+const API_TIMEOUT_MS = 10000;
+
+/**
+ * Result of an API fetch operation
+ */
+export interface FetchResult<T> {
+  data: T[];
+  isStale?: boolean;
+  warning?: string;
+}
+
 /**
  * Generic API fetch function with flexible date parameter
  * @param baseUrl Base URL of the API (e.g., https://apis.data.go.kr/B551015)
@@ -43,14 +57,24 @@ export async function fetchApi(
   // Append directly to avoid double-encoding by URLSearchParams
   const finalUrl = `${url.toString()}&serviceKey=${apiKey}`;
 
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
   try {
     const response = await fetch(finalUrl, {
       next: { revalidate: 60 },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.error(`${apiName} API Error: ${response.status}`);
-      return [];
+      throw new ExternalApiError(apiName, {
+        originalStatus: response.status,
+        message: `${apiName} returned status ${response.status}`,
+      });
     }
 
     const data = await response.json();
@@ -58,7 +82,63 @@ export async function fetchApi(
 
     return items;
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    // Handle abort/timeout
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error(`${apiName} API timeout after ${API_TIMEOUT_MS}ms`);
+      throw new ExternalApiError(apiName, {
+        code: ApiErrorCode.EXTERNAL_API_TIMEOUT,
+        message: `${apiName} request timed out`,
+      });
+    }
+
+    // Re-throw ExternalApiError
+    if (error instanceof ExternalApiError) {
+      throw error;
+    }
+
+    // Wrap other errors
     console.error(`${apiName} API fetch failed:`, error);
-    return [];
+    throw new ExternalApiError(apiName, {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      cause: error instanceof Error ? error : undefined,
+    });
+  }
+}
+
+/**
+ * Fetch API with fallback to empty array on error
+ * Use this when you want graceful degradation instead of throwing
+ */
+export async function fetchApiSafe(
+  baseUrl: string,
+  endpoint: string,
+  apiKey: string | undefined,
+  params: Record<string, string>,
+  rcDate: string,
+  apiName: string,
+  envVarName: string,
+  dateParamName: string = 'rc_date'
+): Promise<FetchResult<unknown>> {
+  try {
+    const data = await fetchApi(
+      baseUrl,
+      endpoint,
+      apiKey,
+      params,
+      rcDate,
+      apiName,
+      envVarName,
+      dateParamName
+    );
+    return { data };
+  } catch (error) {
+    console.error(`[${apiName}] Failed to fetch, returning empty result:`, error);
+    return {
+      data: [],
+      isStale: true,
+      warning: '데이터 제공 기관(API) 지연으로 최신 정보가 표시되지 않을 수 있습니다.',
+    };
   }
 }

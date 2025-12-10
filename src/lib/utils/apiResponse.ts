@@ -9,7 +9,9 @@ export interface ApiResponse<T> {
   error?: {
     code: string;
     message: string;
+    isRetryable?: boolean;
   };
+  warning?: string;
   timestamp: string;
 }
 
