@@ -1,13 +1,12 @@
 // src/app/race/[id]/page.tsx
-import { fetchRaceById, fetchHorseEntryDetail } from '@/lib/api';
+import { fetchRaceById } from '@/lib/api';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
 import OddsDisplay from '@/components/OddsDisplay';
 import ResultsTable from '@/components/ResultsTable';
-import HorseEntryTable from '@/components/HorseEntryTable';
-import { RaceResult, Entry } from '@/types';
-import { RaceNotFound, BackNavigation, EntriesSection } from './components';
-import { RaceSummaryCard } from '@/components/race-detail';
+import { RaceResult } from '@/types';
+import { RaceNotFound, BackNavigation } from './components';
+import { RaceSummaryCard, EntryTable } from '@/components/race-detail';
 
 type Props = {
   params: { id: string };
@@ -82,14 +81,6 @@ export default async function RaceDetailPage({ params }: Props) {
   if (!race) {
     return <RaceNotFound />;
   }
-
-  // Extract date from race ID (format: type-meet-raceNo-date)
-  const idParts = race.id.split('-');
-  const raceDate = idParts[idParts.length - 1] || '';
-
-  // fetchHorseEntryDetail returns Entry[] directly (already transformed)
-  const detailedEntries: Entry[] =
-    race.type === 'horse' ? (await fetchHorseEntryDetail(raceDate)) || [] : [];
 
   const isFinished = race.status === 'finished';
   const results = getMockResults(race.status, race.entries);
@@ -167,10 +158,7 @@ export default async function RaceDetailPage({ params }: Props) {
       <div className="space-y-6">
         <BackNavigation raceType={race.type} />
         <RaceSummaryCard race={race} />
-        <EntriesSection race={race} />
-        {race.type === 'horse' && detailedEntries.length > 0 && (
-          <HorseEntryTable race={race} entries={detailedEntries} />
-        )}
+        <EntryTable race={race} />
 
         {/* Odds section */}
         <section
