@@ -5,6 +5,9 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = jest.Mock<any>;
+
 // Mock the database
 jest.mock('@/lib/db/client', () => ({
   db: {
@@ -45,10 +48,10 @@ describe('schedulePoller', () => {
       );
       const { pollSchedules } = await import('@/ingestion/jobs/schedulePoller');
 
-      (fetchKraSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchKspoSchedules as jest.Mock).mockResolvedValue([]);
-      (mapKraSchedules as jest.Mock).mockReturnValue([]);
-      (mapKspoSchedules as jest.Mock).mockReturnValue([]);
+      (fetchKraSchedules as MockFn).mockResolvedValue([]);
+      (fetchKspoSchedules as MockFn).mockResolvedValue([]);
+      (mapKraSchedules as MockFn).mockReturnValue([]);
+      (mapKspoSchedules as MockFn).mockReturnValue([]);
 
       const result = await pollSchedules();
 
@@ -64,8 +67,8 @@ describe('schedulePoller', () => {
       const { mapKraSchedules } = await import('@/ingestion/mappers/scheduleMapper');
       const { pollSchedules } = await import('@/ingestion/jobs/schedulePoller');
 
-      (fetchKraSchedules as jest.Mock).mockResolvedValue([]);
-      (mapKraSchedules as jest.Mock).mockReturnValue([]);
+      (fetchKraSchedules as MockFn).mockResolvedValue([]);
+      (mapKraSchedules as MockFn).mockReturnValue([]);
 
       const result = await pollSchedules({ raceTypes: ['horse'] });
 
@@ -82,10 +85,10 @@ describe('schedulePoller', () => {
       );
       const { pollSchedules } = await import('@/ingestion/jobs/schedulePoller');
 
-      (fetchKraSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchKspoSchedules as jest.Mock).mockResolvedValue([]);
-      (mapKraSchedules as jest.Mock).mockReturnValue([]);
-      (mapKspoSchedules as jest.Mock).mockReturnValue([]);
+      (fetchKraSchedules as MockFn).mockResolvedValue([]);
+      (fetchKspoSchedules as MockFn).mockResolvedValue([]);
+      (mapKraSchedules as MockFn).mockReturnValue([]);
+      (mapKspoSchedules as MockFn).mockReturnValue([]);
 
       await pollSchedules({ date: '2024-12-15' });
 
@@ -103,11 +106,12 @@ describe('schedulePoller', () => {
       const mockHorseRaces = [{ id: 'horse-1' }, { id: 'horse-2' }];
       const mockCycleRaces = [{ id: 'cycle-1' }];
 
-      (fetchKraSchedules as jest.Mock).mockResolvedValue([{}, {}]);
-      (fetchKspoSchedules as jest.Mock).mockResolvedValue([{}]);
-      (mapKraSchedules as jest.Mock).mockReturnValue(mockHorseRaces);
-      (mapKspoSchedules as jest.Mock).mockImplementation((_items, _date, type) =>
-        type === 'cycle' ? mockCycleRaces : []
+      (fetchKraSchedules as MockFn).mockResolvedValue([{}, {}]);
+      (fetchKspoSchedules as MockFn).mockResolvedValue([{}]);
+      (mapKraSchedules as MockFn).mockReturnValue(mockHorseRaces);
+      (mapKspoSchedules as MockFn).mockImplementation(
+        (_items: unknown, _date: unknown, type: string) =>
+          type === 'cycle' ? mockCycleRaces : []
       );
 
       const result = await pollSchedules();
@@ -122,9 +126,9 @@ describe('schedulePoller', () => {
       const { mapKspoSchedules } = await import('@/ingestion/mappers/scheduleMapper');
       const { pollSchedules } = await import('@/ingestion/jobs/schedulePoller');
 
-      (fetchKraSchedules as jest.Mock).mockRejectedValue(new Error('API Error'));
-      (fetchKspoSchedules as jest.Mock).mockResolvedValue([]);
-      (mapKspoSchedules as jest.Mock).mockReturnValue([]);
+      (fetchKraSchedules as MockFn).mockRejectedValue(new Error('API Error'));
+      (fetchKspoSchedules as MockFn).mockResolvedValue([]);
+      (mapKspoSchedules as MockFn).mockReturnValue([]);
 
       const result = await pollSchedules();
 

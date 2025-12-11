@@ -5,6 +5,9 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = jest.Mock<any>;
+
 // Mock the database
 jest.mock('@/lib/db/client', () => ({
   db: {
@@ -59,8 +62,8 @@ describe('oddsPoller', () => {
         { raceId: 'horse-seoul-1-20241210', time: new Date(), entryNo: 2, winOdds: 3.0 },
       ];
 
-      (fetchKraOdds as jest.Mock).mockResolvedValue([{}, {}]);
-      (mapKraOddsBatch as jest.Mock).mockReturnValue(mockOddsSnapshots);
+      (fetchKraOdds as MockFn).mockResolvedValue([{}, {}]);
+      (mapKraOddsBatch as MockFn).mockReturnValue(mockOddsSnapshots);
 
       const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -78,8 +81,8 @@ describe('oddsPoller', () => {
         { raceId: 'cycle-gwangmyeong-1-20241210', time: new Date(), entryNo: 1, winOdds: 1.8 },
       ];
 
-      (fetchKspoOdds as jest.Mock).mockResolvedValue([{}]);
-      (mapKspoOddsBatch as jest.Mock).mockReturnValue(mockOddsSnapshots);
+      (fetchKspoOdds as MockFn).mockResolvedValue([{}]);
+      (mapKspoOddsBatch as MockFn).mockReturnValue(mockOddsSnapshots);
 
       const result = await pollOdds({ raceIds: ['cycle-gwangmyeong-1-20241210'] });
 
@@ -91,7 +94,7 @@ describe('oddsPoller', () => {
       const { fetchKraOdds } = await import('@/ingestion/clients/kraClient');
       const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
 
-      (fetchKraOdds as jest.Mock).mockRejectedValue(new Error('API timeout'));
+      (fetchKraOdds as MockFn).mockRejectedValue(new Error('API timeout'));
 
       const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -103,8 +106,8 @@ describe('oddsPoller', () => {
       const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
       const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
 
-      (fetchKraOdds as jest.Mock).mockResolvedValue([]);
-      (mapKraOddsBatch as jest.Mock).mockReturnValue([]);
+      (fetchKraOdds as MockFn).mockResolvedValue([]);
+      (mapKraOddsBatch as MockFn).mockReturnValue([]);
 
       const result = await pollOdds({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -116,8 +119,8 @@ describe('oddsPoller', () => {
       const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
       const { pollOdds } = await import('@/ingestion/jobs/oddsPoller');
 
-      (fetchKraOdds as jest.Mock).mockResolvedValue([{}]);
-      (mapKraOddsBatch as jest.Mock).mockReturnValue([
+      (fetchKraOdds as MockFn).mockResolvedValue([{}]);
+      (mapKraOddsBatch as MockFn).mockReturnValue([
         { raceId: 'test', time: new Date(), entryNo: 1, winOdds: 2.0 },
       ]);
 
@@ -146,8 +149,8 @@ describe('oddsPoller', () => {
       const { mapKraOddsBatch } = await import('@/ingestion/mappers/oddsMapper');
       const { pollOddsForRace } = await import('@/ingestion/jobs/oddsPoller');
 
-      (fetchKraOdds as jest.Mock).mockResolvedValue([{}]);
-      (mapKraOddsBatch as jest.Mock).mockReturnValue([
+      (fetchKraOdds as MockFn).mockResolvedValue([{}]);
+      (mapKraOddsBatch as MockFn).mockReturnValue([
         { raceId: 'test', time: new Date(), entryNo: 1, winOdds: 2.0 },
       ]);
 
@@ -162,7 +165,7 @@ describe('oddsPoller', () => {
       const { getUpcomingRacesForCollection } = await import('@/ingestion/utils/smartScheduler');
 
       const mockRaces = [{ id: 'race1', startTime: new Date().toISOString() }];
-      (getUpcomingRacesForCollection as jest.Mock).mockReturnValue(mockRaces);
+      (getUpcomingRacesForCollection as MockFn).mockReturnValue(mockRaces);
 
       // Just verify the function uses the smart scheduler
       expect(getUpcomingRacesForCollection).toBeDefined();

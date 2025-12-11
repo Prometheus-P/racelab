@@ -5,8 +5,11 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = jest.Mock<any>;
+
 // Mock fetch globally
-const mockFetch = jest.fn();
+const mockFetch = jest.fn() as MockFn;
 global.fetch = mockFetch as unknown as typeof fetch;
 
 describe('slackNotifier', () => {
@@ -92,10 +95,10 @@ describe('slackNotifier', () => {
         type: 'error',
         title: 'Ingestion Failed',
         message: 'KRA API timeout',
-        details: {
-          jobType: 'schedule_poll',
-          raceId: 'horse-seoul-1-20241210',
-        },
+        fields: [
+          { title: 'Job Type', value: 'schedule_poll' },
+          { title: 'Race ID', value: 'horse-seoul-1-20241210' },
+        ],
       });
 
       expect(mockFetch).toHaveBeenCalledWith(

@@ -5,6 +5,9 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = jest.Mock<any>;
+
 // Mock the database
 jest.mock('@/lib/db/client', () => ({
   db: {
@@ -49,8 +52,8 @@ describe('entryPoller', () => {
 
       const mockEntries = [{ id: 'entry-1' }, { id: 'entry-2' }];
 
-      (fetchKraEntries as jest.Mock).mockResolvedValue([{}, {}]);
-      (mapKraEntries as jest.Mock).mockReturnValue(mockEntries);
+      (fetchKraEntries as MockFn).mockResolvedValue([{}, {}]);
+      (mapKraEntries as MockFn).mockReturnValue(mockEntries);
 
       const result = await pollEntries({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -65,8 +68,8 @@ describe('entryPoller', () => {
 
       const mockEntries = [{ id: 'entry-1' }];
 
-      (fetchKspoEntries as jest.Mock).mockResolvedValue([{}]);
-      (mapKspoEntries as jest.Mock).mockReturnValue(mockEntries);
+      (fetchKspoEntries as MockFn).mockResolvedValue([{}]);
+      (mapKspoEntries as MockFn).mockReturnValue(mockEntries);
 
       const result = await pollEntries({ raceIds: ['cycle-gwangmyeong-1-20241210'] });
 
@@ -78,7 +81,7 @@ describe('entryPoller', () => {
       const { fetchKraEntries } = await import('@/ingestion/clients/kraClient');
       const { pollEntries } = await import('@/ingestion/jobs/entryPoller');
 
-      (fetchKraEntries as jest.Mock).mockRejectedValue(new Error('API Error'));
+      (fetchKraEntries as MockFn).mockRejectedValue(new Error('API Error'));
 
       const result = await pollEntries({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -90,8 +93,8 @@ describe('entryPoller', () => {
       const { mapKraEntries } = await import('@/ingestion/mappers/entryMapper');
       const { pollEntries } = await import('@/ingestion/jobs/entryPoller');
 
-      (fetchKraEntries as jest.Mock).mockResolvedValue([{}]);
-      (mapKraEntries as jest.Mock).mockReturnValue([{ id: 'entry-1' }]);
+      (fetchKraEntries as MockFn).mockResolvedValue([{}]);
+      (mapKraEntries as MockFn).mockReturnValue([{ id: 'entry-1' }]);
 
       const result = await pollEntries({
         raceIds: ['horse-seoul-1-20241210', 'horse-seoul-2-20241210'],

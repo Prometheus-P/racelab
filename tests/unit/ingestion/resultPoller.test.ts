@@ -5,6 +5,9 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockFn = jest.Mock<any>;
+
 // Mock the database
 jest.mock('@/lib/db/client', () => ({
   db: {
@@ -57,8 +60,8 @@ describe('resultPoller', () => {
         { id: 'result-2', position: 2 },
       ];
 
-      (fetchKraResults as jest.Mock).mockResolvedValue([{}, {}]);
-      (mapKraResults as jest.Mock).mockReturnValue(mockResults);
+      (fetchKraResults as MockFn).mockResolvedValue([{}, {}]);
+      (mapKraResults as MockFn).mockReturnValue(mockResults);
 
       const result = await pollResults({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -73,8 +76,8 @@ describe('resultPoller', () => {
 
       const mockResults = [{ id: 'result-1', position: 1 }];
 
-      (fetchKspoResults as jest.Mock).mockResolvedValue([{}]);
-      (mapKspoResults as jest.Mock).mockReturnValue(mockResults);
+      (fetchKspoResults as MockFn).mockResolvedValue([{}]);
+      (mapKspoResults as MockFn).mockReturnValue(mockResults);
 
       const result = await pollResults({ raceIds: ['boat-misari-1-20241210'] });
 
@@ -86,7 +89,7 @@ describe('resultPoller', () => {
       const { fetchKraResults } = await import('@/ingestion/clients/kraClient');
       const { pollResults } = await import('@/ingestion/jobs/resultPoller');
 
-      (fetchKraResults as jest.Mock).mockRejectedValue(new Error('API Error'));
+      (fetchKraResults as MockFn).mockRejectedValue(new Error('API Error'));
 
       const result = await pollResults({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -98,8 +101,8 @@ describe('resultPoller', () => {
       const { mapKraResults } = await import('@/ingestion/mappers/resultMapper');
       const { pollResults } = await import('@/ingestion/jobs/resultPoller');
 
-      (fetchKraResults as jest.Mock).mockResolvedValue([]);
-      (mapKraResults as jest.Mock).mockReturnValue([]);
+      (fetchKraResults as MockFn).mockResolvedValue([]);
+      (mapKraResults as MockFn).mockReturnValue([]);
 
       const result = await pollResults({ raceIds: ['horse-seoul-1-20241210'] });
 
@@ -112,8 +115,8 @@ describe('resultPoller', () => {
       const { mapKraResults } = await import('@/ingestion/mappers/resultMapper');
       const { pollResults } = await import('@/ingestion/jobs/resultPoller');
 
-      (fetchKraResults as jest.Mock).mockResolvedValue([{}]);
-      (mapKraResults as jest.Mock).mockReturnValue([{ id: 'result-1' }]);
+      (fetchKraResults as MockFn).mockResolvedValue([{}]);
+      (mapKraResults as MockFn).mockReturnValue([{ id: 'result-1' }]);
 
       const result = await pollResults({
         raceIds: ['horse-seoul-1-20241210', 'horse-seoul-2-20241210'],
