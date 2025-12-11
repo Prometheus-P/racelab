@@ -23,15 +23,15 @@ describe('AISummary Component', () => {
   };
 
   const mockResults: RaceResult[] = [
-    { rank: 1, entryNo: 1, name: '번개호', odds: 3.5, jockey: '김철수' },
-    { rank: 2, entryNo: 3, name: '바람이', odds: 8.1, jockey: '정대한' },
-    { rank: 3, entryNo: 2, name: '천둥이', odds: 5.2, jockey: '이영수' },
+    { rank: 1, no: 1, name: '번개호', odds: 3.5, jockey: '김철수' },
+    { rank: 2, no: 3, name: '바람이', odds: 8.1, jockey: '정대한' },
+    { rank: 3, no: 2, name: '천둥이', odds: 5.2, jockey: '이영수' },
   ];
 
   const mockDividends: Dividend[] = [
-    { type: 'win', combination: '1', amount: 3500 },
-    { type: 'place', combination: '1', amount: 1500 },
-    { type: 'quinella', combination: '1-3', amount: 8200 },
+    { type: 'win', entries: [1], amount: 3500 },
+    { type: 'place', entries: [1], amount: 1500 },
+    { type: 'quinella', entries: [1, 3], amount: 8200 },
   ];
 
   describe('Component rendering', () => {

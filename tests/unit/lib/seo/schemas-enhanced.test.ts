@@ -19,16 +19,16 @@ describe('Enhanced SportsEvent Schema', () => {
     distance: 1400,
     status: 'finished',
     entries: [
-      { entryNo: 1, name: '번개호', jockey: '김철수', trainer: '박영희', weight: 57, odds: 3.5 },
-      { entryNo: 2, name: '천둥이', jockey: '이영수', trainer: '최민정', weight: 55, odds: 5.2 },
-      { entryNo: 3, name: '바람이', jockey: '정대한', trainer: '김수연', weight: 56, odds: 8.1 },
+      { no: 1, name: '번개호', jockey: '김철수', trainer: '박영희', weight: 57, odds: 3.5 },
+      { no: 2, name: '천둥이', jockey: '이영수', trainer: '최민정', weight: 55, odds: 5.2 },
+      { no: 3, name: '바람이', jockey: '정대한', trainer: '김수연', weight: 56, odds: 8.1 },
     ],
   };
 
   const mockResults: RaceResult[] = [
-    { rank: 1, entryNo: 1, name: '번개호', odds: 3.5, jockey: '김철수' },
-    { rank: 2, entryNo: 3, name: '바람이', odds: 8.1, jockey: '정대한' },
-    { rank: 3, entryNo: 2, name: '천둥이', odds: 5.2, jockey: '이영수' },
+    { rank: 1, no: 1, name: '번개호', odds: 3.5, jockey: '김철수' },
+    { rank: 2, no: 3, name: '바람이', odds: 8.1, jockey: '정대한' },
+    { rank: 3, no: 2, name: '천둥이', odds: 5.2, jockey: '이영수' },
   ];
 
   describe('eventStatus mapping', () => {
@@ -75,7 +75,7 @@ describe('Enhanced SportsEvent Schema', () => {
         ...mockHorseRace,
         type: 'cycle',
         entries: [
-          { entryNo: 1, name: '김선수', jockey: '김선수', trainer: '박코치', weight: 70, odds: 2.0 },
+          { no: 1, name: '김선수', jockey: '김선수', trainer: '박코치', weight: 70, odds: 2.0 },
         ],
       };
       const schema = generateSportsEventSchema(cycleRace);
@@ -88,7 +88,7 @@ describe('Enhanced SportsEvent Schema', () => {
         ...mockHorseRace,
         type: 'boat',
         entries: [
-          { entryNo: 1, name: '이선수', jockey: '이선수', trainer: '최코치', weight: 65, odds: 3.0 },
+          { no: 1, name: '이선수', jockey: '이선수', trainer: '최코치', weight: 65, odds: 3.0 },
         ],
       };
       const schema = generateSportsEventSchema(boatRace);
@@ -123,8 +123,8 @@ describe('Enhanced SportsEvent Schema', () => {
     it('limits subEvent to top 3 finishers', () => {
       const manyResults: RaceResult[] = [
         ...mockResults,
-        { rank: 4, entryNo: 4, name: '넷째', odds: 10.0, jockey: '박기수' },
-        { rank: 5, entryNo: 5, name: '다섯째', odds: 15.0, jockey: '최기수' },
+        { rank: 4, no: 4, name: '넷째', odds: 10.0, jockey: '박기수' },
+        { rank: 5, no: 5, name: '다섯째', odds: 15.0, jockey: '최기수' },
       ];
       const schema = generateSportsEventSchema(mockHorseRace, manyResults);
 
