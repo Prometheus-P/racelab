@@ -88,6 +88,39 @@ External APIs (KRA, KSPO) → lib/api.ts → lib/api-helpers/mappers.ts → API 
 - Cycle (경륜): `cycle` color (#dc2626 red)
 - Boat (경정): `boat` color (#0369a1 blue)
 
+## Team Conventions
+
+### Git Workflow
+- **No direct push to main/dev** - Always use feature branches + PR
+- Feature branches: `NNN-feature-name` (e.g., `004-data-platform-phase1`)
+
+### Spec-First Development
+- All features start with spec documents as **source of truth**
+- Specs location: `specs/NNN-feature-name/`
+- Required artifacts: `spec.md`, `plan.md`, `tasks.md`
+
+### Role-Based Structure
+| Role | Directory | Responsibility |
+|------|-----------|----------------|
+| AI Worker | `src/ingestion/`, `src/workers/` | Data collection, parsing |
+| Backend | `src/app/api/`, `src/lib/db/` | API routes, DB queries |
+| Frontend | `src/app/`, `src/components/` | UI pages, components |
+
+### Architecture Patterns
+- **Backend**: Clean Architecture (router → service → repo)
+- **Workers**: Parser/Strategy pattern (file type별 parser 분리)
+- **Frontend**: `pages/app`, `components`, `hooks`, `lib/api`, `types`
+
+### AI Output Policy
+- AI results are **Preview-only** - human has final responsibility
+- Audit log required for all AI-generated content
+- Hash verification for data integrity
+- Case-level data isolation
+
+### Environment
+- Single `.env` + `.env.example` provided
+- Service-specific symlinks where needed
+
 ## Development Rules (TDD)
 
 This project follows strict TDD discipline per `docs/TDD_RULES.md`:
