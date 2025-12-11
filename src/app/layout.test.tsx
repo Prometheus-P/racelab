@@ -102,8 +102,8 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    // Expect the Script component to have been called 4 times (2 for JSON-LD schemas + 2 for GA)
-    expect(mockScript).toHaveBeenCalledTimes(4);
+    // Expect the Script component to have been called 5 times (3 for JSON-LD schemas + 2 for GA)
+    expect(mockScript).toHaveBeenCalledTimes(5);
 
     // Check for JSON-LD Organization schema
     expect(mockScript).toHaveBeenCalledWith(
@@ -148,8 +148,8 @@ describe('RootLayout', () => {
       </RootLayout>
     );
 
-    // Should still have 2 Script calls for JSON-LD schemas
-    expect(mockScript).toHaveBeenCalledTimes(2);
+    // Should still have 3 Script calls for JSON-LD schemas
+    expect(mockScript).toHaveBeenCalledTimes(3);
 
     // Verify JSON-LD schemas are present
     expect(mockScript).toHaveBeenCalledWith(
