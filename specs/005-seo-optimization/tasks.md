@@ -99,6 +99,9 @@
 - [X] T032 [US2] Enhance SportsEvent schema in race detail to include eventStatus mapping in src/app/race/[id]/page.tsx
 - [X] T033 [US2] Add competitor array with proper @type (Thing for horse, Person for athlete) in race detail schema
 - [X] T034 [US2] Add subEvent for race results (top 3 finishers) when race.status is 'finished'
+- [ ] T034a [P] [US2] Write unit test for BreadcrumbList schema in tests/unit/lib/seo/schemas.test.ts
+- [ ] T034b [US2] Implement generateBreadcrumbListSchema in src/lib/seo/schemas.ts (FR-008)
+- [ ] T034c [US2] Add BreadcrumbList JSON-LD to race detail page in src/app/race/[id]/page.tsx
 - [ ] T035 [US2] Validate SportsEvent schema with Google Rich Results Test
 - [ ] T036 [US2] Validate FAQPage schema on guide page with Google Rich Results Test
 
@@ -216,6 +219,8 @@
 - [ ] T070 [P] Run Google Rich Results Test on 3 race pages for SportsEvent
 - [ ] T071 [P] Run Google Rich Results Test on guide page for FAQPage
 - [ ] T072 [P] Verify AI Summary appears in view-source for finished race pages
+- [ ] T072a [P] Verify semantic HTML structure (FR-011): race detail page uses <main>, <article>, <section> elements
+- [ ] T072b [P] Verify semantic HTML structure (FR-011): guide page uses <main>, <article> with proper heading hierarchy
 - [ ] T073 Run quickstart.md verification checklist
 - [ ] T074 Update CLAUDE.md if any new patterns introduced
 
@@ -317,12 +322,12 @@ Task: "Write test for data source attribution in AI Summary"
 | Setup | - | 4 | 3 |
 | Foundational | - | 13 | 5 |
 | US1 (P1) | Search Discovery | 9 | 2 |
-| US2 (P2) | Voice Search | 10 | 2 |
+| US2 (P2) | Voice Search | 13 | 3 |
 | US3 (P3) | AI Citation | 8 | 2 |
 | US4 (P4) | Historical Search | 9 | 2 |
 | US5 (P5) | Performance | 11 | 2 |
-| Polish | - | 10 | 5 |
-| **Total** | | **74** | **23** |
+| Polish | - | 12 | 7 |
+| **Total** | | **79** | **26** |
 
 ---
 

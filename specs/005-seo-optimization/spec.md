@@ -92,7 +92,7 @@ AI 도구(ChatGPT, Perplexity, Gemini) 사용자로서 "한국 경마 결과"를
 
 **Acceptance Scenarios**:
 
-1. **Given** Pretendard 폰트가 사용될 때, **When** 폰트가 로드되면, **Then** 한글 subset만 로드하여 폰트 크기가 100KB 이하입니다
+1. **Given** `next/font/google`로 Noto Sans KR 폰트가 구성될 때, **When** 폰트가 로드되면, **Then** 자동 서브셋팅, self-hosting, `display: swap`이 적용되어 render-blocking 없이 로드됩니다
 2. **Given** 이미지가 포함된 페이지를 로드할 때, **When** 뷰포트 아래 이미지가 있으면, **Then** lazy loading이 적용되어 초기 로드에 포함되지 않습니다
 3. **Given** Next.js 페이지가 빌드될 때, **When** ISR이 적용되면, **Then** TTFB(Time to First Byte)가 600ms 이하입니다
 
@@ -134,7 +134,7 @@ AI 도구(ChatGPT, Perplexity, Gemini) 사용자로서 "한국 경마 결과"를
 
 - **FR-012**: System MUST achieve LCP < 2.5s on mobile (Lighthouse measurement)
 - **FR-013**: System MUST achieve TTFB < 600ms using ISR caching
-- **FR-014**: System MUST load Korean font subset only (reduce Pretendard to < 100KB)
+- **FR-014**: System MUST optimize Korean font loading using `next/font/google` with automatic subsetting, self-hosting, and `display: swap` (original Pretendard < 100KB target was not achievable due to 11,172 Korean syllables requiring ~250KB minimum)
 - **FR-015**: System MUST lazy-load below-fold images using `loading="lazy"` or Next.js Image component
 
 ### Key Entities
@@ -155,7 +155,7 @@ AI 도구(ChatGPT, Perplexity, Gemini) 사용자로서 "한국 경마 결과"를
 - **SC-004**: Google Rich Results Test passes for FAQPage schema on guide pages
 - **SC-005**: Lighthouse Performance Score >= 90 on mobile for race detail pages
 - **SC-006**: LCP < 2.5s measured via Lighthouse or PageSpeed Insights (mobile, median)
-- **SC-007**: Pretendard font subset size < 100KB (measured via Network DevTools)
+- **SC-007**: Korean font uses `next/font/google` with automatic subsetting and no render-blocking @import (verified via lighthouse audit and typography.css inspection)
 - **SC-008**: AI Summary block visible on 100% of finished race pages
 - **SC-009**: Search Console shows indexing of historical race pages within 30 days of deployment
 
