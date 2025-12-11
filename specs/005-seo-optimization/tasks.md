@@ -63,8 +63,8 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] Write integration test for dynamic metadata in race detail page in tests/unit/app/race-metadata.test.ts
-- [ ] T019 [P] [US1] Write test for sitemap generation with historical data in tests/unit/app/sitemap.test.ts
+- [X] T018 [P] [US1] Write integration test for dynamic metadata in race detail page in tests/unit/app/race-metadata.test.ts
+- [X] T019 [P] [US1] Write test for sitemap generation with historical data in tests/unit/app/sitemap.test.ts
 
 ### Implementation for User Story 1
 
@@ -88,8 +88,8 @@
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Write test for FAQJsonLd component in tests/unit/components/seo/FAQJsonLd.test.tsx
-- [ ] T028 [P] [US2] Write test for enhanced SportsEvent schema output in tests/unit/lib/seo/schemas-enhanced.test.ts
+- [X] T027 [P] [US2] Write test for FAQJsonLd component in tests/unit/components/seo/FAQJsonLd.test.tsx
+- [X] T028 [P] [US2] Write test for enhanced SportsEvent schema output in tests/unit/lib/seo/schemas-enhanced.test.ts
 
 ### Implementation for User Story 2
 
@@ -99,9 +99,9 @@
 - [X] T032 [US2] Enhance SportsEvent schema in race detail to include eventStatus mapping in src/app/race/[id]/page.tsx
 - [X] T033 [US2] Add competitor array with proper @type (Thing for horse, Person for athlete) in race detail schema
 - [X] T034 [US2] Add subEvent for race results (top 3 finishers) when race.status is 'finished'
-- [ ] T034a [P] [US2] Write unit test for BreadcrumbList schema in tests/unit/lib/seo/schemas.test.ts
-- [ ] T034b [US2] Implement generateBreadcrumbListSchema in src/lib/seo/schemas.ts (FR-008)
-- [ ] T034c [US2] Add BreadcrumbList JSON-LD to race detail page in src/app/race/[id]/page.tsx
+- [X] T034a [P] [US2] Write unit test for BreadcrumbList schema in tests/unit/lib/seo/schemas.test.ts
+- [X] T034b [US2] Implement generateBreadcrumbListSchema in src/lib/seo/schemas.ts (FR-008)
+- [X] T034c [US2] Add BreadcrumbList JSON-LD to race detail page in src/app/race/[id]/page.tsx
 - [ ] T035 [US2] Validate SportsEvent schema with Google Rich Results Test
 - [ ] T036 [US2] Validate FAQPage schema on guide page with Google Rich Results Test
 
@@ -117,8 +117,8 @@
 
 ### Tests for User Story 3
 
-- [ ] T037 [P] [US3] Write test for AISummary component output in tests/unit/components/seo/AISummary.test.tsx
-- [ ] T038 [P] [US3] Write test for data source attribution in AI Summary
+- [X] T037 [P] [US3] Write test for AISummary component output in tests/unit/components/seo/AISummary.test.tsx
+- [X] T038 [P] [US3] Write test for data source attribution in AI Summary
 
 ### Implementation for User Story 3
 
