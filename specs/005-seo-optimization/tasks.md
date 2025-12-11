@@ -138,18 +138,18 @@
 
 ### Tests for User Story 4
 
-- [ ] T045 [P] [US4] Write test for historical metadata with date in title in tests/unit/lib/seo/metadata-historical.test.ts
-- [ ] T046 [P] [US4] Write test for sitemap splitting logic in tests/unit/lib/seo/sitemap-split.test.ts
+- [X] T045 [P] [US4] Write test for historical metadata with date in title in tests/unit/lib/seo/metadata.test.ts
+- [X] T046 [P] [US4] Write test for sitemap splitting logic in tests/unit/lib/seo/sitemap.test.ts
 
 ### Implementation for User Story 4
 
-- [ ] T047 [US4] Update generateRaceMetadata to include date in title for historical races in src/lib/seo/metadata.ts
-- [ ] T048 [US4] Create sitemap index route at src/app/sitemap/[id]/route.ts for large datasets
-- [ ] T049 [US4] Implement generateSitemaps function in sitemap route for URL chunking
-- [ ] T050 [US4] Update fetchHistoricalRaceIds to support pagination (offset, limit) in src/lib/api.ts
-- [ ] T051 [US4] Add error handling for API failures in sitemap generation (skip failed chunks)
-- [ ] T052 [US4] Test sitemap index at /sitemap/0.xml, /sitemap/1.xml etc.
-- [ ] T053 [US4] Submit sitemap to Google Search Console and verify indexing
+- [X] T047 [US4] Update generateRaceMetadata to include date in title for historical races in src/lib/seo/metadata.ts
+- [X] T048 [US4] Create sitemap index route (generateSitemaps) in src/app/sitemap.ts for large datasets
+- [X] T049 [US4] Implement generateSitemaps function in sitemap route for URL chunking
+- [X] T050 [US4] Update fetchHistoricalRaceIds with pagination support in src/lib/api.ts
+- [X] T051 [US4] Add error handling for API failures in sitemap generation (skip failed chunks)
+- [X] T052 [US4] Test sitemap index at /sitemap/0.xml, /sitemap/1.xml etc.
+- [ ] T053 [US4] Submit sitemap to Google Search Console and verify indexing (MANUAL)
 
 **Checkpoint**: User Story 4 complete - historical race pages are indexable
 
