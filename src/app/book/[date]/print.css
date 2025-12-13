@@ -1,0 +1,44 @@
+.print-only {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+    font-size: 14px;
+    color: #111827;
+  }
+
+  header,
+  footer,
+  nav,
+  .no-print,
+  .header,
+  .footer,
+  .print-hidden {
+    display: none !important;
+  }
+
+  .book-page {
+    padding: 0 4mm;
+  }
+
+  .book-page section,
+  .book-page article,
+  .book-page table {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+
+  .print-only {
+    display: flex !important;
+  }
+
+  .print-footer {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 6px;
+  }
+}
