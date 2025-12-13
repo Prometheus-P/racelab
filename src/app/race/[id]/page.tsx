@@ -12,6 +12,7 @@ import { getSiteUrl } from '@/lib/seo/siteUrl';
 import ViewModeToggle from '@/components/shared/ViewModeToggle';
 import PrintPdfButton from '@/components/shared/PrintPdfButton';
 import RunnerTableDense from '@/components/race/RunnerTableDense';
+import RunnerTableExpert from '@/components/race/RunnerTableExpert';
 import { BookViewMode, RunnerVM } from '@/lib/view-models/bookVM';
 
 type Props = {
@@ -133,9 +134,11 @@ export default async function RaceDetailPage({ params, searchParams = {} }: Prop
         </section>
 
         {/* Runner Table (Book Mode) */}
-        {race.entries.length > 0 && (
+        {race.entries.length > 0 && viewMode === 'expert' ? (
+          <RunnerTableExpert runners={runnerVMs} />
+        ) : race.entries.length > 0 ? (
           <RunnerTableDense runners={runnerVMs} viewMode={viewMode} />
-        )}
+        ) : null}
 
         {/* Entry List */}
         {race.entries.length > 0 && (

@@ -11,7 +11,7 @@ export function RaceCardDense({ race, viewMode }: RaceCardDenseProps) {
   return (
     <article
       id={`race-${race.id}`}
-      className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-3 shadow-inner"
+      className="race-card space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-3 shadow-inner"
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
