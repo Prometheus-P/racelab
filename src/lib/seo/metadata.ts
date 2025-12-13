@@ -2,8 +2,9 @@
 // Metadata generation utilities for race pages
 
 import { Metadata } from 'next';
+import { getSiteUrl } from './siteUrl';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+const BASE_URL = getSiteUrl();
 
 const RACE_TYPE_KO: Record<string, string> = {
   horse: '경마',

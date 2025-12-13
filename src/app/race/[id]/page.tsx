@@ -8,6 +8,7 @@ import { generateRaceMetadata, generateSportsEventSchema, generateBreadcrumbList
 import { AISummary } from '@/components/seo';
 import ErrorBanner from '@/components/ErrorBanner';
 import { RACE_TYPES } from '@/config/raceTypes';
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
 type Props = {
   params: { id: string };
@@ -43,7 +44,7 @@ export default async function RaceDetailPage({ params }: Props) {
 
   const showError = result.status === 'UPSTREAM_ERROR';
   const race = result.data;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+  const baseUrl = getSiteUrl();
   const raceTypeKorean = race.type === 'horse' ? '경마' : race.type === 'cycle' ? '경륜' : '경정';
   const raceConfig = RACE_TYPES[race.type];
 

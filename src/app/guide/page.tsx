@@ -1,13 +1,14 @@
 // src/app/guide/page.tsx
 import { Metadata } from 'next';
 import FAQJsonLd from '@/components/seo/FAQJsonLd';
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
 export const metadata: Metadata = {
   title: '경마/경륜/경정 가이드 - RaceLab',
   description:
     '경마, 경륜, 경정의 배당률, 단승식, 복승식 등 배팅 용어와 방법을 알아보세요. 초보자를 위한 완벽 가이드.',
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr'}/guide`,
+    canonical: `${getSiteUrl()}/guide`,
   },
 };
 

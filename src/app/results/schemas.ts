@@ -1,7 +1,8 @@
 // src/app/results/schemas.ts
 // JSON-LD schemas for Results page SEO
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+const baseUrl = getSiteUrl();
 
 export const breadcrumbSchema = {
   '@context': 'https://schema.org',

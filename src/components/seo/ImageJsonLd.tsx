@@ -1,5 +1,6 @@
 // src/components/seo/ImageJsonLd.tsx
 import Script from 'next/script';
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
 interface ImageData {
   url: string;
@@ -20,7 +21,7 @@ interface ImageJsonLdProps {
  * Helps AI models like Gemini better understand and cite visual content
  */
 export function ImageJsonLd({ images, id = 'image-schema' }: ImageJsonLdProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+  const baseUrl = getSiteUrl();
   const imageArray = Array.isArray(images) ? images : [images];
 
   const schema = imageArray.map((img, index) => ({
@@ -59,7 +60,7 @@ interface RaceImageJsonLdProps {
  * Uses representative images for each race type
  */
 export function RaceImageJsonLd({ raceType, track, raceNo }: RaceImageJsonLdProps) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+  const baseUrl = getSiteUrl();
 
   const raceTypeNames = {
     horse: '경마',

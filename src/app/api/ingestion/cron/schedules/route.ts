@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pollSchedules } from '@/ingestion/jobs/schedulePoller';
+import { enforceCronSecret } from '../../utils/auth';
 
 /**
  * GET /api/ingestion/cron/schedules
@@ -10,20 +11,8 @@ import { pollSchedules } from '@/ingestion/jobs/schedulePoller';
  * Authentication via CRON_SECRET in Authorization header.
  */
 export async function GET(request: NextRequest) {
-  // Verify Vercel Cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized schedule cron request');
-    return NextResponse.json(
-      {
-        success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Invalid cron secret' },
-      },
-      { status: 401 }
-    );
-  }
+  const authResponse = enforceCronSecret(request);
+  if (authResponse) return authResponse;
 
   try {
     const today = new Date().toISOString().split('T')[0];

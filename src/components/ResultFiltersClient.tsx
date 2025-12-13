@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { ResultFilters } from './ResultFilters';
 import { RaceType } from '@/types';
+import { getResultsDefaultRange } from '@/lib/services/resultsService';
 
 interface FilterValues {
   dateFrom?: string;
@@ -17,10 +18,17 @@ interface FilterValues {
 export function ResultFiltersClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const formatDate = (value: string | undefined) =>
+    value && value.length === 8
+      ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
+      : value;
 
   // Get current filter values from URL
-  const dateFrom = searchParams.get('dateFrom') || undefined;
-  const dateTo = searchParams.get('dateTo') || undefined;
+  const defaults = getResultsDefaultRange();
+  const dateFromRaw = searchParams.get('dateFrom') || defaults.dateFrom;
+  const dateToRaw = searchParams.get('dateTo') || defaults.dateTo;
+  const dateFrom = formatDate(dateFromRaw);
+  const dateTo = formatDate(dateToRaw);
   const typesParam = searchParams.get('types');
   const types: RaceType[] = typesParam
     ? (typesParam.split(',').filter((t) => ['horse', 'cycle', 'boat'].includes(t)) as RaceType[])

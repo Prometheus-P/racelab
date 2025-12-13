@@ -35,3 +35,6 @@ export type { M3DialogProps, M3DialogMaxWidth } from './M3Dialog';
 // Feedback components
 export { M3Snackbar } from './M3Snackbar';
 export type { M3SnackbarProps, SnackbarSeverity, SnackbarPosition } from './M3Snackbar';
+
+// Badge component (shadcn-inspired)
+export { default as Badge } from './Badge';
