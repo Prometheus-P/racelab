@@ -89,13 +89,17 @@ class ResultsServiceError extends Error {
   }
 }
 
-export function normalizeResultsQuery(
-  params: Partial<ResultsSearchParams> & {
-    page?: string | number;
-    limit?: string | number;
-    types?: ResultsSearchParams['types'] | string;
-  }
-): NormalizedOrError {
+type NormalizationInput = {
+  dateFrom?: string;
+  dateTo?: string;
+  types?: ResultsSearchParams['types'] | string | null;
+  track?: string;
+  jockey?: string;
+  page?: string | number | null;
+  limit?: string | number | null;
+};
+
+export function normalizeResultsQuery(params: NormalizationInput): NormalizedOrError {
   const defaultRange = getKoreanDateRange(DEFAULT_DAYS);
 
   const sanitizeDate = (value: string | undefined): string | null => {
@@ -151,14 +155,15 @@ export function normalizeResultsQuery(
     };
   }
 
-  const typeList = Array.isArray(params.types)
-    ? params.types
-    : typeof params.types === 'string'
-      ? params.types.split(',')
+  const typeInput = params.types;
+  const typeList = Array.isArray(typeInput)
+    ? typeInput
+    : typeof typeInput === 'string'
+      ? typeInput.split(',')
       : undefined;
 
   const types = typeList
-    ?.map((t) => t.trim())
+    ?.map((t: string) => t.trim())
     .filter((t): t is RaceType => ['horse', 'cycle', 'boat'].includes(t as RaceType));
 
   const query: NormalizedResultsQuery = {
@@ -192,8 +197,16 @@ function setCache(key: string, entry: CachedEntry): void {
   resultsCache.set(key, entry);
 }
 
+type RaceRowSubset = Pick<
+  InferModel<typeof races>,
+  'id' | 'raceType' | 'raceNo' | 'raceDate' | 'startTime' | 'distance' | 'grade' | 'status'
+> & {
+  trackName?: string | null;
+  trackCode?: string | null;
+};
+
 function mapResultsToHistoricalRace(
-  raceRow: InferModel<typeof races> & { trackName?: string | null; trackCode?: string | null },
+  raceRow: RaceRowSubset,
   resultRows: Array<{
     raceId: string;
     entryNo: number;
@@ -206,7 +219,8 @@ function mapResultsToHistoricalRace(
     entryName: string | null;
   }>
 ): HistoricalRace {
-  const dateValue = raceRow.raceDate instanceof Date ? raceRow.raceDate : new Date(raceRow.raceDate);
+  const raceDateValue = raceRow.raceDate as unknown;
+  const dateValue = raceDateValue instanceof Date ? raceDateValue : new Date(raceRow.raceDate);
   const trackFromId = raceRow.id.split('-')[1];
   const baseTrack = raceRow.trackName || raceRow.trackCode || trackFromId || '트랙 미지정';
   const startTime = raceRow.startTime ? raceRow.startTime.toString().slice(0, 5) : '';

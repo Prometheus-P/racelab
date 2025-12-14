@@ -1,6 +1,6 @@
 // src/app/api/results/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PaginatedResults, HistoricalRace } from '@/types';
+import { PaginatedResults, HistoricalRace, RaceType } from '@/types';
 import {
   buildResultsResponse,
   normalizeResultsQuery,
@@ -18,14 +18,23 @@ export async function GET(
 ): Promise<NextResponse<ResultsApiResponse<PaginatedResults<HistoricalRace>>>> {
   try {
     const { searchParams } = request.nextUrl;
+    const typesParam = searchParams.get('types');
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+
+    const types = typesParam
+      ?.split(',')
+      .map((type) => type.trim())
+      .filter((type): type is RaceType => ['horse', 'cycle', 'boat'].includes(type as RaceType));
+
     const normalized = normalizeResultsQuery({
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,
-      types: searchParams.get('types') || undefined,
+      types: types?.length ? types : undefined,
       track: searchParams.get('track') || undefined,
       jockey: searchParams.get('jockey') || undefined,
-      page: searchParams.get('page') || undefined,
-      limit: searchParams.get('limit') || undefined,
+      page: pageParam ? Number(pageParam) : undefined,
+      limit: limitParam ? Number(limitParam) : undefined,
     });
 
     if (!normalized.ok) {

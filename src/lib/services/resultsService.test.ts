@@ -24,6 +24,10 @@ describe('resultsService error handling', () => {
 
     const response = await service.buildResultsResponse(normalized.query);
 
+    if (!response.data) {
+      throw new Error('Expected data payload');
+    }
+
     expect(response.ok).toBe(true);
     expect(response.meta?.source).toBe('snapshot');
     expect(response.meta?.fallbackCode).toBe('ENV_MISSING');

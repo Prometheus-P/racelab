@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import { ResultFiltersClient } from '@/components/ResultFiltersClient';
 import { ResultsSkeleton } from '@/components/Skeletons';
-import { HistoricalRace, PaginatedResults } from '@/types';
+import { HistoricalRace, PaginatedResults, RaceType, ResultsSearchParams } from '@/types';
 import { breadcrumbSchema, collectionPageSchema, faqSchema } from './schemas';
 import {
   GlossarySection,
@@ -59,6 +59,7 @@ interface SearchParams {
   track?: string;
   jockey?: string;
   page?: string;
+  limit?: string;
 }
 
 interface ResultsPageProps {
@@ -69,7 +70,19 @@ async function getResultsState(searchParams: SearchParams): Promise<{
   response: ResultsApiResponse<PaginatedResults<HistoricalRace>>;
   query: NormalizedResultsQuery;
 }> {
-  const normalized = normalizeResultsQuery(searchParams);
+  const types = searchParams.types
+    ?.split(',')
+    .map((type) => type.trim())
+    .filter((type): type is RaceType => ['horse', 'cycle', 'boat'].includes(type as RaceType));
+
+  const normalizedParams: Partial<ResultsSearchParams> & { page?: number; limit?: number } = {
+    ...searchParams,
+    types: types?.length ? types : undefined,
+    page: searchParams.page ? Number(searchParams.page) : undefined,
+    limit: searchParams.limit ? Number(searchParams.limit) : undefined,
+  };
+
+  const normalized = normalizeResultsQuery(normalizedParams);
 
   if (!normalized.ok) {
     const defaults = getResultsDefaultRange();
