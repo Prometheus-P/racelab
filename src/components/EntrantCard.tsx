@@ -21,6 +21,8 @@ interface EntrantCardProps {
   onExpandChange?: (id: string, expanded: boolean) => void;
 }
 
+const HIGH_WIN_RATE_THRESHOLD = 50;
+
 const statLabels: Record<keyof EntrantStats, string> = {
   speed: 'Speed',
   stamina: 'Stamina',
@@ -52,12 +54,14 @@ function toRadarData(stats: EntrantStats | undefined) {
 
 function resolveBadge(entrant: EntrantData): string | null {
   const badges = entrant.badges ?? [];
+  const winRate = entrant.stats?.recentWinRate;
+  const speed = entrant.stats?.speed;
 
-  if (badges.includes('highWinRate') || entrant.stats.recentWinRate >= 50) {
+  if (badges.includes('highWinRate') || (typeof winRate === 'number' && winRate >= HIGH_WIN_RATE_THRESHOLD)) {
     return 'High Win Rate';
   }
 
-  if (badges.includes('hotPick') || entrant.stats.speed >= 70) {
+  if (badges.includes('hotPick') || (typeof speed === 'number' && speed >= 70)) {
     return 'Hot Pick';
   }
 
@@ -67,6 +71,7 @@ function resolveBadge(entrant: EntrantData): string | null {
 export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange }: EntrantCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isFavorite, setIsFavorite] = useState(Boolean(entrant.favorite));
+  const headingId = `entrant-${entrant.id}-title`;
 
   const radarData = useMemo(() => toRadarData(entrant.stats), [entrant.stats]);
   const badgeLabel = useMemo(() => resolveBadge(entrant), [entrant]);
@@ -103,7 +108,9 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
           <div className="flex flex-col gap-1">
             <p className="text-xs uppercase tracking-wide text-slate-400">{entrant.raceType}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg font-semibold text-white">{entrant.name}</h3>
+              <h3 id={headingId} className="text-lg font-semibold text-white">
+                {entrant.name}
+              </h3>
               {badgeLabel ? <Badge variant="secondary">{badgeLabel}</Badge> : null}
             </div>
             {entrant.odds ? (
@@ -125,8 +132,8 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
           <button
             type="button"
             onClick={toggleExpand}
-            aria-expanded={expanded}
-            aria-controls={`entrant-${entrant.id}-details`}
+            aria-hidden="true"
+            tabIndex={-1}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800/80 text-white transition hover:border-blue-500 hover:text-blue-200"
           >
             {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -185,6 +192,8 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
           className="space-y-2 rounded-xl bg-slate-800/60 p-3"
           data-testid="entrant-history"
           aria-live="polite"
+          role="region"
+          aria-labelledby={headingId}
         >
           <p className="text-sm font-semibold text-white">최근 전적</p>
           {entrant.history && entrant.history.length > 0 ? (

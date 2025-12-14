@@ -67,13 +67,10 @@ function normalizePublicRaceResult(raw: Record<string, unknown>): PublicRaceResu
 }
 
 async function persistSnapshot(key: string, payload: unknown) {
-  const redis = getRedisClient();
+  const redis = await getRedisClient();
   if (!redis) return;
 
   try {
-    if (redis.status === 'wait') {
-      await redis.connect();
-    }
     await redis.set(key, JSON.stringify(payload), 'EX', 86_400);
   } catch (error) {
     // 스냅샷 저장 실패는 사용자에 노출하지 않음
@@ -82,13 +79,10 @@ async function persistSnapshot(key: string, payload: unknown) {
 }
 
 async function readCache(key: string): Promise<PublicRaceResult[] | null> {
-  const redis = getRedisClient();
+  const redis = await getRedisClient();
   if (!redis) return null;
 
   try {
-    if (redis.status === 'wait') {
-      await redis.connect();
-    }
     const cached = await redis.get(key);
     if (!cached) return null;
     const parsed = JSON.parse(cached) as unknown;
@@ -103,13 +97,10 @@ async function readCache(key: string): Promise<PublicRaceResult[] | null> {
 }
 
 async function writeCache(key: string, data: PublicRaceResult[], ttlSeconds: number) {
-  const redis = getRedisClient();
+  const redis = await getRedisClient();
   if (!redis) return;
 
   try {
-    if (redis.status === 'wait') {
-      await redis.connect();
-    }
     await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
   } catch (error) {
     console.error('[PublicDataCache] 캐시 저장 실패', error);

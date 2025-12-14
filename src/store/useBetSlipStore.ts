@@ -42,6 +42,11 @@ export function calculateEstimatedReturn(odds: number, amount: number): number {
   return Math.max(0, Number((safeOdds * safeAmount).toFixed(2)));
 }
 
+function normalizeAmount(value: number): number {
+  const safe = Number.isFinite(value) ? value : 0;
+  return Math.max(safe, 0);
+}
+
 export const useBetSlipStore = create<BetSlipState>()(
   persist(
     (set, get) => ({
@@ -53,7 +58,7 @@ export const useBetSlipStore = create<BetSlipState>()(
         if (existing) {
           set({
             selections: get().selections.map((item) =>
-              item.entrantId === selection.entrantId ? { ...item, amount: Math.max(amount, 0) } : item,
+              item.entrantId === selection.entrantId ? { ...item, amount: normalizeAmount(amount) } : item,
             ),
           });
           return;
@@ -62,7 +67,7 @@ export const useBetSlipStore = create<BetSlipState>()(
         set((state) => ({
           selections: [
             ...state.selections,
-            { ...selection, amount: Math.max(amount, 0), betType: state.betType },
+            { ...selection, amount: normalizeAmount(amount), betType: state.betType },
           ],
         }));
       },
@@ -70,9 +75,10 @@ export const useBetSlipStore = create<BetSlipState>()(
         set((state) => ({ selections: state.selections.filter((item) => item.entrantId !== entrantId) }));
       },
       setAmount: (entrantId, amount) => {
+        const normalizedAmount = normalizeAmount(amount);
         set((state) => ({
           selections: state.selections.map((item) =>
-            item.entrantId === entrantId ? { ...item, amount: Math.max(amount, 0) } : item,
+            item.entrantId === entrantId ? { ...item, amount: normalizedAmount } : item,
           ),
         }));
       },
@@ -99,20 +105,39 @@ export const useBetSlipStore = create<BetSlipState>()(
         );
 
         const record: PlacedBet = {
-          selections: selections.map((item) => ({ ...item, amount: Math.max(item.amount, 0) })),
+          selections: selections.map((item) => ({ ...item, amount: normalizeAmount(item.amount) })),
           betType,
           totalAmount,
           estimatedReturn,
           placedAt: new Date().toISOString(),
         };
 
+        const history: PlacedBet[] = (() => {
+          try {
+            const existingRaw = localStorage.getItem('bet-slip-history');
+            if (!existingRaw) return [];
+            const parsed = JSON.parse(existingRaw);
+            if (Array.isArray(parsed)) {
+              return parsed.filter((entry) => Boolean(entry && typeof entry === 'object')) as PlacedBet[];
+            }
+            console.warn('베팅 내역 파싱 실패: 배열이 아닙니다. 새로 저장합니다.');
+            return [];
+          } catch (parseError) {
+            console.error('베팅 내역 파싱 중 오류 발생', parseError);
+            return [];
+          }
+        })();
+
+        history.push(record);
+
         try {
-          const existingRaw = localStorage.getItem('bet-slip-history');
-          const history: PlacedBet[] = existingRaw ? JSON.parse(existingRaw) : [];
-          history.push(record);
           localStorage.setItem('bet-slip-history', JSON.stringify(history));
         } catch (error) {
-          console.error('베팅 내역 저장 실패', error);
+          const isQuotaError =
+            error instanceof DOMException &&
+            (error.code === 22 || error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+          const label = isQuotaError ? '저장소 용량 부족으로 베팅 내역을 저장할 수 없습니다.' : '베팅 내역 저장 실패';
+          console.error(label, error);
         }
 
         set({ selections: [] });

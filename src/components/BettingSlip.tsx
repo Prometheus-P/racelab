@@ -135,7 +135,11 @@ export default function BettingSlip() {
                         type="number"
                         min={0}
                         value={item.amount}
-                        onChange={(e) => setAmount(item.entrantId, Number(e.target.value))}
+                        onChange={(e) => {
+                          const nextAmount = Number(e.target.value);
+                          if (!Number.isFinite(nextAmount)) return;
+                          setAmount(item.entrantId, nextAmount);
+                        }}
                         className="w-28 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-white"
                       />
                       <div className="ml-auto text-right text-xs text-slate-300">
