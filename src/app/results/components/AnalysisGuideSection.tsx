@@ -12,7 +12,7 @@ const oddsTips = [
   { title: '인기마 분석:', description: '낮은 배당률 = 대중의 높은 기대' },
   { title: '이변 가능성:', description: '높은 배당률 마필의 최근 상승세 체크' },
   { title: '배당 변동:', description: '급격한 배당 변화는 내부 정보 가능성' },
-  { title: '적중률 vs 회수율:', description: '장기적 수익을 위한 밸런스 고려' },
+  { title: '결과 매칭률 vs 회수율:', description: '장기적 수익을 위한 밸런스 고려' },
 ];
 
 function AnalysisTable() {

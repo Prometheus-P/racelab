@@ -124,7 +124,7 @@
   font-weight: 400;
 }
 
-/* Data - 배당률, 적중률 등 핵심 숫자 (가장 두껍게) */
+/* Data - 배당률, 결과 매칭률 등 핵심 숫자 (가장 두껍게) */
 .rl-data-large {
   font-family: var(--rl-font-sans);
   font-size: 22px;

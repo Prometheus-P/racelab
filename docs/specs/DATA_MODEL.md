@@ -330,10 +330,10 @@ export interface EntryOdds {
   /** 마명/선수명 */
   name: string;
 
-  /** 단승 배당률 (1등 예측) */
+  /** 단승 배당률 (1등 분석 지표) */
   win: number | null;
 
-  /** 복승 배당률 (1-2등 진입 예측) */
+  /** 복승 배당률 (1-2등 진입 분석 지표) */
   place: number | null;
 
   /** 단승 변화 */

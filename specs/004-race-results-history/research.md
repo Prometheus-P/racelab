@@ -123,7 +123,7 @@ Development:
 
 Production:
   provider: Upstash Fixed Price Plan
-  reason: BullMQ 최적화 플랜, 예측 가능한 비용
+  reason: BullMQ 최적화 플랜, 분석 가능한 비용
   config:
     stalledInterval: 300000
     guardInterval: 300000

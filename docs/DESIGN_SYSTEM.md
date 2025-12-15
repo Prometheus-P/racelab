@@ -19,7 +19,7 @@
 | 역할        | 색상 이름  | HEX Code  | Tailwind Class | 사용 용도                                        |
 | ----------- | ---------- | --------- | -------------- | ------------------------------------------------ |
 | 경마 / 안정 | Sage Green | `#81C784` | `horse`        | 긍정적 지표, 그래프 상승, 경마 데이터 하이라이트 |
-| 경륜 / 핵심 | Soft Coral | `#E57373` | `cycle`        | 승부/적중 하이라이트, 주 액션 버튼 (CTA)         |
+| 경륜 / 핵심 | Soft Coral | `#E57373` | `cycle`        | 승부/결과 매칭 하이라이트, 주 액션 버튼 (CTA)    |
 | 경정 / 흐름 | Steel Blue | `#64B5F6` | `boat`         | 차트 배경, 경정 데이터, 링크 및 아이콘           |
 
 ### B. Neutral Colors (배경 및 텍스트)
@@ -40,7 +40,7 @@
 | ---------------- | ---------------------- | ---------------------- | --------------------- | ------------------------------------------------ |
 | 로고/브랜드      | Exo 2 Bold 900         | 32pt (SVG 두께감 통일) | `font-brand`          | 무게감, 속도감, 브랜드 아이덴티티                |
 | 헤드라인 (H1/H2) | Noto Sans KR Bold      | 24pt ~ 28pt            | `text-headline-large` | 주요 섹션 제목, 직관적인 정보 전달               |
-| 데이터 값        | Noto Sans KR ExtraBold | 18pt ~ 22pt            | `text-data-large`     | 배당률, 적중률 등 핵심 숫자 (가장 두꺼워야 함)   |
+| 데이터 값        | Noto Sans KR ExtraBold | 18pt ~ 22pt            | `text-data-large`     | 배당률, 결과 매칭률 등 핵심 숫자 (가장 두꺼워야 함) |
 | 본문/리스트      | Noto Sans KR Regular   | 16pt ~ 18pt            | `text-body-medium`    | 일반 설명, 데이터 테이블 내용 (가장 높은 가독성) |
 
 ### Typography Classes
@@ -66,7 +66,7 @@
 .rl-body-medium      /* 16px, Regular */
 .rl-body-small       /* 14px, Regular */
 
-/* Data - 배당률, 적중률 등 핵심 숫자 */
+/* Data - 배당률, 결과 매칭률 등 핵심 숫자 */
 .rl-data-large       /* 22px, ExtraBold, tabular-nums */
 .rl-data-medium      /* 20px, ExtraBold, tabular-nums */
 .rl-data-small       /* 18px, ExtraBold, tabular-nums */
@@ -101,13 +101,13 @@ import DataTable from '@/components/ui/DataTable';
 
 ### B. 버튼 및 CTA (Call to Action)
 
-- **Primary Button** (Soft Coral): 가장 중요한 "베팅/예측 시작" 버튼에 사용합니다. (둥근 모서리 필수)
+- **Primary Button** (Soft Coral): 가장 중요한 "베팅/분석 시작" 버튼에 사용합니다. (둥근 모서리 필수)
 - **Secondary Button** (Steel Blue): "기록 보기" 또는 "분석 필터" 등에 사용합니다.
 - **크기**: 50-60대 사용자에게 명확하도록 최소 **48px 높이**를 유지합니다.
 
 ```tsx
 // 버튼 사용 예시
-<button className="btn btn-primary">예측 시작</button>
+<button className="btn btn-primary">분석 시작</button>
 <button className="btn btn-secondary">기록 보기</button>
 <button className="btn btn-outlined">취소</button>
 ```

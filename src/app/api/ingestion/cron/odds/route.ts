@@ -23,6 +23,12 @@ import {
   needsSecondPass,
   sleep,
 } from '@/ingestion/utils/smartScheduler';
+import {
+  getFallbackState,
+  isFallbackMode,
+  markFallbackCollection,
+  shouldThrottleFallback,
+} from '@/ingestion/utils/fallbackMode';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow up to 60 seconds for odds collection
@@ -45,6 +51,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const now = new Date();
   console.log(`[Cron/Odds] Starting odds collection at ${now.toISOString()}`);
+
+  const initialFallbackState = getFallbackState(now);
+  if (initialFallbackState.active) {
+    console.log(
+      `[Cron/Odds] Fallback mode active (source=${initialFallbackState.source}, reason=${initialFallbackState.reason}). Enforcing ${
+        initialFallbackState.intervalMs / (60 * 1000)
+      }-minute interval`
+    );
+    if (shouldThrottleFallback(now)) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          racesChecked: 0,
+          racesInWindow: 0,
+          racesCollected: 0,
+          firstPassSnapshots: 0,
+          secondPassSnapshots: 0,
+          totalSnapshots: 0,
+          errors: 0,
+          fallbackActive: true,
+          nextWindow: new Date(now.getTime() + initialFallbackState.intervalMs).toISOString(),
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
 
   try {
     // Get today's date string for querying races
@@ -133,6 +165,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const totalSnapshots = firstPassResult.snapshots + secondPassSnapshots;
     console.log(`[Cron/Odds] Complete: ${totalSnapshots} total snapshots collected`);
 
+    const postRunFallbackState = getFallbackState(now);
+    if (isFallbackMode(now)) {
+      markFallbackCollection(now);
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -143,6 +180,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         secondPassSnapshots,
         totalSnapshots,
         errors: firstPassResult.errors,
+        fallbackActive: postRunFallbackState.active,
       },
       timestamp: new Date().toISOString(),
     });
