@@ -8,19 +8,48 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockFn = jest.Mock<any>;
 
-// Mock the database
+// Mock race metadata
+const mockRaceMetadata = [
+  { id: 'horse-seoul-1-20241210', raceDate: '2024-12-10', startTime: '14:00', status: 'scheduled' },
+  { id: 'horse-seoul-2-20241210', raceDate: '2024-12-10', startTime: '14:30', status: 'scheduled' },
+  { id: 'cycle-gwangmyeong-1-20241210', raceDate: '2024-12-10', startTime: '15:00', status: 'scheduled' },
+];
+
+// Track select call count to return different results
+let selectCallCount = 0;
+
+const mockDbSelect = jest.fn(() => {
+  selectCallCount++;
+  const isMetadataQuery = selectCallCount === 1;
+
+  return {
+    from: jest.fn(() => ({
+      where: jest.fn(() => {
+        if (isMetadataQuery) {
+          // Race metadata query - returns directly without orderBy/limit
+          return Promise.resolve(mockRaceMetadata);
+        }
+        // Snapshot query - has orderBy/limit chain
+        return {
+          orderBy: jest.fn(() => ({
+            limit: jest.fn(() => Promise.resolve([])),
+          })),
+        };
+      }),
+    })),
+  };
+});
+
+const mockDbInsert = jest.fn(() => ({
+  values: jest.fn(() => ({
+    onConflictDoNothing: jest.fn(() => Promise.resolve()),
+  })),
+}));
+
 jest.mock('@/lib/db/client', () => ({
   db: {
-    insert: jest.fn(() => ({
-      values: jest.fn(() => ({
-        onConflictDoNothing: jest.fn(() => Promise.resolve()),
-      })),
-    })),
-    select: jest.fn(() => ({
-      from: jest.fn(() => ({
-        where: jest.fn(() => Promise.resolve([])),
-      })),
-    })),
+    insert: mockDbInsert,
+    select: mockDbSelect,
   },
 }));
 
@@ -49,6 +78,7 @@ jest.mock('@/ingestion/utils/smartScheduler', () => ({
 describe('oddsPoller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    selectCallCount = 0;
   });
 
   describe('pollOdds', () => {
