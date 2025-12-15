@@ -1,57 +1,27 @@
 // src/components/TodayRaces.tsx
 import React from 'react';
-import {
-  fetchHorseRaceSchedules,
-  fetchCycleRaceSchedules,
-  fetchBoatRaceSchedules,
-} from '@/lib/api';
-import { getTodayYYYYMMDD } from '@/lib/utils/date';
-import { Race, RaceType } from '@/types';
+import { Race, RaceType, TodayRacesData } from '@/types';
+import { RACE_TYPES } from '@/config/raceTypes';
 import Link from 'next/link';
 import StatusBadge from './StatusBadge';
 import type { RaceStatus } from './StatusBadge';
 
-// Race type configuration for consistent styling
-const raceTypeConfig: Record<
-  RaceType,
-  {
-    icon: string;
-    label: string;
-    color: string;
-    borderColor: string;
-    bgHover: string;
-    textColor: string;
-  }
-> = {
-  horse: {
-    icon: '🐎',
-    label: '경마',
-    color: 'text-horse',
-    borderColor: 'border-horse',
-    bgHover: 'hover:bg-horse/5',
-    textColor: 'text-horse',
-  },
-  cycle: {
-    icon: '🚴',
-    label: '경륜',
-    color: 'text-cycle',
-    borderColor: 'border-cycle',
-    bgHover: 'hover:bg-cycle/5',
-    textColor: 'text-cycle',
-  },
-  boat: {
-    icon: '🚤',
-    label: '경정',
-    color: 'text-boat',
-    borderColor: 'border-boat',
-    bgHover: 'hover:bg-boat/5',
-    textColor: 'text-boat',
-  },
-};
+// Build component-specific styles from centralized RACE_TYPES config
+function getRaceTypeStyles(type: RaceType) {
+  const config = RACE_TYPES[type];
+  return {
+    icon: config.icon,
+    label: config.label,
+    color: config.color.primary,
+    borderColor: config.color.border,
+    bgHover: `hover:${config.color.bg}`,
+    textColor: config.color.primary,
+  };
+}
 
 interface RaceRowProps {
   race: Race;
-  typeConfig: (typeof raceTypeConfig)[RaceType];
+  typeConfig: ReturnType<typeof getRaceTypeStyles>;
 }
 
 const RaceRow = ({ race, typeConfig }: RaceRowProps) => {
@@ -108,7 +78,7 @@ interface RaceSectionProps {
 const RaceSection = ({ type, races, 'data-testid': dataTestId }: RaceSectionProps) => {
   if (races.length === 0) return null;
 
-  const config = raceTypeConfig[type];
+  const config = getRaceTypeStyles(type);
   const headingId = `section-heading-${type}`;
 
   return (
@@ -160,26 +130,24 @@ const EmptyState = () => (
   </div>
 );
 
-export default async function TodayRaces({ filter = 'all' }: { filter?: string }) {
-  const rcDate = getTodayYYYYMMDD();
-  const [horseRaces, cycleRaces, boatRaces] = await Promise.all([
-    fetchHorseRaceSchedules(rcDate),
-    fetchCycleRaceSchedules(rcDate),
-    fetchBoatRaceSchedules(rcDate),
-  ]);
+interface TodayRacesProps {
+  data: TodayRacesData;
+  filter?: RaceType | 'all';
+}
 
+export default function TodayRaces({ data, filter = 'all' }: TodayRacesProps) {
   // Filter races based on selected tab
   let displayRaces: { horse: Race[]; cycle: Race[]; boat: Race[] };
 
   if (filter === 'horse') {
-    displayRaces = { horse: horseRaces, cycle: [], boat: [] };
+    displayRaces = { horse: data.horse, cycle: [], boat: [] };
   } else if (filter === 'cycle') {
-    displayRaces = { horse: [], cycle: cycleRaces, boat: [] };
+    displayRaces = { horse: [], cycle: data.cycle, boat: [] };
   } else if (filter === 'boat') {
-    displayRaces = { horse: [], cycle: [], boat: boatRaces };
+    displayRaces = { horse: [], cycle: [], boat: data.boat };
   } else {
     // 'all' or default - show all races
-    displayRaces = { horse: horseRaces, cycle: cycleRaces, boat: boatRaces };
+    displayRaces = { horse: data.horse, cycle: data.cycle, boat: data.boat };
   }
 
   const allRaces = [...displayRaces.horse, ...displayRaces.cycle, ...displayRaces.boat];

@@ -1,14 +1,14 @@
 // src/app/race/[id]/page.test.tsx
 import { render, screen } from '@testing-library/react';
 import RaceDetailPage, { generateMetadata } from './page';
-import { fetchRaceById } from '@/lib/api';
-import { Race } from '@/types';
+import { fetchRaceByIdWithStatus } from '@/lib/api';
+import { Race, RaceFetchResult } from '@/types';
 import type { ResolvingMetadata } from 'next';
 
 // Mock the API client dependency
 jest.mock('@/lib/api', () => ({
   ...jest.requireActual('@/lib/api'),
-  fetchRaceById: jest.fn(),
+  fetchRaceByIdWithStatus: jest.fn(),
 }));
 
 describe('RaceDetailPage', () => {
@@ -46,7 +46,12 @@ describe('RaceDetailPage', () => {
   };
 
   beforeEach(() => {
-    (fetchRaceById as jest.Mock).mockResolvedValue(mockRace);
+    // Return RaceFetchResult with OK status
+    const mockResult: RaceFetchResult<Race> = {
+      status: 'OK',
+      data: mockRace,
+    };
+    (fetchRaceByIdWithStatus as jest.Mock).mockResolvedValue(mockResult);
   });
 
   afterEach(() => {
@@ -123,7 +128,11 @@ describe('RaceDetailPage', () => {
 
   describe('Not Found State', () => {
     it('should render styled not found message if race is not found', async () => {
-      (fetchRaceById as jest.Mock).mockResolvedValue(null);
+      const notFoundResult: RaceFetchResult<Race> = {
+        status: 'NOT_FOUND',
+        data: null,
+      };
+      (fetchRaceByIdWithStatus as jest.Mock).mockResolvedValue(notFoundResult);
 
       const resolvedPage = await RaceDetailPage({ params: { id: 'invalid-id' } });
       render(resolvedPage);
@@ -133,7 +142,11 @@ describe('RaceDetailPage', () => {
     });
 
     it('should render home link in not found state', async () => {
-      (fetchRaceById as jest.Mock).mockResolvedValue(null);
+      const notFoundResult: RaceFetchResult<Race> = {
+        status: 'NOT_FOUND',
+        data: null,
+      };
+      (fetchRaceByIdWithStatus as jest.Mock).mockResolvedValue(notFoundResult);
 
       const resolvedPage = await RaceDetailPage({ params: { id: 'invalid-id' } });
       render(resolvedPage);
@@ -175,7 +188,11 @@ describe('RaceDetailPage', () => {
     });
 
     it('should generate default metadata if race is not found', async () => {
-      (fetchRaceById as jest.Mock).mockResolvedValue(null);
+      const notFoundResult: RaceFetchResult<Race> = {
+        status: 'NOT_FOUND',
+        data: null,
+      };
+      (fetchRaceByIdWithStatus as jest.Mock).mockResolvedValue(notFoundResult);
 
       const metadata = await generateMetadata({ params: { id: 'invalid-id' } }, mockParent);
 

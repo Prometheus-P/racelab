@@ -1,19 +1,7 @@
 // src/components/TodayRaces.test.tsx
 import { render, screen, within } from '@testing-library/react';
 import TodayRaces from './TodayRaces';
-import {
-  fetchHorseRaceSchedules,
-  fetchCycleRaceSchedules,
-  fetchBoatRaceSchedules,
-} from '@/lib/api';
-import { Race } from '@/types';
-
-// Mock the API client dependency
-jest.mock('@/lib/api', () => ({
-  fetchHorseRaceSchedules: jest.fn(),
-  fetchCycleRaceSchedules: jest.fn(),
-  fetchBoatRaceSchedules: jest.fn(),
-}));
+import { Race, TodayRacesData } from '@/types';
 
 describe('TodayRaces Component', () => {
   const mockHorseRaces: Race[] = [
@@ -52,20 +40,23 @@ describe('TodayRaces Component', () => {
     },
   ];
 
-  beforeEach(() => {
-    (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(mockHorseRaces);
-    (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue(mockCycleRaces);
-    (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue(mockBoatRaces);
-  });
+  const mockData: TodayRacesData = {
+    horse: mockHorseRaces,
+    cycle: mockCycleRaces,
+    boat: mockBoatRaces,
+    status: { horse: 'OK', cycle: 'OK', boat: 'OK' },
+  };
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const emptyData: TodayRacesData = {
+    horse: [],
+    cycle: [],
+    boat: [],
+    status: { horse: 'OK', cycle: 'OK', boat: 'OK' },
+  };
 
   describe('Basic Rendering', () => {
-    it('should render horse race information when filtered', async () => {
-      const resolvedComponent = await TodayRaces({ filter: 'horse' });
-      render(resolvedComponent);
+    it('should render horse race information when filtered', () => {
+      render(<TodayRaces data={mockData} filter="horse" />);
 
       // Check for Horse Races section
       const horseSection = screen.getByTestId('race-section-horse');
@@ -74,9 +65,8 @@ describe('TodayRaces Component', () => {
       expect(within(horseSection).getByText('11:30')).toBeInTheDocument();
     });
 
-    it('should render cycle races when filtered', async () => {
-      const resolvedComponent = await TodayRaces({ filter: 'cycle' });
-      render(resolvedComponent);
+    it('should render cycle races when filtered', () => {
+      render(<TodayRaces data={mockData} filter="cycle" />);
 
       const cycleSection = screen.getByTestId('race-section-cycle');
       expect(cycleSection).toBeInTheDocument();
@@ -84,9 +74,8 @@ describe('TodayRaces Component', () => {
       expect(within(cycleSection).getByText('11:00')).toBeInTheDocument();
     });
 
-    it('should render boat races when filtered', async () => {
-      const resolvedComponent = await TodayRaces({ filter: 'boat' });
-      render(resolvedComponent);
+    it('should render boat races when filtered', () => {
+      render(<TodayRaces data={mockData} filter="boat" />);
 
       const boatSection = screen.getByTestId('race-section-boat');
       expect(boatSection).toBeInTheDocument();
@@ -96,13 +85,8 @@ describe('TodayRaces Component', () => {
   });
 
   describe('Empty State', () => {
-    it('should render styled empty state with icon when no races', async () => {
-      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
-
-      const resolvedComponent = await TodayRaces({ filter: 'horse' });
-      render(resolvedComponent);
+    it('should render styled empty state with icon when no races', () => {
+      render(<TodayRaces data={emptyData} filter="horse" />);
 
       expect(screen.getByText('오늘 예정된 경주가 없습니다')).toBeInTheDocument();
       expect(screen.getByText('다음 경주 일정을 확인해 주세요')).toBeInTheDocument();
@@ -111,35 +95,31 @@ describe('TodayRaces Component', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have aria-labelledby on sections', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should have aria-labelledby on sections', () => {
+      render(<TodayRaces data={mockData} />);
 
       const horseSection = screen.getByTestId('race-section-horse');
       expect(horseSection).toHaveAttribute('aria-labelledby', 'section-heading-horse');
     });
 
-    it('should have descriptive aria-labels on race links', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should have descriptive aria-labels on race links', () => {
+      render(<TodayRaces data={mockData} />);
 
       const raceCard = screen.getAllByTestId('race-card')[0];
       expect(raceCard).toHaveAttribute('aria-label', expect.stringContaining('서울 제1경주'));
       expect(raceCard).toHaveAttribute('aria-label', expect.stringContaining('상세 정보 보기'));
     });
 
-    it('should use semantic time element for start times', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should use semantic time element for start times', () => {
+      render(<TodayRaces data={mockData} />);
 
       const timeElement = screen.getByText('11:30');
       expect(timeElement.tagName.toLowerCase()).toBe('time');
       expect(timeElement).toHaveAttribute('dateTime', '11:30');
     });
 
-    it('should use list semantics for race items', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should use list semantics for race items', () => {
+      render(<TodayRaces data={mockData} />);
 
       const horseSection = screen.getByTestId('race-section-horse');
       const list = within(horseSection).getByRole('list');
@@ -148,9 +128,8 @@ describe('TodayRaces Component', () => {
   });
 
   describe('Styling', () => {
-    it('should apply race type colors to sections', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should apply race type colors to sections', () => {
+      render(<TodayRaces data={mockData} />);
 
       const horseHeading = screen.getByText('경마');
       expect(horseHeading.className).toContain('text-horse');
@@ -162,17 +141,15 @@ describe('TodayRaces Component', () => {
       expect(boatHeading.className).toContain('text-boat');
     });
 
-    it('should have minimum touch target height on race cards', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should have minimum touch target height on race cards', () => {
+      render(<TodayRaces data={mockData} />);
 
       const raceCard = screen.getAllByTestId('race-card')[0];
       expect(raceCard.className).toContain('min-h-[56px]');
     });
 
-    it('should have focus ring styles on race cards', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should have focus ring styles on race cards', () => {
+      render(<TodayRaces data={mockData} />);
 
       const raceCard = screen.getAllByTestId('race-card')[0];
       expect(raceCard.className).toContain('focus:ring-2');
@@ -181,58 +158,59 @@ describe('TodayRaces Component', () => {
   });
 
   describe('Status Badge', () => {
-    it('should display status badge for upcoming races', async () => {
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+    it('should display status badge for upcoming races', () => {
+      render(<TodayRaces data={mockData} />);
 
       const statusBadges = screen.getAllByText('예정');
       expect(statusBadges.length).toBeGreaterThan(0);
     });
 
-    it('should display live status badge with aria-live for live races', async () => {
-      const liveRace: Race[] = [
-        {
-          id: 'horse-live',
-          type: 'horse',
-          raceNo: 1,
-          track: '서울',
-          startTime: '11:30',
-          distance: 1200,
-          status: 'live',
-          entries: [],
-        },
-      ];
-      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(liveRace);
-      (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
+    it('should display live status badge with aria-live for live races', () => {
+      const liveData: TodayRacesData = {
+        horse: [
+          {
+            id: 'horse-live',
+            type: 'horse',
+            raceNo: 1,
+            track: '서울',
+            startTime: '11:30',
+            distance: 1200,
+            status: 'live',
+            entries: [],
+          },
+        ],
+        cycle: [],
+        boat: [],
+        status: { horse: 'OK', cycle: 'OK', boat: 'OK' },
+      };
 
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+      render(<TodayRaces data={liveData} />);
 
       const liveStatus = screen.getByRole('status');
       expect(liveStatus).toHaveAttribute('aria-live', 'polite');
       expect(liveStatus).toHaveTextContent('진행중');
     });
 
-    it('should display finished status badge for finished races', async () => {
-      const finishedRace: Race[] = [
-        {
-          id: 'horse-done',
-          type: 'horse',
-          raceNo: 1,
-          track: '서울',
-          startTime: '11:30',
-          distance: 1200,
-          status: 'finished',
-          entries: [],
-        },
-      ];
-      (fetchHorseRaceSchedules as jest.Mock).mockResolvedValue(finishedRace);
-      (fetchCycleRaceSchedules as jest.Mock).mockResolvedValue([]);
-      (fetchBoatRaceSchedules as jest.Mock).mockResolvedValue([]);
+    it('should display finished status badge for finished races', () => {
+      const finishedData: TodayRacesData = {
+        horse: [
+          {
+            id: 'horse-done',
+            type: 'horse',
+            raceNo: 1,
+            track: '서울',
+            startTime: '11:30',
+            distance: 1200,
+            status: 'finished',
+            entries: [],
+          },
+        ],
+        cycle: [],
+        boat: [],
+        status: { horse: 'OK', cycle: 'OK', boat: 'OK' },
+      };
 
-      const resolvedComponent = await TodayRaces({});
-      render(resolvedComponent);
+      render(<TodayRaces data={finishedData} />);
 
       expect(screen.getByText('완료')).toBeInTheDocument();
     });

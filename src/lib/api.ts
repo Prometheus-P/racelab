@@ -10,15 +10,96 @@ import {
   ResultsSearchParams,
   PaginatedResults,
   RaceType,
+  TodayRacesData,
+  RaceFetchStatus,
+  RaceFetchResult,
 } from '@/types';
 
 import { MOCK_HISTORICAL_RACES } from './mockHistoricalResults';
 import { getDummyRaces } from './api-helpers/dummy';
 
+// Default timeout for API requests (10 seconds)
+const DEFAULT_TIMEOUT = 10000;
+
+/**
+ * Fetch with timeout support
+ * @param url - URL to fetch
+ * @param options - Fetch options
+ * @param timeout - Timeout in milliseconds (default: 10000ms)
+ * @throws Error with message 'Request timed out' if timeout exceeded
+ */
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout: number = DEFAULT_TIMEOUT
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 // Re-export client functions
 export { fetchHorseRaceSchedules } from './api/kraClient';
 export { fetchCycleRaceSchedules } from './api/kspoCycleClient';
 export { fetchBoatRaceSchedules } from './api/kspoBoatClient';
+
+// Import for internal use
+import { fetchHorseRaceSchedules } from './api/kraClient';
+import { fetchCycleRaceSchedules } from './api/kspoCycleClient';
+import { fetchBoatRaceSchedules } from './api/kspoBoatClient';
+
+/**
+ * Fetch all race types for today in parallel
+ * This is used by the home page to reduce API calls from 6 to 3
+ * @param rcDate Date in YYYYMMDD format
+ * @returns TodayRacesData with all race types and their fetch status
+ */
+export async function fetchTodayAllRaces(rcDate: string): Promise<TodayRacesData> {
+  const results = await Promise.allSettled([
+    fetchHorseRaceSchedules(rcDate),
+    fetchCycleRaceSchedules(rcDate),
+    fetchBoatRaceSchedules(rcDate),
+  ]);
+
+  const getStatus = (result: PromiseSettledResult<Race[]>): RaceFetchStatus => {
+    if (result.status === 'fulfilled') {
+      return 'OK';
+    }
+    return 'UPSTREAM_ERROR';
+  };
+
+  const getData = (result: PromiseSettledResult<Race[]>): Race[] => {
+    if (result.status === 'fulfilled') {
+      return result.value;
+    }
+    return [];
+  };
+
+  return {
+    horse: getData(results[0]),
+    cycle: getData(results[1]),
+    boat: getData(results[2]),
+    status: {
+      horse: getStatus(results[0]),
+      cycle: getStatus(results[1]),
+      boat: getStatus(results[2]),
+    },
+  };
+}
 
 /**
  * Fetch race by ID
@@ -60,6 +141,58 @@ export async function fetchRaceById(id: string): Promise<Race | null> {
   // Find the race by ID
   const race = races.find((r) => r.id === id);
   return race || null;
+}
+
+/**
+ * Fetch race by ID with status result wrapper
+ * Returns RaceFetchResult with status for proper error/empty handling
+ * @param id Race ID in format type-meetCode-raceNo-date
+ */
+export async function fetchRaceByIdWithStatus(id: string): Promise<RaceFetchResult<Race>> {
+  // Parse ID to get type and date
+  const parts = id.split('-');
+  if (parts.length < 4) {
+    console.warn(`Invalid race ID format: ${id}`);
+    return { status: 'NOT_FOUND', data: null, error: 'Invalid race ID format' };
+  }
+
+  const [type, _meetCode, _raceNo, date] = parts;
+  let races: Race[] = [];
+
+  try {
+    if (type === 'horse') {
+      const { fetchHorseRaceSchedules } = await import('./api/kraClient');
+      races = await fetchHorseRaceSchedules(date);
+    } else if (type === 'cycle') {
+      const { fetchCycleRaceSchedules } = await import('./api/kspoCycleClient');
+      races = await fetchCycleRaceSchedules(date);
+    } else if (type === 'boat') {
+      const { fetchBoatRaceSchedules } = await import('./api/kspoBoatClient');
+      races = await fetchBoatRaceSchedules(date);
+    }
+  } catch (error) {
+    console.error(`Error fetching race ${id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { status: 'UPSTREAM_ERROR', data: null, error: errorMessage };
+  }
+
+  // Find the race by ID
+  const race = races.find((r) => r.id === id);
+
+  if (race) {
+    return { status: 'OK', data: race };
+  }
+
+  // If no races from API, try dummy data (development only)
+  if (process.env.NODE_ENV === 'development') {
+    const dummyRaces = getDummyRaces(type as RaceType);
+    const dummyRace = dummyRaces.find((r) => r.id === id);
+    if (dummyRace) {
+      return { status: 'OK', data: dummyRace };
+    }
+  }
+
+  return { status: 'NOT_FOUND', data: null };
 }
 
 /**

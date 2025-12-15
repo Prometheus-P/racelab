@@ -94,3 +94,19 @@ export function getFormattedKoreanDate(): string {
 
   return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
 }
+
+/**
+ * Get a date range from today going back N days
+ * @param daysAgo - Number of days to go back from today
+ * @returns Object with start and end dates in YYYY-MM-DD format
+ */
+export function getKoreanDateRange(daysAgo: number): { start: string; end: string } {
+  const endDate = getKoreanDate();
+  const startDate = getKoreanDate();
+  startDate.setDate(startDate.getDate() - daysAgo);
+
+  return {
+    start: formatDate(startDate),
+    end: formatDate(endDate),
+  };
+}

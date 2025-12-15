@@ -1,5 +1,5 @@
 // src/app/race/[id]/page.tsx
-import { fetchRaceById } from '@/lib/api';
+import { fetchRaceByIdWithStatus } from '@/lib/api';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
 import { RaceResult, Dividend } from '@/types';
@@ -7,6 +7,7 @@ import { RaceNotFound, BackNavigation } from './components';
 import { RaceSummaryCard, EntryTable, RaceResultsOdds, KeyInsightBlock } from '@/components/race-detail';
 import { generateRaceMetadata, generateSportsEventSchema, generateBreadcrumbListSchema } from '@/lib/seo';
 import { AISummary } from '@/components/seo';
+import ErrorBanner from '@/components/ErrorBanner';
 
 type Props = {
   params: { id: string };
@@ -16,12 +17,13 @@ export async function generateMetadata(
   { params }: Props,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const race = await fetchRaceById(params.id);
+  const result = await fetchRaceByIdWithStatus(params.id);
 
-  if (!race) {
+  if (result.status !== 'OK' || !result.data) {
     return { title: '경주 정보 - RaceLab' };
   }
 
+  const race = result.data;
   // Use centralized SEO metadata generator with canonical URL
   return generateRaceMetadata({
     id: race.id,
@@ -33,18 +35,23 @@ export async function generateMetadata(
   });
 }
 
-// Mock results for demonstration (will be replaced with API data)
+// Mock results for demonstration - only used in development
+// Production should use real API data
 function getMockResults(
   raceStatus: string,
   entries: { no: number; name: string; jockey?: string; odds?: number }[]
 ): RaceResult[] {
+  // Only provide mock data in development
+  if (process.env.NODE_ENV !== 'development') {
+    return [];
+  }
+
   if (raceStatus !== 'finished' || entries.length < 3) {
     return [];
   }
 
-  // Generate mock results from entries
-  const shuffled = [...entries].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3).map((entry, index) => ({
+  // Use deterministic order (first 3 entries) instead of random shuffle
+  return entries.slice(0, 3).map((entry, index) => ({
     rank: index + 1,
     no: entry.no,
     name: entry.name,
@@ -54,8 +61,14 @@ function getMockResults(
   }));
 }
 
-// Mock dividends for demonstration (will be replaced with API data)
+// Mock dividends for demonstration - only used in development
+// Production should use real API data
 function getMockDividends(raceStatus: string, results: RaceResult[]): Dividend[] {
+  // Only provide mock data in development
+  if (process.env.NODE_ENV !== 'development') {
+    return [];
+  }
+
   if (raceStatus !== 'finished' || results.length < 2) {
     return [];
   }
@@ -68,11 +81,16 @@ function getMockDividends(raceStatus: string, results: RaceResult[]): Dividend[]
 }
 
 export default async function RaceDetailPage({ params }: Props) {
-  const race = await fetchRaceById(params.id);
+  const result = await fetchRaceByIdWithStatus(params.id);
 
-  if (!race) {
+  // Handle NOT_FOUND - race doesn't exist
+  if (result.status === 'NOT_FOUND' || !result.data) {
     return <RaceNotFound />;
   }
+
+  // Handle UPSTREAM_ERROR - show error banner with partial data fallback
+  const showError = result.status === 'UPSTREAM_ERROR';
+  const race = result.data;
 
   const results = getMockResults(race.status, race.entries);
   const dividends = getMockDividends(race.status, results);
@@ -122,6 +140,10 @@ export default async function RaceDetailPage({ params }: Props) {
 
       <div className="space-y-6">
         <BackNavigation raceType={race.type} />
+        <ErrorBanner
+          show={showError}
+          message="데이터 제공 시스템 지연으로 일부 정보가 표시되지 않을 수 있습니다"
+        />
         <RaceSummaryCard race={race} />
         <KeyInsightBlock race={race} results={results} />
         <EntryTable race={race} />

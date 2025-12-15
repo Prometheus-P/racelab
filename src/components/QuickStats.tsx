@@ -1,14 +1,9 @@
 // src/components/QuickStats.tsx
 import React from 'react';
-import {
-  fetchHorseRaceSchedules,
-  fetchCycleRaceSchedules,
-  fetchBoatRaceSchedules,
-} from '@/lib/api';
-import { getTodayYYYYMMDD } from '@/lib/utils/date';
-import { RaceType } from '@/types';
+import { RaceType, TodayRacesData } from '@/types';
+import { RACE_TYPES } from '@/config/raceTypes';
 
-// Stat card configuration for consistent styling
+// Stat card configuration interface
 interface StatCardConfig {
   icon?: string;
   label: string;
@@ -18,40 +13,31 @@ interface StatCardConfig {
   textColor: string;
 }
 
-const statConfigs: Record<'total' | RaceType, StatCardConfig> = {
-  total: {
-    icon: '🏁',
-    label: '총 경주',
-    accentColor: 'bg-primary',
-    bgColor: 'bg-primary/5',
-    borderColor: 'border-primary/20',
-    textColor: 'text-primary',
-  },
-  horse: {
-    icon: '🐎',
-    label: '경마',
-    accentColor: 'bg-horse',
-    bgColor: 'bg-horse/5',
-    borderColor: 'border-horse/20',
-    textColor: 'text-horse',
-  },
-  cycle: {
-    icon: '🚴',
-    label: '경륜',
-    accentColor: 'bg-cycle',
-    bgColor: 'bg-cycle/5',
-    borderColor: 'border-cycle/20',
-    textColor: 'text-cycle',
-  },
-  boat: {
-    icon: '🚤',
-    label: '경정',
-    accentColor: 'bg-boat',
-    bgColor: 'bg-boat/5',
-    borderColor: 'border-boat/20',
-    textColor: 'text-boat',
-  },
+// Total stat config (not from RACE_TYPES since it's not a race type)
+const totalStatConfig: StatCardConfig = {
+  icon: '🏁',
+  label: '총 경주',
+  accentColor: 'bg-primary',
+  bgColor: 'bg-primary/5',
+  borderColor: 'border-primary/20',
+  textColor: 'text-primary',
 };
+
+// Build stat config from centralized RACE_TYPES
+function getStatConfig(type: 'total' | RaceType): StatCardConfig {
+  if (type === 'total') {
+    return totalStatConfig;
+  }
+  const config = RACE_TYPES[type];
+  return {
+    icon: config.icon,
+    label: config.label,
+    accentColor: config.color.border.replace('border-', 'bg-'),
+    bgColor: config.color.bg,
+    borderColor: `${config.color.border}/20`,
+    textColor: config.color.primary,
+  };
+}
 
 interface StatCardProps {
   type: 'total' | RaceType;
@@ -59,7 +45,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({ type, value }: StatCardProps) => {
-  const config = statConfigs[type];
+  const config = getStatConfig(type);
   const isTotal = type === 'total';
 
   return (
@@ -98,19 +84,16 @@ const StatCard = ({ type, value }: StatCardProps) => {
   );
 };
 
-export default async function QuickStats() {
-  const rcDate = getTodayYYYYMMDD();
-  const [horseRaces, cycleRaces, boatRaces] = await Promise.all([
-    fetchHorseRaceSchedules(rcDate),
-    fetchCycleRaceSchedules(rcDate),
-    fetchBoatRaceSchedules(rcDate),
-  ]);
+interface QuickStatsProps {
+  data: TodayRacesData;
+}
 
+export default function QuickStats({ data }: QuickStatsProps) {
   const stats = {
-    horse: horseRaces.length,
-    cycle: cycleRaces.length,
-    boat: boatRaces.length,
-    total: horseRaces.length + cycleRaces.length + boatRaces.length,
+    horse: data.horse.length,
+    cycle: data.cycle.length,
+    boat: data.boat.length,
+    total: data.horse.length + data.cycle.length + data.boat.length,
   };
 
   return (

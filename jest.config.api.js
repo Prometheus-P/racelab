@@ -9,6 +9,7 @@ module.exports = {
   testMatch: [
     '**/src/app/api/**/*.test.ts',
     '**/src/lib/**/*.test.ts',
+    '**/src/config/**/*.test.ts',
     '**/tests/unit/ingestion/**/*.test.ts',
     '**/tests/unit/db/**/*.test.ts',
     '**/tests/unit/lib/**/*.test.ts',

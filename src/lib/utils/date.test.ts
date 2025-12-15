@@ -7,6 +7,7 @@ import {
   normalizeRaceDate,
   buildRaceStartDateTime,
   getFormattedKoreanDate,
+  getKoreanDateRange,
 } from './date';
 
 describe('date utilities', () => {
@@ -161,5 +162,33 @@ describe('getFormattedKoreanDate', () => {
   it('should include day of week in Korean', () => {
     const result = getFormattedKoreanDate();
     expect(result).toMatch(/\([일월화수목금토]\)$/);
+  });
+});
+
+describe('getKoreanDateRange', () => {
+  it('should return start and end dates in YYYY-MM-DD format', () => {
+    const result = getKoreanDateRange(6);
+    expect(result.start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(result.end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('should have end date as today', () => {
+    const result = getKoreanDateRange(6);
+    const today = formatDate(getKoreanDate());
+    expect(result.end).toBe(today);
+  });
+
+  it('should have start date as days-ago from today', () => {
+    const result = getKoreanDateRange(6);
+    const startDate = new Date(result.start);
+    const endDate = new Date(result.end);
+    const diffTime = endDate.getTime() - startDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    expect(diffDays).toBe(6);
+  });
+
+  it('should handle 0 days (same day)', () => {
+    const result = getKoreanDateRange(0);
+    expect(result.start).toBe(result.end);
   });
 });
