@@ -1,4 +1,5 @@
 // src/app/api/races/horse/route.test.ts
+import { NextRequest } from 'next/server';
 import { GET } from './route';
 import * as raceService from '@/lib/services/raceService';
 import { Race } from '@/types';
@@ -6,7 +7,8 @@ import { Race } from '@/types';
 jest.mock('@/lib/services/raceService');
 // Mock apiAuth to pass through without authentication in tests
 jest.mock('@/lib/api-helpers/apiAuth', () => ({
-  withOptionalApiAuth: (handler: (req: Request) => Promise<Response>) => handler,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withOptionalApiAuth: (handler: any) => handler,
 }));
 jest.mock('@/lib/utils/date', () => ({
   getTodayYYYYMMDD: jest.fn(() => '20240115'),
@@ -27,11 +29,11 @@ describe('GET /api/races/horse', () => {
     },
   ];
 
-  const createMockRequest = (date?: string) => {
+  const createMockRequest = (date?: string): NextRequest => {
     const url = date
       ? `https://racelab.kr/api/races/horse?date=${date}`
       : 'https://racelab.kr/api/races/horse';
-    return new Request(url);
+    return new NextRequest(url);
   };
 
   beforeEach(() => {
