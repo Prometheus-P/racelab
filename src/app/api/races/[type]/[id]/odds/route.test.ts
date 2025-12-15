@@ -4,6 +4,10 @@ import { NextRequest } from 'next/server';
 import * as raceService from '@/lib/services/raceService';
 
 jest.mock('@/lib/services/raceService');
+// Mock apiAuth to pass through without authentication in tests
+jest.mock('@/lib/api-helpers/apiAuth', () => ({
+  withApiAuthParams: <T,>(handler: (req: Request, ctx: { params: Promise<T> }) => Promise<Response>) => handler,
+}));
 
 describe('GET /api/races/[type]/[id]/odds', () => {
   const mockOdds = {

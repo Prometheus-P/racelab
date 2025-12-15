@@ -8,11 +8,11 @@
 
 ## 1. 화면 개요 (Overview)
 
-- **설명**: 사용자가 정의한 베팅 전략(조건식)을 과거 레이스 데이터에 적용하여 백테스팅하고, ROI/적중률 등 성과 지표를 시뮬레이션하는 분석 도구
+- **설명**: 사용자가 정의한 베팅 전략(조건식)을 과거 레이스 데이터에 적용하여 백테스팅하고, ROI/결과 매칭률 등 성과 지표를 시뮬레이션하는 분석 도구
 - **대표 사용자 시나리오 (Top 3 Use Cases)**
 
   1. "1번 인기마 + 거리 1400m 이상" 조건으로 지난 1년 데이터 백테스팅하여 ROI 확인
-  2. 특정 기수-조교사 조합의 과거 배당금 합계와 적중률 분석
+  2. 특정 기수-조교사 조합의 과거 배당금 합계와 결과 매칭률 분석
   3. "배당률 5배 이상 + 최근 3경주 3착 이내" 전략의 수익성 검증
 - **화면 타입**
 
@@ -79,7 +79,7 @@
 1. 사용자가 전략 빌더에서 조건식 구성 (예: 종목=경마, 인기순위≤3, 거리≥1400m)
 2. 분석 기간 및 대상 트랙 선택
 3. "백테스트 실행" 클릭 → 조건 매칭 경주 검색 → 결과 계산
-4. ROI, 적중률, 배당금 분포 등 성과 지표 시각화
+4. ROI, 결과 매칭률, 배당금 분포 등 성과 지표 시각화
 5. 상세 매칭 경주 목록 테이블로 확인
 6. 전략 저장 또는 조건 수정 후 재실행
 
@@ -103,7 +103,7 @@
   - 백테스트 실행 버튼
 - **메인 (Main Panel)**
 
-  - 성과 요약 카드 (ROI, 적중률, 순이익, 총 베팅 수)
+  - 성과 요약 카드 (ROI, 결과 매칭률, 순이익, 총 베팅 수)
   - 성과 추이 차트 (월별/주별 ROI 변화)
   - 배당금 분포 히스토그램
   - 매칭 경주 상세 테이블
@@ -137,7 +137,7 @@
   - 상호작용: 호버 시 상세 값 표시, 기간 단위 변경 (일/주/월)
 - `Component`: **DividendDistributionChart**
 
-  - 역할: 적중 시 배당금 분포 히스토그램
+  - 역할: 결과 매칭 시 배당금 분포 히스토그램
   - 데이터 입력: `number[]` (배당금 배열)
   - 상호작용: 구간 클릭 시 해당 경주 필터링
 - `Component`: **MatchedRacesTable**
@@ -178,8 +178,8 @@
 | `betTarget`    | 베팅 대상    | string   | `computed`               | 조건 매칭된 출전 번호 (예: "3번 마")       |
 | `odds`         | 배당률       | number   | `odds_snapshots.win`     | 발주 직전 단승 배당률                      |
 | `result`       | 결과         | string   | `results.rank`           | 해당 출전의 최종 순위                      |
-| `isHit`        | 적중 여부    | boolean  | `computed`               | 베팅 타입별 적중 판정 (1착/1-2착/연복 등)  |
-| `payout`       | 배당금       | number   | `dividends.amount`       | 적중 시 배당금 (미적중 시 0)               |
+| `isHit`        | 결과 매칭 여부 | boolean  | `computed`               | 베팅 타입별 결과 매칭 판정 (1착/1-2착/연복 등) |
+| `payout`       | 배당금       | number   | `dividends.amount`       | 결과 매칭 시 배당금 (미매칭 시 0)              |
 | `profit`       | 손익         | computed | `payout - stake`         | 베팅금 대비 손익 (기본 베팅금 1,000원 기준)|
 | `cumProfit`    | 누적 손익    | computed | `SUM(profit) OVER()`     | 해당 행까지의 누적 손익                    |
 
@@ -196,7 +196,7 @@
 | 지표 ID      | 라벨(한글) | 계산 로직                                         |
 | ------------ | ---------- | ------------------------------------------------- |
 | `totalRaces` | 총 경주 수 | 조건 매칭된 경주 수                               |
-| `hitRate`    | 적중률     | `(hitCount / totalRaces) * 100`                   |
+| `hitRate`    | 결과 매칭률 | `(hitCount / totalRaces) * 100`                   |
 | `roi`        | ROI        | `((totalPayout - totalStake) / totalStake) * 100` |
 | `netProfit`  | 순이익     | `totalPayout - totalStake`                        |
 
@@ -258,7 +258,7 @@
   - 필요한 지표: `roi`, `netProfit`, `totalRaces`
   - 필요한 시각화: PerformanceSummaryCard, ROITrendChart
   - 예시 문장:
-    > "해당 전략의 최근 1년 ROI는 +12.3%이며, 총 245경주 중 78경주 적중(적중률 31.8%)으로 +123,000원 순이익을 기록했습니다."
+    > "해당 전략의 최근 1년 ROI는 +12.3%이며, 총 245경주 중 78경주 결과 매칭(결과 매칭률 31.8%)으로 +123,000원 순이익을 기록했습니다."
 
 - **인사이트 2**: 전략의 수익성은 시간에 따라 어떻게 변했는가?
   - 필요한 지표: `monthlyRoi[]`, `cumProfit[]`
@@ -272,17 +272,17 @@
   - 예시 문장:
     > "이 전략은 서울 경마장(ROI +18%)에서 부산경남(ROI -3%)보다 훨씬 효과적입니다."
 
-- **인사이트 4**: 고배당 적중은 얼마나 자주 발생하는가?
+- **인사이트 4**: 고배당 결과 매칭은 얼마나 자주 발생하는가?
   - 필요한 지표: `payoutDistribution`, `maxPayout`, `avgPayout`
   - 필요한 시각화: DividendDistributionChart (히스토그램)
   - 예시 문장:
-    > "적중 78건 중 배당 10배 이상은 12건(15.4%)이며, 최고 배당은 45.2배(45,200원)입니다."
+    > "결과 매칭 78건 중 배당 10배 이상은 12건(15.4%)이며, 최고 배당은 45.2배(45,200원)입니다."
 
 - **인사이트 5**: 다른 전략과 비교했을 때 어떤가?
   - 필요한 지표: `strategyComparison[]`
   - 필요한 시각화: StrategyComparePanel (테이블 + 차트)
   - 예시 문장:
-    > "전략 A(ROI +12%)는 전략 B(ROI +8%)보다 수익성이 높지만, 적중률은 B가 더 높습니다(31% vs 42%)."
+    > "전략 A(ROI +12%)는 전략 B(ROI +8%)보다 수익성이 높지만, 결과 매칭률은 B가 더 높습니다(31% vs 42%)."
 
 ---
 
@@ -291,11 +291,11 @@
 ### 8.1 백테스트 핵심 지표
 
 ```typescript
-// 적중률 (Hit Rate)
+// 결과 매칭률 (Hit Rate)
 interface HitRateCalc {
   formula: "hitCount / totalRaces * 100";
   inputs: {
-    hitCount: number; // 베팅 타입별 적중 경주 수
+    hitCount: number; // 베팅 타입별 결과 매칭 경주 수
     totalRaces: number; // 조건 매칭 총 경주 수
   };
   output: number; // 퍼센트 (%)
@@ -325,8 +325,8 @@ interface NetProfitCalc {
 interface ExpectedValueCalc {
   formula: "(hitRate / 100) * avgPayoutOnHit - (1 - hitRate / 100) * stake";
   inputs: {
-    hitRate: number; // 적중률 (%)
-    avgPayoutOnHit: number; // 적중 시 평균 배당금
+    hitRate: number; // 결과 매칭률 (%)
+    avgPayoutOnHit: number; // 결과 매칭 시 평균 배당금
     stake: number; // 1회 베팅금
   };
   output: number; // 원 (양수면 +EV)
@@ -344,7 +344,7 @@ interface SharpeRatioCalc {
 }
 ```
 
-### 8.2 베팅 타입별 적중 판정
+### 8.2 베팅 타입별 결과 매칭 판정
 
 ```typescript
 type BetType = 'win' | 'place' | 'quinella' | 'exacta' | 'trio';
@@ -435,7 +435,7 @@ CREATE TABLE dividends (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   race_id UUID REFERENCES races(id) ON DELETE CASCADE,
   bet_type VARCHAR(20) NOT NULL, -- win, place, quinella, exacta, trio, etc.
-  entries INTEGER[] NOT NULL, -- 적중 번호 배열
+  entries INTEGER[] NOT NULL, -- 결과 매칭 번호 배열
   amount INTEGER NOT NULL, -- 배당금 (원)
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -6,9 +6,15 @@
  */
 
 import { withRetry } from '../utils/retry';
+import { checkQuotaFromError, checkQuotaFromResponse } from '../utils/quotaGuard';
 
 const KSPO_API_BASE = 'https://apis.data.go.kr/B551014';
 const KSPO_API_KEY = process.env.KSPO_API_KEY;
+const KSPO_RETRY_OPTIONS = {
+  maxRetries: 3,
+  initialDelay: 500,
+  maxDelay: 4000,
+};
 
 export interface KspoScheduleItem {
   gamePlace: string;
@@ -68,34 +74,33 @@ export async function fetchKspoSchedules(
 
   const endpoint = getApiEndpoint(raceType);
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KSPO_API_KEY,
-      pageNo: '1',
-      numOfRows: '100',
-      game_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KspoScheduleItem | KspoScheduleItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KSPO_API_KEY,
+        pageNo: '1',
+        numOfRows: '100',
+        game_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KSPO_API_BASE}/${endpoint}/schedule?${params}`,
-      { next: { revalidate: 300 } }
-    );
-
-    if (!response.ok) {
-      throw new Error(`KSPO API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKspoApi<KspoScheduleItem>(
+        `${endpoint}/schedule`,
+        params,
+        'schedules',
+        { next: { revalidate: 300 } }
+      );
+    },
+    KSPO_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KSPO', result.error);
     console.error('[KSPO] Failed to fetch schedules:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -114,36 +119,35 @@ export async function fetchKspoEntries(
 
   const endpoint = getApiEndpoint(raceType);
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KSPO_API_KEY,
-      pageNo: '1',
-      numOfRows: '30',
-      game_place: trackCode,
-      game_no: String(raceNo),
-      game_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KspoEntryItem | KspoEntryItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KSPO_API_KEY,
+        pageNo: '1',
+        numOfRows: '30',
+        game_place: trackCode,
+        game_no: String(raceNo),
+        game_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KSPO_API_BASE}/${endpoint}/entry?${params}`,
-      { next: { revalidate: 60 } }
-    );
-
-    if (!response.ok) {
-      throw new Error(`KSPO API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKspoApi<KspoEntryItem>(
+        `${endpoint}/entry`,
+        params,
+        'entries',
+        { next: { revalidate: 60 } }
+      );
+    },
+    KSPO_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KSPO', result.error);
     console.error('[KSPO] Failed to fetch entries:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -162,7 +166,7 @@ export async function fetchKspoOdds(
 
   const endpoint = getApiEndpoint(raceType);
 
-  const result = await withRetry(
+  const result = await withRetry<KspoOddsItem | KspoOddsItem[] | undefined>(
     async () => {
       const params = new URLSearchParams({
         serviceKey: KSPO_API_KEY,
@@ -172,27 +176,23 @@ export async function fetchKspoOdds(
         _type: 'json',
       });
 
-      const response = await fetch(
-        `${KSPO_API_BASE}/${endpoint}/odds?${params}`,
+      return requestKspoApi<KspoOddsItem>(
+        `${endpoint}/odds`,
+        params,
+        'odds',
         { cache: 'no-store' }
       );
-
-      if (!response.ok) {
-        throw new Error(`KSPO API error: status ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data?.response?.body?.items?.item || [];
     },
-    { maxRetries: 3 }
+    KSPO_RETRY_OPTIONS
   );
 
   if (!result.success) {
+    checkQuotaFromError('KSPO', result.error);
     console.error('[KSPO] Failed to fetch odds:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -211,34 +211,60 @@ export async function fetchKspoResults(
 
   const endpoint = getApiEndpoint(raceType);
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KSPO_API_KEY,
-      pageNo: '1',
-      numOfRows: '30',
-      game_place: trackCode,
-      game_no: String(raceNo),
-      game_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KspoResultItem | KspoResultItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KSPO_API_KEY,
+        pageNo: '1',
+        numOfRows: '30',
+        game_place: trackCode,
+        game_no: String(raceNo),
+        game_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KSPO_API_BASE}/${endpoint}/result?${params}`,
-      { next: { revalidate: 60 } }
-    );
-
-    if (!response.ok) {
-      throw new Error(`KSPO API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKspoApi<KspoResultItem>(
+        `${endpoint}/result`,
+        params,
+        'results',
+        { next: { revalidate: 60 } }
+      );
+    },
+    KSPO_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KSPO', result.error);
     console.error('[KSPO] Failed to fetch results:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
+}
+
+async function requestKspoApi<T>(
+  path: string,
+  params: URLSearchParams,
+  context: string,
+  init?: RequestInit
+): Promise<T | T[] | undefined> {
+  const response = await fetch(`${KSPO_API_BASE}/${path}?${params}`, init);
+  checkQuotaFromResponse('KSPO', response);
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    checkQuotaFromResponse('KSPO', response, body);
+    throw new Error(`[KSPO] ${context} error: status ${response.status} ${body}`.trim());
+  }
+
+  const data = await response.json();
+  return data?.response?.body?.items?.item as T | T[] | undefined;
+}
+
+function normalizeItems<T>(data: T | T[] | undefined | null): T[] {
+  if (!data) {
+    return [];
+  }
+
+  return Array.isArray(data) ? data : [data];
 }

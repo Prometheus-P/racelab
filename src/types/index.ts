@@ -1,5 +1,8 @@
 // src/types/index.ts
 
+// Import Race type for use in TodayRacesData
+import type { Race } from './race';
+
 export type RaceType = 'horse' | 'cycle' | 'boat';
 export type RaceStatus = 'upcoming' | 'live' | 'finished' | 'canceled';
 export type EntryStatus = 'active' | 'scratched'; // Example, will be refined in Entry type
@@ -122,5 +125,49 @@ export interface BoatRacerCondition {
   racerNo: string;
   health: string;
   training: string;
+}
+
+// ============================================================================
+// Production Hardening Types (006-production-hardening)
+// ============================================================================
+
+/**
+ * API fetch 결과 상태
+ * - OK: 정상 응답
+ * - NOT_FOUND: 요청한 리소스가 존재하지 않음
+ * - UPSTREAM_ERROR: 외부 API 오류 또는 타임아웃
+ */
+export type RaceFetchStatus = 'OK' | 'NOT_FOUND' | 'UPSTREAM_ERROR';
+
+/**
+ * API fetch 결과 래퍼
+ * @template T - 성공 시 반환되는 데이터 타입
+ */
+export interface RaceFetchResult<T> {
+  /** 결과 상태 */
+  status: RaceFetchStatus;
+  /** 성공 시 데이터, 실패 시 null */
+  data: T | null;
+  /** 에러 발생 시 메시지 (선택) */
+  error?: string;
+}
+
+/**
+ * 오늘의 전체 경주 데이터
+ * 홈 페이지에서 한 번 fetch 후 TodayRaces, QuickStats에 전달
+ */
+export interface TodayRacesData {
+  /** 경마 경주 목록 */
+  horse: Race[];
+  /** 경륜 경주 목록 */
+  cycle: Race[];
+  /** 경정 경주 목록 */
+  boat: Race[];
+  /** 각 종목별 fetch 상태 (부분 실패 처리용) */
+  status: {
+    horse: RaceFetchStatus;
+    cycle: RaceFetchStatus;
+    boat: RaceFetchStatus;
+  };
 }
 

@@ -31,7 +31,7 @@ const config: Config = {
         'body-large': ['18px', { lineHeight: '28px', letterSpacing: '0.25px' }],
         'body-medium': ['16px', { lineHeight: '24px', letterSpacing: '0.25px' }],
         'body-small': ['14px', { lineHeight: '22px', letterSpacing: '0.4px' }],
-        // Data - 배당률, 적중률 등 핵심 숫자
+        // Data - 배당률, 결과 매칭률 등 핵심 숫자
         'data-large': ['22px', { lineHeight: '28px', letterSpacing: '0px' }],
         'data-medium': ['20px', { lineHeight: '26px', letterSpacing: '0px' }],
         'data-small': ['18px', { lineHeight: '24px', letterSpacing: '0px' }],

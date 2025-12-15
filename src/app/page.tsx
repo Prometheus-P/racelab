@@ -1,50 +1,24 @@
-import { Suspense } from 'react';
 import Script from 'next/script';
-import TodayRaces from '@/components/TodayRaces';
-import QuickStats from '@/components/QuickStats';
 import Link from 'next/link';
-import { RaceType } from '@/types';
-import { QuickStatsSkeleton, RaceListSkeleton } from '@/components/Skeletons';
-import {
-  RaceTypesGuide,
-  OddsGuideSection,
-  TrackGuideSection,
-  BeginnerGuideSection,
-  faqSchema,
-  howToSchema,
-} from './home-components';
+import { RaceType, TodayRacesData, Race } from '@/types';
+import { getFormattedKoreanDate, formatDate, getKoreanDate, getTodayYYYYMMDD } from '@/lib/utils/date';
+import { fetchTodayAllRaces } from '@/lib/api';
+import { RACE_TYPES } from '@/config/raceTypes';
+import { faqSchema, howToSchema } from './home-components';
+import ErrorBanner from '@/components/ErrorBanner';
 
-// Tab configuration for consistent styling and accessibility
-const tabConfig: Record<
-  RaceType,
-  {
-    icon: string;
-    label: string;
-    activeClass: string;
-    inactiveHoverClass: string;
-  }
-> = {
-  horse: {
-    icon: '🐎',
-    label: '경마',
-    activeClass: 'text-horse bg-horse/10 border-b-2 border-horse',
-    inactiveHoverClass: 'hover:text-horse hover:bg-horse/5',
-  },
-  cycle: {
-    icon: '🚴',
-    label: '경륜',
-    activeClass: 'text-cycle bg-cycle/10 border-b-2 border-cycle',
-    inactiveHoverClass: 'hover:text-cycle hover:bg-cycle/5',
-  },
-  boat: {
-    icon: '🚤',
-    label: '경정',
-    activeClass: 'text-boat bg-boat/10 border-b-2 border-boat',
-    inactiveHoverClass: 'hover:text-boat hover:bg-boat/5',
-  },
-};
+// Build tab-specific styles from centralized RACE_TYPES config
+function getTabStyles(type: RaceType) {
+  const config = RACE_TYPES[type];
+  return {
+    icon: config.icon,
+    label: config.label,
+    activeClass: `${config.color.primary} ${config.color.badge} border-b-2 ${config.color.border}`,
+    inactiveHoverClass: `hover:${config.color.primary.replace('text-', 'text-')} hover:${config.color.bg}`,
+  };
+}
 
-const tabIds = ['horse', 'cycle', 'boat'] as const;
+const tabIds: RaceType[] = ['horse', 'cycle', 'boat'];
 
 interface TabLinkProps {
   tabId: RaceType;
@@ -52,7 +26,7 @@ interface TabLinkProps {
 }
 
 function TabLink({ tabId, isActive }: TabLinkProps) {
-  const config = tabConfig[tabId];
+  const styles = getTabStyles(tabId);
 
   return (
     <Link
@@ -62,10 +36,10 @@ function TabLink({ tabId, isActive }: TabLinkProps) {
       aria-selected={isActive}
       aria-controls={`tabpanel-${tabId}`}
       tabIndex={isActive ? 0 : -1}
-      className={`flex min-h-[48px] flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary md:text-base ${isActive ? config.activeClass : `text-gray-500 ${config.inactiveHoverClass}`} `}
+      className={`flex min-h-[48px] flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary md:text-base ${isActive ? styles.activeClass : `text-gray-500 ${styles.inactiveHoverClass}`} `}
     >
-      <span aria-hidden="true">{config.icon}</span>
-      <span>{config.label}</span>
+      <span aria-hidden="true">{styles.icon}</span>
+      <span>{styles.label}</span>
     </Link>
   );
 }
@@ -95,14 +69,8 @@ function AnnouncementBanner() {
 }
 
 function PageHeader() {
-  const now = new Date();
-  const todayFormatted = now.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
-  });
-  const todayISO = now.toISOString().split('T')[0];
+  const todayFormatted = getFormattedKoreanDate();
+  const todayISO = formatDate(getKoreanDate());
 
   return (
     <header className="flex items-center justify-between">
@@ -114,11 +82,75 @@ function PageHeader() {
   );
 }
 
-interface RaceTabsProps {
-  currentTab: RaceType;
+// Simple stats display component
+function StatsRow({ data }: { data: TodayRacesData }) {
+  const stats = [
+    { type: 'horse' as const, label: '경마', icon: '🏇' },
+    { type: 'cycle' as const, label: '경륜', icon: '🚴' },
+    { type: 'boat' as const, label: '경정', icon: '🚤' },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {stats.map(({ type, label, icon }) => {
+        const races = data[type];
+        const count = races.length;
+        return (
+          <div
+            key={type}
+            className="rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm"
+          >
+            <span className="text-2xl" aria-hidden="true">{icon}</span>
+            <div className="mt-2 text-lg font-bold text-gray-900">{count}</div>
+            <div className="text-sm text-gray-500">{label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
-function RaceTabs({ currentTab }: RaceTabsProps) {
+// Simple race list component
+function RaceList({ races, type }: { races: Race[]; type: RaceType }) {
+  if (races.length === 0) {
+    const typeLabel = type === 'horse' ? '경마' : type === 'cycle' ? '경륜' : '경정';
+    return (
+      <div className="py-8 text-center text-gray-500">
+        오늘 예정된 {typeLabel} 경주가 없습니다
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-gray-100">
+      {races.map((race) => (
+        <li key={race.id}>
+          <Link
+            href={`/race/${race.id}`}
+            className="flex items-center justify-between py-3 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-900">
+                {race.track} 제{race.raceNo}경주
+              </span>
+              <span className="text-xs text-gray-500">{race.distance}m</span>
+            </div>
+            <span className="text-xs text-gray-400">
+              {race.status === 'finished' ? '종료' : '예정'}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+interface RaceTabsProps {
+  currentTab: RaceType;
+  data: TodayRacesData;
+}
+
+function RaceTabs({ currentTab, data }: RaceTabsProps) {
   return (
     <section
       data-testid="today-races"
@@ -136,9 +168,7 @@ function RaceTabs({ currentTab }: RaceTabsProps) {
         tabIndex={0}
         className="p-4 focus:outline-none"
       >
-        <Suspense key={currentTab} fallback={<RaceListSkeleton />}>
-          <TodayRaces filter={currentTab} />
-        </Suspense>
+        <RaceList races={data[currentTab]} type={currentTab} />
       </div>
     </section>
   );
@@ -161,8 +191,22 @@ function JsonLdScripts() {
   );
 }
 
-export default function Home({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const currentTab = (searchParams.tab as RaceType) || 'horse';
+
+  // Fetch all race data once at the server component level
+  const rcDate = getTodayYYYYMMDD();
+  const allRaces = await fetchTodayAllRaces(rcDate);
+
+  // Check if any race type has an error
+  const hasError =
+    allRaces.status.horse === 'UPSTREAM_ERROR' ||
+    allRaces.status.cycle === 'UPSTREAM_ERROR' ||
+    allRaces.status.boat === 'UPSTREAM_ERROR';
 
   return (
     <>
@@ -170,17 +214,15 @@ export default function Home({ searchParams }: { searchParams: { tab?: string } 
 
       <div className="space-y-6">
         <PageHeader />
+        <ErrorBanner
+          show={hasError}
+          message="일부 데이터 제공 시스템 지연으로 최신 정보가 표시되지 않을 수 있습니다"
+        />
         <section aria-label="경주 요약 통계" data-testid="quick-stats">
-          <Suspense fallback={<QuickStatsSkeleton />}>
-            <QuickStats />
-          </Suspense>
+          <StatsRow data={allRaces} />
         </section>
-        <RaceTabs currentTab={currentTab} />
+        <RaceTabs currentTab={currentTab} data={allRaces} />
         <AnnouncementBanner />
-        <RaceTypesGuide />
-        <OddsGuideSection />
-        <TrackGuideSection />
-        <BeginnerGuideSection />
       </div>
     </>
   );

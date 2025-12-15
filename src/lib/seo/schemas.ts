@@ -2,6 +2,7 @@
 // JSON-LD schema builders for SEO optimization
 
 import { Race, RaceResult } from '@/types';
+import { buildRaceStartDateTime } from '@/lib/utils/date';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
 
@@ -102,7 +103,7 @@ export function generateSportsEventSchema(
     description: race.distance
       ? `${RACE_TYPE_KO[race.type]} ${race.distance}m 경주`
       : `${RACE_TYPE_KO[race.type]} 경주`,
-    startDate: `${race.date}T${race.startTime}:00+09:00`,
+    startDate: buildRaceStartDateTime(race.date, race.startTime),
     eventStatus: STATUS_MAP[race.status] || STATUS_MAP.upcoming,
     location: {
       '@type': 'Place',

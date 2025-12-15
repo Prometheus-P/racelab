@@ -1,12 +1,13 @@
 // src/app/race/[id]/page.tsx
-import { fetchRaceById } from '@/lib/api';
+import { fetchRaceByIdWithStatus } from '@/lib/api';
 import type { Metadata, ResolvingMetadata } from 'next';
 import Script from 'next/script';
-import { RaceResult, Dividend } from '@/types';
+import Link from 'next/link';
 import { RaceNotFound, BackNavigation } from './components';
-import { RaceSummaryCard, EntryTable, RaceResultsOdds, KeyInsightBlock } from '@/components/race-detail';
 import { generateRaceMetadata, generateSportsEventSchema, generateBreadcrumbListSchema } from '@/lib/seo';
 import { AISummary } from '@/components/seo';
+import ErrorBanner from '@/components/ErrorBanner';
+import { RACE_TYPES } from '@/config/raceTypes';
 
 type Props = {
   params: { id: string };
@@ -16,13 +17,13 @@ export async function generateMetadata(
   { params }: Props,
   _parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const race = await fetchRaceById(params.id);
+  const result = await fetchRaceByIdWithStatus(params.id);
 
-  if (!race) {
+  if (result.status !== 'OK' || !result.data) {
     return { title: '경주 정보 - RaceLab' };
   }
 
-  // Use centralized SEO metadata generator with canonical URL
+  const race = result.data;
   return generateRaceMetadata({
     id: race.id,
     type: race.type,
@@ -33,65 +34,27 @@ export async function generateMetadata(
   });
 }
 
-// Mock results for demonstration (will be replaced with API data)
-function getMockResults(
-  raceStatus: string,
-  entries: { no: number; name: string; jockey?: string; odds?: number }[]
-): RaceResult[] {
-  if (raceStatus !== 'finished' || entries.length < 3) {
-    return [];
-  }
-
-  // Generate mock results from entries
-  const shuffled = [...entries].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3).map((entry, index) => ({
-    rank: index + 1,
-    no: entry.no,
-    name: entry.name,
-    jockey: entry.jockey,
-    odds: entry.odds,
-    payout: entry.odds ? Math.round(entry.odds * 1000) : undefined,
-  }));
-}
-
-// Mock dividends for demonstration (will be replaced with API data)
-function getMockDividends(raceStatus: string, results: RaceResult[]): Dividend[] {
-  if (raceStatus !== 'finished' || results.length < 2) {
-    return [];
-  }
-
-  return [
-    { type: 'win', entries: [results[0].no], amount: results[0].payout || 3500 },
-    { type: 'place', entries: [results[0].no, results[1].no], amount: 1200 },
-    { type: 'quinella', entries: [results[0].no, results[1].no], amount: 5600 },
-  ];
-}
-
 export default async function RaceDetailPage({ params }: Props) {
-  const race = await fetchRaceById(params.id);
+  const result = await fetchRaceByIdWithStatus(params.id);
 
-  if (!race) {
+  if (result.status === 'NOT_FOUND' || !result.data) {
     return <RaceNotFound />;
   }
 
-  const results = getMockResults(race.status, race.entries);
-  const dividends = getMockDividends(race.status, results);
+  const showError = result.status === 'UPSTREAM_ERROR';
+  const race = result.data;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
-
-  // Race type in Korean
   const raceTypeKorean = race.type === 'horse' ? '경마' : race.type === 'cycle' ? '경륜' : '경정';
+  const raceConfig = RACE_TYPES[race.type];
 
-  // JSON-LD BreadcrumbList schema (FR-008) using centralized utility
   const breadcrumbSchema = generateBreadcrumbListSchema([
     { name: '홈', url: '/' },
     { name: raceTypeKorean, url: `/?tab=${race.type}` },
     { name: `${race.track} 제${race.raceNo}경주`, url: `/race/${race.id}` },
   ]);
 
-  // JSON-LD SportsEvent schema using centralized utility with ImageObject for AI crawlers
-  const sportsEventSchemaBase = generateSportsEventSchema(race, results);
   const sportsEventSchema = {
-    ...sportsEventSchemaBase,
+    ...generateSportsEventSchema(race, []),
     image: {
       '@type': 'ImageObject',
       url: `${baseUrl}/opengraph-image.svg`,
@@ -105,7 +68,6 @@ export default async function RaceDetailPage({ params }: Props) {
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
       <Script
         id="breadcrumb-schema"
         type="application/ld+json"
@@ -117,15 +79,67 @@ export default async function RaceDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(sportsEventSchema) }}
       />
 
-      {/* AI Summary for LLM parsing (sr-only) */}
-      <AISummary race={race} results={results} dividends={dividends} />
+      <AISummary race={race} results={[]} dividends={[]} />
 
       <div className="space-y-6">
         <BackNavigation raceType={race.type} />
-        <RaceSummaryCard race={race} />
-        <KeyInsightBlock race={race} results={results} />
-        <EntryTable race={race} />
-        <RaceResultsOdds race={race} results={results} dividends={dividends} />
+        <ErrorBanner
+          show={showError}
+          message="데이터 제공 시스템 지연으로 일부 정보가 표시되지 않을 수 있습니다"
+        />
+
+        {/* Race Summary Card */}
+        <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${raceConfig.color.badge}`}>
+                {raceConfig.icon} {raceConfig.label}
+              </span>
+              <h1 className="mt-3 text-2xl font-bold text-gray-900">
+                {race.track} 제{race.raceNo}경주
+              </h1>
+              <p className="mt-1 text-gray-500">{race.date} · {race.distance}m</p>
+            </div>
+            <span className={`rounded-full px-3 py-1 text-sm font-medium ${race.status === 'finished' ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-700'}`}>
+              {race.status === 'finished' ? '종료' : '예정'}
+            </span>
+          </div>
+        </section>
+
+        {/* Entry List */}
+        {race.entries.length > 0 && (
+          <section className="rounded-xl border border-gray-100 bg-white shadow-sm">
+            <h2 className="border-b border-gray-100 px-6 py-4 text-lg font-bold text-gray-900">
+              출전표 ({race.entries.length}두)
+            </h2>
+            <div className="divide-y divide-gray-100">
+              {race.entries.map((entry) => (
+                <div key={entry.no} className="flex items-center justify-between px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold">
+                      {entry.no}
+                    </span>
+                    <span className="font-medium text-gray-900">{entry.name}</span>
+                    {entry.jockey && <span className="text-sm text-gray-500">{entry.jockey}</span>}
+                  </div>
+                  {entry.odds && (
+                    <span className="text-sm font-medium text-primary">{entry.odds.toFixed(1)}배</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Back to Home */}
+        <div className="text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          >
+            홈으로 돌아가기
+          </Link>
+        </div>
       </div>
     </>
   );

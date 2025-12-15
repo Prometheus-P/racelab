@@ -4,13 +4,16 @@ import { getRaceDetail } from '@/lib/services/raceService';
 import { getErrorMessage } from '@/lib/utils/errors';
 import { ApiResponse } from '@/lib/utils/apiResponse';
 import { Entry } from '@/types';
+import { withApiAuthParams } from '@/lib/api-helpers/apiAuth';
 
 // ISR: Revalidate every 60 seconds for entries
 export const revalidate = 60;
 
-export async function GET(
+type Params = { type: string; id: string };
+
+async function handler(
   _request: NextRequest,
-  { params }: { params: Promise<{ type: string; id: string }> }
+  { params }: { params: Promise<Params> }
 ): Promise<NextResponse<ApiResponse<Entry[]>>> {
   try {
     const { id } = await params;
@@ -47,3 +50,5 @@ export async function GET(
     }, { status: 500 });
   }
 }
+
+export const GET = withApiAuthParams<Params>(handler);

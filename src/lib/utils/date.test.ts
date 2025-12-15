@@ -1,5 +1,14 @@
 // src/lib/utils/date.test.ts
-import { formatDate, isToday, getKoreanDate, getTodayYYYYMMDD } from './date';
+import {
+  formatDate,
+  isToday,
+  getKoreanDate,
+  getTodayYYYYMMDD,
+  normalizeRaceDate,
+  buildRaceStartDateTime,
+  getFormattedKoreanDate,
+  getKoreanDateRange,
+} from './date';
 
 describe('date utilities', () => {
   describe('formatDate', () => {
@@ -90,5 +99,96 @@ describe('date utilities', () => {
       const expected = `${year}${month}${day}`;
       expect(result).toBe(expected);
     });
+  });
+});
+
+// ============================================================================
+// Production Hardening Tests (006-production-hardening)
+// ============================================================================
+
+describe('normalizeRaceDate', () => {
+  it('should convert YYYYMMDD to YYYY-MM-DD', () => {
+    expect(normalizeRaceDate('20251211')).toBe('2025-12-11');
+  });
+
+  it('should keep YYYY-MM-DD format unchanged', () => {
+    expect(normalizeRaceDate('2025-12-11')).toBe('2025-12-11');
+  });
+
+  it('should handle undefined by returning today in YYYY-MM-DD', () => {
+    const result = normalizeRaceDate(undefined);
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('should handle empty string by returning today', () => {
+    const result = normalizeRaceDate('');
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('should handle single digit month/day in YYYYMMDD', () => {
+    expect(normalizeRaceDate('20250105')).toBe('2025-01-05');
+  });
+});
+
+describe('buildRaceStartDateTime', () => {
+  it('should combine date and time with KST timezone', () => {
+    const result = buildRaceStartDateTime('2025-12-11', '14:30');
+    expect(result).toBe('2025-12-11T14:30:00+09:00');
+  });
+
+  it('should handle YYYYMMDD date format', () => {
+    const result = buildRaceStartDateTime('20251211', '09:15');
+    expect(result).toBe('2025-12-11T09:15:00+09:00');
+  });
+
+  it('should handle undefined date by using today', () => {
+    const result = buildRaceStartDateTime(undefined, '10:00');
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T10:00:00\+09:00$/);
+  });
+
+  it('should handle time without seconds', () => {
+    const result = buildRaceStartDateTime('2025-12-11', '16:45');
+    expect(result).toContain('T16:45:00+09:00');
+  });
+});
+
+describe('getFormattedKoreanDate', () => {
+  it('should return formatted Korean date string', () => {
+    const result = getFormattedKoreanDate();
+    // Format: 2025년 12월 11일 (목)
+    expect(result).toMatch(/^\d{4}년 \d{1,2}월 \d{1,2}일 \([일월화수목금토]\)$/);
+  });
+
+  it('should include day of week in Korean', () => {
+    const result = getFormattedKoreanDate();
+    expect(result).toMatch(/\([일월화수목금토]\)$/);
+  });
+});
+
+describe('getKoreanDateRange', () => {
+  it('should return start and end dates in YYYY-MM-DD format', () => {
+    const result = getKoreanDateRange(6);
+    expect(result.start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(result.end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('should have end date as today', () => {
+    const result = getKoreanDateRange(6);
+    const today = formatDate(getKoreanDate());
+    expect(result.end).toBe(today);
+  });
+
+  it('should have start date as days-ago from today', () => {
+    const result = getKoreanDateRange(6);
+    const startDate = new Date(result.start);
+    const endDate = new Date(result.end);
+    const diffTime = endDate.getTime() - startDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    expect(diffDays).toBe(6);
+  });
+
+  it('should handle 0 days (same day)', () => {
+    const result = getKoreanDateRange(0);
+    expect(result.start).toBe(result.end);
   });
 });

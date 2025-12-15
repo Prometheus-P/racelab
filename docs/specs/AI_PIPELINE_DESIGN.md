@@ -12,7 +12,7 @@ language: Korean (한국어)
 # AI_PIPELINE_DESIGN.md - AI 파이프라인 설계
 
 > **이 문서는 KRace의 향후 AI/ML 기능을 위한 파이프라인 설계를 정의합니다.**
-> Phase 3에서 구현 예정인 AI 기반 분석 및 예측 기능의 아키텍처를 다룹니다.
+> Phase 3에서 구현 예정인 AI 기반 분석 및 데이터 인사이트 기능의 아키텍처를 다룹니다.
 
 ---
 
@@ -79,7 +79,7 @@ language: Korean (한국어)
 **Out-of-Scope (제외)**
 
 - 베팅 추천/조언
-- 승률 "예측" (법적 이슈)
+- 승률 분석 표현 (법적 이슈)
 - 실시간 AI 추론 (비용)
 
 ---
@@ -406,7 +406,7 @@ class JockeyClusterModel:
         return self
 
     def predict(self, df: pd.DataFrame) -> list:
-        """클러스터 예측"""
+        """클러스터 분석 인사이트"""
         features = self.prepare_features(df)
         scaled_features = self.scaler.transform(features)
 
@@ -497,7 +497,7 @@ class JockeyClusterModel:
 │                                                             │
 │  2. 책임성 (Accountability)                                 │
 │     • "정보 제공" 목적 명시                                 │
-│     • "예측/추천" 기능 없음 명시                            │
+│     • "분석/추천" 기능 없음 명시                            │
 │     • 면책 조항 표시                                        │
 │                                                             │
 │  3. 공정성 (Fairness)                                       │
@@ -518,7 +518,7 @@ class JockeyClusterModel:
 | 항목        | 현황           | 대응                |
 | ----------- | -------------- | ------------------- |
 | 베팅 조언   | 법적 제한      | "분석 정보" 만 제공 |
-| 예측 서비스 | 규제 대상 가능 | 승률 예측 미제공    |
+| 분석 서비스 | 규제 대상 가능 | 승률 데이터 인사이트 제공 |
 | 데이터 사용 | 공공데이터     | 이용 약관 준수      |
 
 ### 6.3 사용자 고지

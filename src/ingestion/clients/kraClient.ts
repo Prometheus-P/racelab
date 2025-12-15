@@ -6,9 +6,15 @@
  */
 
 import { withRetry } from '../utils/retry';
+import { checkQuotaFromError, checkQuotaFromResponse } from '../utils/quotaGuard';
 
 const KRA_API_BASE = 'https://apis.data.go.kr/B551015';
 const KRA_API_KEY = process.env.KRA_API_KEY;
+const KRA_RETRY_OPTIONS = {
+  maxRetries: 3,
+  initialDelay: 500,
+  maxDelay: 4000,
+};
 
 export interface KraScheduleItem {
   meet: string;
@@ -62,34 +68,33 @@ export async function fetchKraSchedules(date: string): Promise<KraScheduleItem[]
     return [];
   }
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KRA_API_KEY,
-      pageNo: '1',
-      numOfRows: '100',
-      rc_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KraScheduleItem | KraScheduleItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KRA_API_KEY,
+        pageNo: '1',
+        numOfRows: '100',
+        rc_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KRA_API_BASE}/API186_1/raceInfo_1?${params}`,
-      { next: { revalidate: 300 } } // Cache for 5 minutes
-    );
-
-    if (!response.ok) {
-      throw new Error(`KRA API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKraApi<KraScheduleItem>(
+        'API186_1/raceInfo_1',
+        params,
+        'schedules',
+        { next: { revalidate: 300 } }
+      );
+    },
+    KRA_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KRA', result.error);
     console.error('[KRA] Failed to fetch schedules:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -105,36 +110,35 @@ export async function fetchKraEntries(
     return [];
   }
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KRA_API_KEY,
-      pageNo: '1',
-      numOfRows: '30',
-      meet: trackCode,
-      rc_no: String(raceNo),
-      rc_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KraEntryItem | KraEntryItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KRA_API_KEY,
+        pageNo: '1',
+        numOfRows: '30',
+        meet: trackCode,
+        rc_no: String(raceNo),
+        rc_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KRA_API_BASE}/API323/SeoulRace_1?${params}`,
-      { next: { revalidate: 60 } }
-    );
-
-    if (!response.ok) {
-      throw new Error(`KRA API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKraApi<KraEntryItem>(
+        'API323/SeoulRace_1',
+        params,
+        'entries',
+        { next: { revalidate: 60 } }
+      );
+    },
+    KRA_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KRA', result.error);
     console.error('[KRA] Failed to fetch entries:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -150,7 +154,7 @@ export async function fetchKraOdds(
     return [];
   }
 
-  const result = await withRetry(
+  const result = await withRetry<KraOddsItem | KraOddsItem[] | undefined>(
     async () => {
       const params = new URLSearchParams({
         serviceKey: KRA_API_KEY,
@@ -160,27 +164,23 @@ export async function fetchKraOdds(
         _type: 'json',
       });
 
-      const response = await fetch(
-        `${KRA_API_BASE}/API214_17/oddsInfo_1?${params}`,
-        { cache: 'no-store' } // Always fetch fresh odds
+      return requestKraApi<KraOddsItem>(
+        'API214_17/oddsInfo_1',
+        params,
+        'odds',
+        { cache: 'no-store' }
       );
-
-      if (!response.ok) {
-        throw new Error(`KRA API error: status ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data?.response?.body?.items?.item || [];
     },
-    { maxRetries: 3 } // Fewer retries for time-sensitive odds
+    KRA_RETRY_OPTIONS
   );
 
   if (!result.success) {
+    checkQuotaFromError('KRA', result.error);
     console.error('[KRA] Failed to fetch odds:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
 }
 
 /**
@@ -196,34 +196,60 @@ export async function fetchKraResults(
     return [];
   }
 
-  const result = await withRetry(async () => {
-    const params = new URLSearchParams({
-      serviceKey: KRA_API_KEY,
-      pageNo: '1',
-      numOfRows: '30',
-      meet: trackCode,
-      rc_no: String(raceNo),
-      rc_date: date.replace(/-/g, ''),
-      _type: 'json',
-    });
+  const result = await withRetry<KraResultItem | KraResultItem[] | undefined>(
+    async () => {
+      const params = new URLSearchParams({
+        serviceKey: KRA_API_KEY,
+        pageNo: '1',
+        numOfRows: '30',
+        meet: trackCode,
+        rc_no: String(raceNo),
+        rc_date: date.replace(/-/g, ''),
+        _type: 'json',
+      });
 
-    const response = await fetch(
-      `${KRA_API_BASE}/API299/result_1?${params}`,
-      { next: { revalidate: 60 } }
-    );
-
-    if (!response.ok) {
-      throw new Error(`KRA API error: status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data?.response?.body?.items?.item || [];
-  });
+      return requestKraApi<KraResultItem>(
+        'API299/result_1',
+        params,
+        'results',
+        { next: { revalidate: 60 } }
+      );
+    },
+    KRA_RETRY_OPTIONS
+  );
 
   if (!result.success) {
+    checkQuotaFromError('KRA', result.error);
     console.error('[KRA] Failed to fetch results:', result.error);
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+  return normalizeItems(result.data);
+}
+
+async function requestKraApi<T>(
+  path: string,
+  params: URLSearchParams,
+  context: string,
+  init?: RequestInit
+): Promise<T | T[] | undefined> {
+  const response = await fetch(`${KRA_API_BASE}/${path}?${params}`, init);
+  checkQuotaFromResponse('KRA', response);
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    checkQuotaFromResponse('KRA', response, body);
+    throw new Error(`[KRA] ${context} error: status ${response.status} ${body}`.trim());
+  }
+
+  const data = await response.json();
+  return data?.response?.body?.items?.item as T | T[] | undefined;
+}
+
+function normalizeItems<T>(data: T | T[] | undefined | null): T[] {
+  if (!data) {
+    return [];
+  }
+
+  return Array.isArray(data) ? data : [data];
 }

@@ -458,9 +458,9 @@ npm run lint
 | 경마   | Horse Racing                      | 기수가 말을 타고 경주하는 스포츠  |
 | 경륜   | Cycle Racing                      | 선수가 자전거로 경주하는 스포츠   |
 | 경정   | Boat Racing                       | 선수가 모터보트로 경주하는 스포츠 |
-| 단승   | Win                               | 1등 예측 베팅                     |
-| 복승   | Place                             | 1-2등 예측 베팅                   |
-| 쌍승   | Quinella                          | 1-2등 순서 무관 예측              |
+| 단승   | Win                               | 1등 분석 정보                     |
+| 복승   | Place                             | 1-2등 결과 분석                   |
+| 쌍승   | Quinella                          | 1-2등 순서 무관 데이터 인사이트   |
 | 출주표 | Entry List                        | 경주 참가 선수/말 목록            |
 | 배당률 | Odds                              | 베팅 배당 비율                    |
 | ISR    | Incremental Static Regeneration   | Next.js 점진적 정적 생성          |

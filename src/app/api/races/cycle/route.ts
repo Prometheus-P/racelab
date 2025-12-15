@@ -1,15 +1,16 @@
 // src/app/api/races/cycle/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRacesByDateAndType } from '@/lib/services/raceService';
 import { ApiResponse } from '@/lib/utils/apiResponse';
 import { Race } from '@/types';
 import { getTodayYYYYMMDD } from '@/lib/utils/date';
+import { withOptionalApiAuth } from '@/lib/api-helpers/apiAuth';
 
 // Route handlers that read request.url must opt out of static rendering
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-export async function GET(request: Request): Promise<NextResponse<ApiResponse<Race[]>>> {
+async function handler(request: NextRequest): Promise<NextResponse<ApiResponse<Race[]>>> {
   try {
     // Parse date from query params, default to today
     const url = new URL(request.url);
@@ -36,3 +37,5 @@ export async function GET(request: Request): Promise<NextResponse<ApiResponse<Ra
     }, { status: 500 });
   }
 }
+
+export const GET = withOptionalApiAuth(handler);

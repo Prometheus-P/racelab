@@ -265,7 +265,7 @@ describe('generateBreadcrumbListSchema', () => {
 
 describe('generateFAQSchema', () => {
   const mockFAQs = [
-    { question: '배당률이란 무엇인가요?', answer: '적중 시 받을 수 있는 배수입니다.' },
+    { question: '배당률이란 무엇인가요?', answer: '결과 매칭 시 받을 수 있는 배수입니다.' },
     { question: '단승식과 복승식의 차이는?', answer: '단승식은 1등만, 복승식은 1,2등을 맞춥니다.' },
   ];
 
@@ -288,7 +288,7 @@ describe('generateFAQSchema', () => {
     const schema = generateFAQSchema(mockFAQs);
 
     expect(schema.mainEntity[0].acceptedAnswer['@type']).toBe('Answer');
-    expect(schema.mainEntity[0].acceptedAnswer.text).toBe('적중 시 받을 수 있는 배수입니다.');
+    expect(schema.mainEntity[0].acceptedAnswer.text).toBe('결과 매칭 시 받을 수 있는 배수입니다.');
   });
 
   it('handles empty FAQ array', () => {

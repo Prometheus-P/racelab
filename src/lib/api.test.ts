@@ -336,6 +336,203 @@ describe('Historical Results API - mock data', () => {
 // Note: Auxiliary external API tests were removed during refactoring.
 // Individual API clients (kraClient, kspoCycleClient, kspoBoatClient) have their own tests.
 
+// ============================================================================
+// Production Hardening Tests (006-production-hardening)
+// ============================================================================
+
+describe('fetchTodayAllRaces', () => {
+  it('should fetch all race types in parallel and return TodayRacesData structure', async () => {
+    // Use the existing mock from the outer describe block
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+    process.env.KSPO_API_KEY = 'TEST_KSPO_API_KEY';
+
+    const { fetchTodayAllRaces } = await import('../lib/api');
+    const result = await fetchTodayAllRaces('20240115');
+
+    expect(result).toHaveProperty('horse');
+    expect(result).toHaveProperty('cycle');
+    expect(result).toHaveProperty('boat');
+    expect(result).toHaveProperty('status');
+    expect(Array.isArray(result.horse)).toBe(true);
+    expect(Array.isArray(result.cycle)).toBe(true);
+    expect(Array.isArray(result.boat)).toBe(true);
+    expect(result.status).toHaveProperty('horse');
+    expect(result.status).toHaveProperty('cycle');
+    expect(result.status).toHaveProperty('boat');
+  });
+
+  it('should return empty arrays and OK status when API keys are not set', async () => {
+    delete process.env.KRA_API_KEY;
+    delete process.env.KSPO_API_KEY;
+
+    const { fetchTodayAllRaces } = await import('../lib/api');
+    const result = await fetchTodayAllRaces('20240115');
+
+    expect(result.horse).toEqual([]);
+    expect(result.cycle).toEqual([]);
+    expect(result.boat).toEqual([]);
+    // Still OK because empty arrays are valid responses (not API errors)
+    expect(result.status.horse).toBe('OK');
+    expect(result.status.cycle).toBe('OK');
+    expect(result.status.boat).toBe('OK');
+  });
+});
+
+// ============================================================================
+// US3: Error Handling Tests (006-production-hardening)
+// ============================================================================
+
+describe('fetchWithTimeout', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return response if fetch completes within timeout', async () => {
+    const mockResponse = { ok: true, json: () => Promise.resolve({ data: 'test' }) };
+    global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+    const { fetchWithTimeout } = await import('../lib/api');
+    const response = await fetchWithTimeout('https://example.com/api', {}, 10000);
+
+    expect(response).toBe(mockResponse);
+  });
+
+  it('should throw error if fetch exceeds timeout', async () => {
+    // Mock a fetch that respects the abort signal
+    global.fetch = jest.fn().mockImplementation((_url: string, options: RequestInit) => {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => resolve({ ok: true }), 200);
+        options.signal?.addEventListener('abort', () => {
+          clearTimeout(timeout);
+          const error = new Error('The operation was aborted');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+    });
+
+    const { fetchWithTimeout } = await import('../lib/api');
+
+    await expect(fetchWithTimeout('https://example.com/api', {}, 50)).rejects.toThrow(
+      'Request timed out'
+    );
+  }, 10000);
+
+  it('should pass abort signal to fetch', async () => {
+    const mockResponse = { ok: true, json: () => Promise.resolve({}) };
+    global.fetch = jest.fn().mockResolvedValue(mockResponse);
+
+    const { fetchWithTimeout } = await import('../lib/api');
+    await fetchWithTimeout('https://example.com/api', { method: 'POST' }, 5000);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://example.com/api',
+      expect.objectContaining({
+        method: 'POST',
+        signal: expect.any(AbortSignal),
+      })
+    );
+  });
+});
+
+describe('RaceFetchResult handling', () => {
+  let originalEnv: NodeJS.ProcessEnv;
+
+  beforeAll(() => {
+    originalEnv = process.env;
+  });
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  it('should return RaceFetchResult with OK status on successful fetch', async () => {
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          response: {
+            header: { resultCode: '00' },
+            body: {
+              items: {
+                item: [
+                  {
+                    meet: '서울',
+                    rcDate: 20240115,
+                    rcNo: 1,
+                    chulNo: 1,
+                    ord: 1,
+                    hrName: '말1',
+                    hrNo: '001',
+                    jkName: '기수1',
+                    jkNo: '101',
+                    rcTime: 72.5,
+                    age: 3,
+                    rank: '국산5등급',
+                    schStTime: '2024-01-15T11:30:00',
+                  },
+                ],
+              },
+              totalCount: 1,
+            },
+          },
+        }),
+    });
+
+    const { fetchRaceByIdWithStatus } = await import('../lib/api');
+    const result = await fetchRaceByIdWithStatus('horse-1-1-20240115');
+
+    expect(result.status).toBe('OK');
+    expect(result.data).not.toBeNull();
+    expect(result.data?.id).toBe('horse-1-1-20240115');
+  });
+
+  it('should return RaceFetchResult with NOT_FOUND status when race does not exist', async () => {
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          response: {
+            header: { resultCode: '00' },
+            body: { items: { item: [] }, totalCount: 0 },
+          },
+        }),
+    });
+
+    const { fetchRaceByIdWithStatus } = await import('../lib/api');
+    const result = await fetchRaceByIdWithStatus('horse-1-1-99999999');
+
+    expect(result.status).toBe('NOT_FOUND');
+    expect(result.data).toBeNull();
+  });
+
+  it('should return RaceFetchResult with UPSTREAM_ERROR status on API failure', async () => {
+    process.env.KRA_API_KEY = 'TEST_KRA_API_KEY';
+
+    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+    const { fetchRaceByIdWithStatus } = await import('../lib/api');
+    const result = await fetchRaceByIdWithStatus('horse-1-1-20240115');
+
+    expect(result.status).toBe('UPSTREAM_ERROR');
+    expect(result.data).toBeNull();
+    expect(result.error).toBeDefined();
+  });
+});
+
 // Historical Results API Tests
 describe('Historical Results API', () => {
   it('should return empty results when API keys are not set', async () => {

@@ -73,7 +73,7 @@ describe('generateSportsEventSchema', () => {
 describe('generateFAQSchema', () => {
   it('generates valid FAQPage schema', () => {
     const faqs = [
-      { question: '배당률이란?', answer: '적중 시 받는 배수입니다.' },
+      { question: '배당률이란?', answer: '결과 매칭 시 받는 배수입니다.' },
     ];
 
     const schema = generateFAQSchema(faqs);
