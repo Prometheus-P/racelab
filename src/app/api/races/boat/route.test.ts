@@ -4,6 +4,10 @@ import * as raceService from '@/lib/services/raceService';
 import { Race } from '@/types';
 
 jest.mock('@/lib/services/raceService');
+// Mock apiAuth to pass through without authentication in tests
+jest.mock('@/lib/api-helpers/apiAuth', () => ({
+  withOptionalApiAuth: (handler: (req: Request) => Promise<Response>) => handler,
+}));
 jest.mock('@/lib/utils/date', () => ({
   getTodayYYYYMMDD: jest.fn(() => '20240115'),
 }));

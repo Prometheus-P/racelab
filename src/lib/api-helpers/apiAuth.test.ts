@@ -1,18 +1,8 @@
 // src/lib/api-helpers/apiAuth.test.ts
 import { NextRequest } from 'next/server';
-import { validateApiAuth, createAuthErrorResponse, withApiAuth } from './apiAuth';
 
 // Mock environment variables
 const originalEnv = process.env;
-
-beforeEach(() => {
-  jest.resetModules();
-  process.env = { ...originalEnv };
-});
-
-afterAll(() => {
-  process.env = originalEnv;
-});
 
 function createMockRequest(headers: Record<string, string> = {}): NextRequest {
   return {
@@ -22,9 +12,29 @@ function createMockRequest(headers: Record<string, string> = {}): NextRequest {
   } as unknown as NextRequest;
 }
 
+// Helper to get fresh module with specific env vars
+async function getAuthModule(apiKeys?: string) {
+  jest.resetModules();
+  if (apiKeys !== undefined) {
+    process.env.B2B_API_KEYS = apiKeys;
+  } else {
+    delete process.env.B2B_API_KEYS;
+  }
+  return await import('./apiAuth');
+}
+
+afterAll(() => {
+  process.env = originalEnv;
+});
+
 describe('apiAuth', () => {
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
   describe('validateApiAuth', () => {
-    it('should reject requests without API key', () => {
+    it('should reject requests without API key', async () => {
+      const { validateApiAuth } = await getAuthModule('some-key');
       const request = createMockRequest();
       const result = validateApiAuth(request);
 
@@ -32,8 +42,8 @@ describe('apiAuth', () => {
       expect(result.errorCode).toBe('UNAUTHORIZED');
     });
 
-    it('should accept X-API-Key header', () => {
-      process.env.B2B_API_KEYS = 'test-key-123';
+    it('should accept X-API-Key header', async () => {
+      const { validateApiAuth } = await getAuthModule('test-key-123');
       const request = createMockRequest({ 'x-api-key': 'test-key-123' });
       const result = validateApiAuth(request);
 
@@ -41,16 +51,16 @@ describe('apiAuth', () => {
       expect(result.apiKey).toBe('test-key-123');
     });
 
-    it('should accept Authorization Bearer token', () => {
-      process.env.B2B_API_KEYS = 'bearer-key-456';
+    it('should accept Authorization Bearer token', async () => {
+      const { validateApiAuth } = await getAuthModule('bearer-key-456');
       const request = createMockRequest({ authorization: 'Bearer bearer-key-456' });
       const result = validateApiAuth(request);
 
       expect(result.authenticated).toBe(true);
     });
 
-    it('should reject invalid API keys', () => {
-      process.env.B2B_API_KEYS = 'valid-key';
+    it('should reject invalid API keys', async () => {
+      const { validateApiAuth } = await getAuthModule('valid-key');
       const request = createMockRequest({ 'x-api-key': 'invalid-key' });
       const result = validateApiAuth(request);
 
@@ -58,8 +68,8 @@ describe('apiAuth', () => {
       expect(result.errorCode).toBe('INVALID_KEY');
     });
 
-    it('should support multiple API keys', () => {
-      process.env.B2B_API_KEYS = 'key1,key2,key3';
+    it('should support multiple API keys', async () => {
+      const { validateApiAuth } = await getAuthModule('key1,key2,key3');
       const request = createMockRequest({ 'x-api-key': 'key2' });
       const result = validateApiAuth(request);
 
@@ -68,7 +78,8 @@ describe('apiAuth', () => {
   });
 
   describe('createAuthErrorResponse', () => {
-    it('should return 401 for UNAUTHORIZED', () => {
+    it('should return 401 for UNAUTHORIZED', async () => {
+      const { createAuthErrorResponse } = await getAuthModule();
       const response = createAuthErrorResponse({
         authenticated: false,
         errorCode: 'UNAUTHORIZED',
@@ -78,7 +89,8 @@ describe('apiAuth', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should return 429 for RATE_LIMITED with Retry-After header', () => {
+    it('should return 429 for RATE_LIMITED with Retry-After header', async () => {
+      const { createAuthErrorResponse } = await getAuthModule();
       const response = createAuthErrorResponse({
         authenticated: false,
         errorCode: 'RATE_LIMITED',
@@ -92,7 +104,7 @@ describe('apiAuth', () => {
 
   describe('withApiAuth', () => {
     it('should call handler when authenticated', async () => {
-      process.env.B2B_API_KEYS = 'valid-key';
+      const { withApiAuth } = await getAuthModule('valid-key');
       const mockHandler = jest.fn().mockResolvedValue(
         new Response(JSON.stringify({ success: true }), { status: 200 })
       );
@@ -106,7 +118,7 @@ describe('apiAuth', () => {
     });
 
     it('should return error when not authenticated', async () => {
-      process.env.B2B_API_KEYS = 'valid-key';
+      const { withApiAuth } = await getAuthModule('valid-key');
       const mockHandler = jest.fn();
 
       const wrappedHandler = withApiAuth(mockHandler);
