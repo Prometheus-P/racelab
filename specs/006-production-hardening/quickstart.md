@@ -184,6 +184,17 @@ npm run build
 
 ## Verification Checklist
 
+### Automated Tests (via `npm run test`)
+- [x] normalizeRaceDate 유틸 - YYYYMMDD ↔ YYYY-MM-DD 변환
+- [x] buildRaceStartDateTime 유틸 - ISO 8601 형식 생성
+- [x] getFormattedKoreanDate 유틸 - KST 기준 한국어 날짜
+- [x] fetchTodayAllRaces - Promise.allSettled 병렬 호출
+- [x] fetchWithTimeout - 10초 타임아웃 처리
+- [x] fetchRaceByIdWithStatus - RaceFetchResult 반환
+- [x] ErrorBanner 컴포넌트 - 조건부 렌더링
+- [x] RACE_TYPES config - 완전성 및 구조 검증
+
+### Manual Verification (TBD)
 - [ ] 홈 페이지 네트워크 탭에서 API 호출 3회 확인 (기존 6회)
 - [ ] KST 자정 전후 날짜 표시 정확성 확인
 - [ ] API 타임아웃(10초) 시 에러 배너 표시 확인

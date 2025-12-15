@@ -1,5 +1,4 @@
 // src/app/race/[id]/loading.tsx
-import { RaceDetailPageSkeleton } from '@/components/race-detail';
 
 export default function RaceDetailLoading() {
   return (
@@ -8,7 +7,12 @@ export default function RaceDetailLoading() {
       <div className="animate-pulse">
         <div className="h-8 w-24 rounded bg-gray-200" />
       </div>
-      <RaceDetailPageSkeleton />
+      {/* Content skeleton */}
+      <div className="animate-pulse space-y-4">
+        <div className="h-48 rounded-xl bg-gray-200" />
+        <div className="h-32 rounded-xl bg-gray-200" />
+        <div className="h-64 rounded-xl bg-gray-200" />
+      </div>
     </div>
   );
 }

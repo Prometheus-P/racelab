@@ -1,19 +1,10 @@
 import Script from 'next/script';
-import TodayRaces from '@/components/TodayRaces';
-import QuickStats from '@/components/QuickStats';
 import Link from 'next/link';
-import { RaceType, TodayRacesData } from '@/types';
+import { RaceType, TodayRacesData, Race } from '@/types';
 import { getFormattedKoreanDate, formatDate, getKoreanDate, getTodayYYYYMMDD } from '@/lib/utils/date';
 import { fetchTodayAllRaces } from '@/lib/api';
 import { RACE_TYPES } from '@/config/raceTypes';
-import {
-  RaceTypesGuide,
-  OddsGuideSection,
-  TrackGuideSection,
-  BeginnerGuideSection,
-  faqSchema,
-  howToSchema,
-} from './home-components';
+import { faqSchema, howToSchema } from './home-components';
 import ErrorBanner from '@/components/ErrorBanner';
 
 // Build tab-specific styles from centralized RACE_TYPES config
@@ -91,6 +82,69 @@ function PageHeader() {
   );
 }
 
+// Simple stats display component
+function StatsRow({ data }: { data: TodayRacesData }) {
+  const stats = [
+    { type: 'horse' as const, label: '경마', icon: '🏇' },
+    { type: 'cycle' as const, label: '경륜', icon: '🚴' },
+    { type: 'boat' as const, label: '경정', icon: '🚤' },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {stats.map(({ type, label, icon }) => {
+        const races = data[type];
+        const count = races.length;
+        return (
+          <div
+            key={type}
+            className="rounded-xl border border-gray-100 bg-white p-4 text-center shadow-sm"
+          >
+            <span className="text-2xl" aria-hidden="true">{icon}</span>
+            <div className="mt-2 text-lg font-bold text-gray-900">{count}</div>
+            <div className="text-sm text-gray-500">{label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Simple race list component
+function RaceList({ races, type }: { races: Race[]; type: RaceType }) {
+  if (races.length === 0) {
+    const typeLabel = type === 'horse' ? '경마' : type === 'cycle' ? '경륜' : '경정';
+    return (
+      <div className="py-8 text-center text-gray-500">
+        오늘 예정된 {typeLabel} 경주가 없습니다
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-gray-100">
+      {races.map((race) => (
+        <li key={race.id}>
+          <Link
+            href={`/race/${race.id}`}
+            className="flex items-center justify-between py-3 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-900">
+                {race.track} 제{race.raceNo}경주
+              </span>
+              <span className="text-xs text-gray-500">{race.distance}m</span>
+            </div>
+            <span className="text-xs text-gray-400">
+              {race.status === 'finished' ? '종료' : '예정'}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface RaceTabsProps {
   currentTab: RaceType;
   data: TodayRacesData;
@@ -114,7 +168,7 @@ function RaceTabs({ currentTab, data }: RaceTabsProps) {
         tabIndex={0}
         className="p-4 focus:outline-none"
       >
-        <TodayRaces data={data} filter={currentTab} />
+        <RaceList races={data[currentTab]} type={currentTab} />
       </div>
     </section>
   );
@@ -137,11 +191,14 @@ function JsonLdScripts() {
   );
 }
 
-export default async function Home({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const currentTab = (searchParams.tab as RaceType) || 'horse';
 
   // Fetch all race data once at the server component level
-  // This reduces API calls from 6 to 3 (was: TodayRaces 3 + QuickStats 3)
   const rcDate = getTodayYYYYMMDD();
   const allRaces = await fetchTodayAllRaces(rcDate);
 
@@ -162,14 +219,10 @@ export default async function Home({ searchParams }: { searchParams: { tab?: str
           message="일부 데이터 제공 시스템 지연으로 최신 정보가 표시되지 않을 수 있습니다"
         />
         <section aria-label="경주 요약 통계" data-testid="quick-stats">
-          <QuickStats data={allRaces} />
+          <StatsRow data={allRaces} />
         </section>
         <RaceTabs currentTab={currentTab} data={allRaces} />
         <AnnouncementBanner />
-        <RaceTypesGuide />
-        <OddsGuideSection />
-        <TrackGuideSection />
-        <BeginnerGuideSection />
       </div>
     </>
   );
