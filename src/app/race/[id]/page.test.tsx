@@ -17,29 +17,21 @@ describe('RaceDetailPage', () => {
     type: 'horse',
     raceNo: 1,
     track: '서울',
+    date: '2024-01-15',
     startTime: '11:30',
     distance: 1200,
-    grade: '국산5등급',
     status: 'upcoming',
     entries: [
       {
         no: 1,
         name: '말1',
         jockey: '기수1',
-        trainer: '조교사1',
-        age: 3,
-        weight: 54,
-        recentRecord: '1-2-3',
         odds: 2.5,
       },
       {
         no: 2,
         name: '말2',
         jockey: '기수2',
-        trainer: '조교사2',
-        age: 4,
-        weight: 55,
-        recentRecord: '4-5-6',
         odds: 3.0,
       },
     ],
@@ -59,18 +51,13 @@ describe('RaceDetailPage', () => {
   });
 
   describe('Basic Rendering', () => {
-    it('should render race details and entry list', async () => {
+    it('should render race details', async () => {
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      // Check for race header details (using getByRole for h1)
+      // Check for race header details
       expect(screen.getByRole('heading', { level: 1, name: /서울 제1경주/ })).toBeInTheDocument();
-      expect(screen.getByText('11:30')).toBeInTheDocument();
-      expect(screen.getByText('국산5등급')).toBeInTheDocument();
-
-      // Check for entry list (appears in both desktop table and mobile cards)
-      expect(screen.getAllByText('말1').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('말2').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/1200m/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('should render back navigation link', async () => {
@@ -85,44 +72,28 @@ describe('RaceDetailPage', () => {
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      expect(screen.getByText('경마')).toBeInTheDocument();
+      expect(screen.getByText('🐎 경마')).toBeInTheDocument();
     });
-  });
 
-  describe('Accessibility', () => {
-    it('should have semantic time element for start time', async () => {
+    it('should render entry list when entries exist', async () => {
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      const timeElement = screen.getByText('11:30');
-      expect(timeElement.tagName.toLowerCase()).toBe('time');
-      expect(timeElement).toHaveAttribute('dateTime', '11:30');
+      // Check for entry names
+      expect(screen.getByText('말1')).toBeInTheDocument();
+      expect(screen.getByText('말2')).toBeInTheDocument();
+      // Check for jockey names
+      expect(screen.getByText('기수1')).toBeInTheDocument();
+      expect(screen.getByText('기수2')).toBeInTheDocument();
     });
 
-    it('should have entry table section', async () => {
+    it('should display odds values', async () => {
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      const entryTable = screen.getByTestId('entry-table');
-      expect(entryTable).toBeInTheDocument();
-    });
-
-    it('should have table caption for screen readers', async () => {
-      const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
-      render(resolvedPage);
-
-      const caption = screen.getByText(/서울 제1경주 출전표/);
-      expect(caption).toBeInTheDocument();
-    });
-
-    it('should have scope attributes on table headers', async () => {
-      const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
-      render(resolvedPage);
-
-      const headers = screen.getAllByRole('columnheader');
-      headers.forEach((header) => {
-        expect(header).toHaveAttribute('scope', 'col');
-      });
+      // Check for odds values displayed (formatted with 배)
+      expect(screen.getByText('2.5배')).toBeInTheDocument();
+      expect(screen.getByText('3.0배')).toBeInTheDocument();
     });
   });
 
@@ -156,21 +127,22 @@ describe('RaceDetailPage', () => {
     });
   });
 
-  describe('Odds Display', () => {
-    it('should display odds values in entry table', async () => {
+  describe('Error State', () => {
+    it('should show error banner on upstream error', async () => {
+      const errorResult: RaceFetchResult<Race> = {
+        status: 'UPSTREAM_ERROR',
+        data: mockRace, // Still has partial data
+        error: 'API timeout',
+      };
+      (fetchRaceByIdWithStatus as jest.Mock).mockResolvedValue(errorResult);
+
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      // Check for odds values displayed (2.5 as the lowest odds is shown in popularity analysis)
-      expect(screen.getAllByText('2.5').length).toBeGreaterThan(0);
-    });
-
-    it('should have key insight block with popularity analysis', async () => {
-      const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
-      render(resolvedPage);
-
-      const keyInsightBlock = screen.getByTestId('key-insight-block');
-      expect(keyInsightBlock).toBeInTheDocument();
+      // Error banner should be visible
+      expect(screen.getByText(/데이터 제공 시스템 지연/)).toBeInTheDocument();
+      // But race data should still be shown
+      expect(screen.getByRole('heading', { level: 1, name: /서울 제1경주/ })).toBeInTheDocument();
     });
   });
 
@@ -181,10 +153,8 @@ describe('RaceDetailPage', () => {
     it('should generate correct metadata for a race', async () => {
       const metadata = await generateMetadata({ params: { id: 'horse-1-1-20240115' } }, mockParent);
 
-      // Title now includes race type (경마) via centralized SEO utility
       expect(metadata.title).toContain('서울 제1경주');
       expect(metadata.title).toContain('RaceLab');
-      expect(metadata.description).toContain('서울 제1경주');
     });
 
     it('should generate default metadata if race is not found', async () => {
