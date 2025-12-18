@@ -16,7 +16,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // Enum definitions
-export const clientTierEnum = pgEnum('client_tier', ['Bronze', 'Silver', 'Gold']);
+export const clientTierEnum = pgEnum('client_tier', ['Bronze', 'Silver', 'Gold', 'QuantLab']);
 export const clientStatusEnum = pgEnum('client_status', ['active', 'suspended', 'expired']);
 
 /**
@@ -40,6 +40,12 @@ export const clients = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     expiresAt: timestamp('expires_at'),
+    // Backtest quota fields (added in migration 004)
+    backtestQuotaMonthly: integer('backtest_quota_monthly').default(0),
+    backtestQuotaUsed: integer('backtest_quota_used').default(0),
+    backtestQuotaResetAt: timestamp('backtest_quota_reset_at'),
+    backtestConcurrentLimit: integer('backtest_concurrent_limit').default(0),
+    backtestMaxPeriodDays: integer('backtest_max_period_days').default(0),
   },
   (table) => [
     index('idx_clients_api_key_prefix').on(table.apiKeyPrefix),
@@ -75,7 +81,7 @@ export const apiUsage = pgTable(
 // Type exports
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
-export type ClientTier = 'Bronze' | 'Silver' | 'Gold';
+export type ClientTier = 'Bronze' | 'Silver' | 'Gold' | 'QuantLab';
 export type ClientStatus = 'active' | 'suspended' | 'expired';
 
 export type ApiUsage = typeof apiUsage.$inferSelect;
@@ -85,10 +91,17 @@ export type NewApiUsage = typeof apiUsage.$inferInsert;
  * Tier configuration for rate limiting and feature access
  */
 export interface TierConfig {
+  // API Rate Limiting
   requestsPerMinute: number; // -1 = unlimited
   allowCsv: boolean;
   allowStreaming: boolean;
   realTimeIntervalSeconds: number; // 0 = unlimited, higher = less frequent
+
+  // Backtest Features (added for QuantLab)
+  allowBacktest: boolean;
+  backtestQuotaMonthly: number; // -1 = unlimited
+  maxBacktestPeriodDays: number;
+  maxConcurrentBacktests: number;
 }
 
 export const TIER_CONFIGS: Record<ClientTier, TierConfig> = {
@@ -97,17 +110,66 @@ export const TIER_CONFIGS: Record<ClientTier, TierConfig> = {
     allowCsv: false,
     allowStreaming: false,
     realTimeIntervalSeconds: 300, // 5 minutes
+    // No backtest access
+    allowBacktest: false,
+    backtestQuotaMonthly: 0,
+    maxBacktestPeriodDays: 0,
+    maxConcurrentBacktests: 0,
   },
   Silver: {
     requestsPerMinute: 60,
     allowCsv: true,
     allowStreaming: true,
     realTimeIntervalSeconds: 30,
+    // No backtest access
+    allowBacktest: false,
+    backtestQuotaMonthly: 0,
+    maxBacktestPeriodDays: 0,
+    maxConcurrentBacktests: 0,
   },
   Gold: {
     requestsPerMinute: -1, // unlimited
     allowCsv: true,
     allowStreaming: true,
     realTimeIntervalSeconds: 0, // no restriction
+    // Limited backtest access
+    allowBacktest: true,
+    backtestQuotaMonthly: 10,
+    maxBacktestPeriodDays: 90,
+    maxConcurrentBacktests: 2,
+  },
+  QuantLab: {
+    requestsPerMinute: -1, // unlimited
+    allowCsv: true,
+    allowStreaming: true,
+    realTimeIntervalSeconds: 0, // no restriction
+    // Full backtest access
+    allowBacktest: true,
+    backtestQuotaMonthly: -1, // unlimited
+    maxBacktestPeriodDays: 365,
+    maxConcurrentBacktests: 10,
   },
 };
+
+/**
+ * Check if a tier has backtest access
+ */
+export function hasBacktestAccess(tier: ClientTier): boolean {
+  return TIER_CONFIGS[tier].allowBacktest;
+}
+
+/**
+ * Get backtest limits for a tier
+ */
+export function getBacktestLimits(tier: ClientTier): {
+  quotaMonthly: number;
+  maxPeriodDays: number;
+  maxConcurrent: number;
+} {
+  const config = TIER_CONFIGS[tier];
+  return {
+    quotaMonthly: config.backtestQuotaMonthly,
+    maxPeriodDays: config.maxBacktestPeriodDays,
+    maxConcurrent: config.maxConcurrentBacktests,
+  };
+}
