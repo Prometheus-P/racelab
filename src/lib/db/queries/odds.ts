@@ -215,3 +215,223 @@ export async function getSnapshotCount(raceId: string): Promise<number> {
 
   return result[0]?.count ?? 0;
 }
+
+// ====================================================
+// Streaming Queries for B2B API
+// ====================================================
+
+/**
+ * Options for streaming odds history
+ */
+export interface StreamingOddsOptions extends OddsHistoryOptions {
+  batchSize?: number;
+}
+
+/**
+ * Get odds history as an async generator for streaming
+ *
+ * Uses cursor-based pagination for memory-efficient streaming of large datasets.
+ * Ideal for B2B API endpoints that need to stream thousands of records.
+ *
+ * @param raceId - Race ID
+ * @param options - Streaming options
+ * @yields OddsSnapshot records in batches
+ */
+export async function* getOddsHistoryStream(
+  raceId: string,
+  options: StreamingOddsOptions = {}
+): AsyncGenerator<OddsSnapshot, void, unknown> {
+  const { entryNo, startTime, endTime, limit, batchSize = 1000 } = options;
+
+  let offset = 0;
+  let hasMore = true;
+  let totalYielded = 0;
+  const maxRecords = limit ?? Infinity;
+
+  while (hasMore && totalYielded < maxRecords) {
+    const conditions = [eq(oddsSnapshots.raceId, raceId)];
+
+    if (entryNo !== undefined) {
+      conditions.push(eq(oddsSnapshots.entryNo, entryNo));
+    }
+
+    if (startTime) {
+      conditions.push(gte(oddsSnapshots.time, startTime));
+    }
+
+    if (endTime) {
+      conditions.push(lte(oddsSnapshots.time, endTime));
+    }
+
+    // Calculate batch size respecting overall limit
+    const remainingLimit = maxRecords - totalYielded;
+    const currentBatchSize = Math.min(batchSize, remainingLimit);
+
+    const batch = await db
+      .select()
+      .from(oddsSnapshots)
+      .where(and(...conditions))
+      .orderBy(asc(oddsSnapshots.time))
+      .limit(currentBatchSize)
+      .offset(offset);
+
+    if (batch.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    for (const record of batch) {
+      yield record;
+      totalYielded++;
+      if (totalYielded >= maxRecords) {
+        break;
+      }
+    }
+
+    offset += batch.length;
+    hasMore = batch.length === currentBatchSize;
+  }
+}
+
+/**
+ * Get time-bucketed odds as an async generator for streaming
+ *
+ * @param raceId - Race ID
+ * @param options - Bucket options
+ * @yields Time-bucketed aggregated data
+ */
+export async function* getOddsTimeSeriesStream(
+  raceId: string,
+  options: { bucketMinutes?: number; entryNo?: number; batchSize?: number } = {}
+): AsyncGenerator<
+  { bucket: Date; entryNo: number; avgWinOdds: number; avgPlcOdds: number | null },
+  void,
+  unknown
+> {
+  const { bucketMinutes = 5, entryNo, batchSize = 500 } = options;
+
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const entryFilter = entryNo !== undefined ? sql`AND entry_no = ${entryNo}` : sql``;
+
+    const result = await db.execute<{
+      bucket: Date;
+      entry_no: number;
+      avg_odds_win: number;
+      avg_odds_place: number | null;
+    }>(sql`
+      SELECT
+        time_bucket(${bucketMinutes + ' minutes'}::interval, time) AS bucket,
+        entry_no,
+        avg(odds_win) AS avg_odds_win,
+        avg(odds_place) AS avg_odds_place
+      FROM odds_snapshots
+      WHERE race_id = ${raceId} ${entryFilter}
+      GROUP BY bucket, entry_no
+      ORDER BY bucket, entry_no
+      LIMIT ${batchSize}
+      OFFSET ${offset}
+    `);
+
+    if (result.rows.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    for (const row of result.rows) {
+      yield {
+        bucket: new Date(row.bucket),
+        entryNo: row.entry_no,
+        avgWinOdds: Number(row.avg_odds_win),
+        avgPlcOdds: row.avg_odds_place ? Number(row.avg_odds_place) : null,
+      };
+    }
+
+    offset += result.rows.length;
+    hasMore = result.rows.length === batchSize;
+  }
+}
+
+/**
+ * Get complete odds data for a race with all entries combined (for export)
+ *
+ * @param raceId - Race ID
+ * @param options - Export options
+ * @returns Summary data with all snapshots
+ */
+export async function getOddsExportData(
+  raceId: string,
+  options: { startTime?: Date; endTime?: Date } = {}
+): Promise<{
+  raceId: string;
+  exportedAt: string;
+  totalSnapshots: number;
+  entries: Array<{
+    entryNo: number;
+    snapshotCount: number;
+    firstOdds: number;
+    lastOdds: number;
+    minOdds: number;
+    maxOdds: number;
+  }>;
+}> {
+  const { startTime, endTime } = options;
+
+  let timeFilter = sql``;
+  if (startTime && endTime) {
+    timeFilter = sql`AND time BETWEEN ${startTime} AND ${endTime}`;
+  } else if (startTime) {
+    timeFilter = sql`AND time >= ${startTime}`;
+  } else if (endTime) {
+    timeFilter = sql`AND time <= ${endTime}`;
+  }
+
+  // Get aggregated stats per entry
+  const result = await db.execute<{
+    entry_no: number;
+    snapshot_count: number;
+    first_odds: number;
+    last_odds: number;
+    min_odds: number;
+    max_odds: number;
+  }>(sql`
+    WITH entry_stats AS (
+      SELECT
+        entry_no,
+        count(*) AS snapshot_count,
+        first_value(odds_win) OVER (PARTITION BY entry_no ORDER BY time ASC) AS first_odds,
+        first_value(odds_win) OVER (PARTITION BY entry_no ORDER BY time DESC) AS last_odds,
+        min(odds_win) AS min_odds,
+        max(odds_win) AS max_odds
+      FROM odds_snapshots
+      WHERE race_id = ${raceId} ${timeFilter}
+    )
+    SELECT DISTINCT
+      entry_no,
+      snapshot_count::int,
+      first_odds,
+      last_odds,
+      min_odds,
+      max_odds
+    FROM entry_stats
+    ORDER BY entry_no
+  `);
+
+  const totalSnapshots = result.rows.reduce((sum, row) => sum + row.snapshot_count, 0);
+
+  return {
+    raceId,
+    exportedAt: new Date().toISOString(),
+    totalSnapshots,
+    entries: result.rows.map((row) => ({
+      entryNo: row.entry_no,
+      snapshotCount: row.snapshot_count,
+      firstOdds: Number(row.first_odds),
+      lastOdds: Number(row.last_odds),
+      minOdds: Number(row.min_odds),
+      maxOdds: Number(row.max_odds),
+    })),
+  };
+}
