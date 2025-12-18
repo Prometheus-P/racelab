@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Analytics } from '@vercel/analytics/react';
 import { HeaderSkeleton } from '@/components/Skeletons';
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
 // Noto Sans KR - Primary font for Korean text (optimized for 50-60 demographic)
 // next/font/google automatically:
@@ -32,8 +33,10 @@ const exo2 = Exo_2({
   preload: false, // Lower priority than main font
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://racelab.kr'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'RaceLab - 경마 경륜 경정 통합 정보',
     template: '%s | RaceLab',
@@ -61,7 +64,7 @@ export const metadata: Metadata = {
     'RaceLab',
     'racelab.kr',
   ],
-  authors: [{ name: 'RaceLab', url: 'https://racelab.kr' }],
+  authors: [{ name: 'RaceLab', url: siteUrl }],
   creator: 'RaceLab',
   publisher: 'RaceLab',
   robots: {
@@ -78,14 +81,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://racelab.kr',
+    url: siteUrl,
     siteName: 'RaceLab',
     title: 'RaceLab - 경마 경륜 경정 통합 정보',
     description:
       '한국 경마, 경륜, 경정 실시간 정보를 한눈에. 공공데이터포털 공식 데이터로 출마표, 배당률, 경주결과를 무료로 제공합니다.',
     images: [
       {
-        url: '/opengraph-image.svg',
+        url: `${siteUrl}/opengraph-image.svg`,
         width: 1200,
         height: 630,
         alt: 'RaceLab - 경마 경륜 경정 통합 정보',
@@ -98,7 +101,7 @@ export const metadata: Metadata = {
     description: '한국 경마, 경륜, 경정 실시간 정보를 한눈에',
   },
   alternates: {
-    canonical: 'https://racelab.kr',
+    canonical: siteUrl,
   },
   verification: {
     google: 'i5Q0RtQZldOZKbs-upPl2eiP9boxog1a5QDxZd70pv4',
@@ -109,7 +112,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+  const baseUrl = siteUrl;
 
   // JSON-LD structured data for Organization with ImageObject
   const organizationSchema = {

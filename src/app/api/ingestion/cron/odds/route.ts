@@ -29,25 +29,14 @@ import {
   markFallbackCollection,
   shouldThrottleFallback,
 } from '@/ingestion/utils/fallbackMode';
+import { enforceCronSecret } from '../../utils/auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow up to 60 seconds for odds collection
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Verify Vercel Cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: { code: 'UNAUTHORIZED', message: 'Invalid cron secret' },
-        timestamp: new Date().toISOString(),
-      },
-      { status: 401 }
-    );
-  }
+  const authResponse = enforceCronSecret(request);
+  if (authResponse) return authResponse;
 
   const now = new Date();
   console.log(`[Cron/Odds] Starting odds collection at ${now.toISOString()}`);

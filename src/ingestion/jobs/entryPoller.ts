@@ -12,6 +12,7 @@ import { fetchKraEntries } from '../clients/kraClient';
 import { fetchKspoEntries } from '../clients/kspoClient';
 import { mapKraEntries, mapKspoEntries } from '../mappers/entryMapper';
 import type { IngestionResult } from '@/types/db';
+import { withRetryAndLogging } from '../utils/retry';
 
 export interface PollEntriesOptions {
   raceIds: string[];
@@ -74,11 +75,37 @@ export async function pollEntries(options: PollEntriesOptions): Promise<Ingestio
       let mappedEntries;
 
       if (raceType === 'horse') {
-        const items = await fetchKraEntries(trackCode, raceNo, date);
-        mappedEntries = mapKraEntries(items, raceId);
+        const items = await withRetryAndLogging(
+          () => fetchKraEntries(trackCode, raceNo, date),
+          {
+            jobType: 'entry_poll',
+            entityType: 'entry',
+            entityId: raceId,
+            maxRetries: 2,
+            initialDelay: 500,
+          }
+        );
+        if (!items.success || !items.data) {
+          result.errors += 1;
+          continue;
+        }
+        mappedEntries = mapKraEntries(items.data, raceId);
       } else {
-        const items = await fetchKspoEntries(trackCode, raceNo, date, raceType);
-        mappedEntries = mapKspoEntries(items, raceId, raceType);
+        const items = await withRetryAndLogging(
+          () => fetchKspoEntries(trackCode, raceNo, date, raceType),
+          {
+            jobType: 'entry_poll',
+            entityType: 'entry',
+            entityId: raceId,
+            maxRetries: 2,
+            initialDelay: 500,
+          }
+        );
+        if (!items.success || !items.data) {
+          result.errors += 1;
+          continue;
+        }
+        mappedEntries = mapKspoEntries(items.data, raceId, raceType);
       }
 
       if (mappedEntries.length > 0) {

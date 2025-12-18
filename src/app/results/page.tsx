@@ -4,9 +4,7 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import { ResultFiltersClient } from '@/components/ResultFiltersClient';
 import { ResultsSkeleton } from '@/components/Skeletons';
-import { ResultsListClient } from '@/components/ResultsListClient';
-import { HistoricalRace, PaginatedResults } from '@/types';
-import { ApiResponse } from '@/lib/utils/apiResponse';
+import { HistoricalRace, PaginatedResults, RaceType, ResultsSearchParams } from '@/types';
 import { breadcrumbSchema, collectionPageSchema, faqSchema } from './schemas';
 import {
   GlossarySection,
@@ -14,8 +12,17 @@ import {
   AnalysisGuideSection,
   ComparisonSection,
 } from './components';
+import {
+  buildResultsResponse,
+  getResultsDefaultRange,
+  normalizeResultsQuery,
+  type NormalizedResultsQuery,
+  type ResultsApiResponse,
+} from '@/lib/services/resultsService';
+import { ResultsExperienceClient } from '@/components/ResultsExperienceClient';
+import { getSiteUrl } from '@/lib/seo/siteUrl';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+const baseUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: '경주 결과 - 경마 경륜 경정 과거 기록 조회',
@@ -52,45 +59,63 @@ interface SearchParams {
   track?: string;
   jockey?: string;
   page?: string;
+  limit?: string;
 }
 
 interface ResultsPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-async function fetchResults(searchParams: SearchParams): Promise<PaginatedResults<HistoricalRace>> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
-  const params = new URLSearchParams();
+async function getResultsState(searchParams: SearchParams): Promise<{
+  response: ResultsApiResponse<PaginatedResults<HistoricalRace>>;
+  query: NormalizedResultsQuery;
+}> {
+  const types = searchParams.types
+    ?.split(',')
+    .map((type) => type.trim())
+    .filter((type): type is RaceType => ['horse', 'cycle', 'boat'].includes(type as RaceType));
 
-  if (searchParams.dateFrom) params.set('dateFrom', searchParams.dateFrom);
-  if (searchParams.dateTo) params.set('dateTo', searchParams.dateTo);
-  if (searchParams.types) params.set('types', searchParams.types);
-  if (searchParams.track) params.set('track', searchParams.track);
-  if (searchParams.jockey) params.set('jockey', searchParams.jockey);
-  if (searchParams.page) params.set('page', searchParams.page);
+  const normalizedParams: Partial<ResultsSearchParams> & { page?: number; limit?: number } = {
+    ...searchParams,
+    types: types?.length ? types : undefined,
+    page: searchParams.page ? Number(searchParams.page) : undefined,
+    limit: searchParams.limit ? Number(searchParams.limit) : undefined,
+  };
 
-  const url = `${apiBaseUrl}/api/results?${params.toString()}`;
+  const normalized = normalizeResultsQuery(normalizedParams);
 
-  const response = await fetch(url, {
-    next: { revalidate: 300 }, // 5 minutes
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch results');
+  if (!normalized.ok) {
+    const defaults = getResultsDefaultRange();
+    return {
+      query: {
+        ...defaults,
+        page: 1,
+        limit: 20,
+      },
+      response: {
+        ok: false,
+        error: normalized.error,
+        meta: {
+          cacheHit: false,
+          generatedAt: new Date().toISOString(),
+          source: 'snapshot',
+          queryNormalized: {
+            ...defaults,
+            page: 1,
+            limit: 20,
+          },
+        },
+      },
+    };
   }
 
-  const data: ApiResponse<PaginatedResults<HistoricalRace>> = await response.json();
-
-  if (!data.success || !data.data) {
-    throw new Error(data.error?.message || 'Failed to fetch results');
-  }
-
-  return data.data;
+  const response = await buildResultsResponse(normalized.query);
+  return { response, query: normalized.query };
 }
 
 async function ResultsContent({ searchParams }: { searchParams: SearchParams }) {
-  const results = await fetchResults(searchParams);
-  return <ResultsListClient results={results} />;
+  const { response, query } = await getResultsState(searchParams);
+  return <ResultsExperienceClient response={response} query={query} />;
 }
 
 function FiltersSkeleton() {

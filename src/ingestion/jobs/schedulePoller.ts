@@ -11,6 +11,7 @@ import { fetchKraSchedules } from '../clients/kraClient';
 import { fetchKspoSchedules } from '../clients/kspoClient';
 import { mapKraSchedules, mapKspoSchedules } from '../mappers/scheduleMapper';
 import type { RaceType, IngestionResult } from '@/types/db';
+import { withRetryAndLogging } from '../utils/retry';
 
 export interface PollSchedulesOptions {
   date?: string;
@@ -40,25 +41,38 @@ export async function pollSchedules(
   // Poll horse racing (KRA)
   if (raceTypes.includes('horse')) {
     try {
-      const kraItems = await fetchKraSchedules(date);
-      const mappedRaces = mapKraSchedules(kraItems, date);
+      const kraFetch = await withRetryAndLogging(() => fetchKraSchedules(date), {
+        jobType: 'schedule_poll',
+        entityType: 'race',
+        entityId: `horse-${date}`,
+        maxRetries: 2,
+        initialDelay: 500,
+        notifyOnFailure: false,
+      });
 
-      if (mappedRaces.length > 0) {
-        await db
-          .insert(races)
-          .values(mappedRaces)
-          .onConflictDoUpdate({
-            target: races.id,
-            set: {
-              startTime: races.startTime,
-              weather: races.weather,
-              trackCondition: races.trackCondition,
-              updatedAt: new Date(),
-            },
-          });
+      if (!kraFetch.success || !kraFetch.data) {
+        result.errors += 1;
+        console.warn('[SchedulePoller] Horse schedule fetch failed');
+      } else {
+        const mappedRaces = mapKraSchedules(kraFetch.data, date);
 
-        result.collected += mappedRaces.length;
-        console.log(`[SchedulePoller] Collected ${mappedRaces.length} horse races`);
+        if (mappedRaces.length > 0) {
+          await db
+            .insert(races)
+            .values(mappedRaces)
+            .onConflictDoUpdate({
+              target: races.id,
+              set: {
+                startTime: races.startTime,
+                weather: races.weather,
+                trackCondition: races.trackCondition,
+                updatedAt: new Date(),
+              },
+            });
+
+          result.collected += mappedRaces.length;
+          console.log(`[SchedulePoller] Collected ${mappedRaces.length} horse races`);
+        }
       }
     } catch (error) {
       console.error('[SchedulePoller] KRA fetch error:', error);
@@ -69,8 +83,16 @@ export async function pollSchedules(
   // Poll cycle racing (KSPO)
   if (raceTypes.includes('cycle')) {
     try {
-      const kspoItems = await fetchKspoSchedules(date, 'cycle');
-      const mappedRaces = mapKspoSchedules(kspoItems, date, 'cycle');
+      const kspoItems = await withRetryAndLogging(() => fetchKspoSchedules(date, 'cycle'), {
+        jobType: 'schedule_poll',
+        entityType: 'race',
+        entityId: `cycle-${date}`,
+        maxRetries: 2,
+        initialDelay: 500,
+        notifyOnFailure: false,
+      });
+
+      const mappedRaces = kspoItems.success && kspoItems.data ? mapKspoSchedules(kspoItems.data, date, 'cycle') : [];
 
       if (mappedRaces.length > 0) {
         await db
@@ -96,8 +118,16 @@ export async function pollSchedules(
   // Poll boat racing (KSPO)
   if (raceTypes.includes('boat')) {
     try {
-      const kspoItems = await fetchKspoSchedules(date, 'boat');
-      const mappedRaces = mapKspoSchedules(kspoItems, date, 'boat');
+      const kspoItems = await withRetryAndLogging(() => fetchKspoSchedules(date, 'boat'), {
+        jobType: 'schedule_poll',
+        entityType: 'race',
+        entityId: `boat-${date}`,
+        maxRetries: 2,
+        initialDelay: 500,
+        notifyOnFailure: false,
+      });
+
+      const mappedRaces = kspoItems.success && kspoItems.data ? mapKspoSchedules(kspoItems.data, date, 'boat') : [];
 
       if (mappedRaces.length > 0) {
         await db

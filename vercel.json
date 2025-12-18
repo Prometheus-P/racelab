@@ -1,3 +1,17 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/ingestion/cron/schedules",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/ingestion/cron/odds",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/ingestion/cron/results",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

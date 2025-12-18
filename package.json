@@ -30,13 +30,16 @@
     "bull": "^4.16.5",
     "drizzle-orm": "^0.45.0",
     "ioredis": "^5.8.2",
+    "lucide-react": "^0.561.0",
     "next": "^14.2.33",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "recharts": "^3.5.1",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",

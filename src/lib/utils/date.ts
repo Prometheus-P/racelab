@@ -2,6 +2,21 @@
 
 const KOREA_TIMEZONE = 'Asia/Seoul';
 
+export function formatYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+function getKoreanDateParts(date: Date): { year: number; month: string; day: string } {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return { year, month, day };
+}
+
 /**
  * Get current date/time in Korean timezone (Asia/Seoul)
  * Returns a Date object representing the current time in Korea
@@ -15,9 +30,7 @@ export function getKoreanDate(): Date {
  */
 export function getTodayYYYYMMDD(): string {
   const koreanDate = getKoreanDate();
-  const year = koreanDate.getFullYear();
-  const month = String(koreanDate.getMonth() + 1).padStart(2, '0');
-  const day = String(koreanDate.getDate()).padStart(2, '0');
+  const { year, month, day } = getKoreanDateParts(koreanDate);
   return `${year}${month}${day}`;
 }
 
@@ -25,9 +38,7 @@ export function getTodayYYYYMMDD(): string {
  * Format a Date object to YYYY-MM-DD string
  */
 export function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const { year, month, day } = getKoreanDateParts(date);
   return `${year}-${month}-${day}`;
 }
 
@@ -108,5 +119,21 @@ export function getKoreanDateRange(daysAgo: number): { start: string; end: strin
   return {
     start: formatDate(startDate),
     end: formatDate(endDate),
+  };
+}
+
+const DEFAULT_RESULTS_DAYS = 6; // last 7 days inclusive
+
+/**
+ * Get default date range for results search (last 7 days)
+ * Returns dates in YYYYMMDD format for API compatibility
+ */
+export function getResultsDefaultRange(): { dateFrom: string; dateTo: string } {
+  const endDate = getKoreanDate();
+  const startDate = new Date(endDate);
+  startDate.setDate(endDate.getDate() - DEFAULT_RESULTS_DAYS);
+  return {
+    dateFrom: formatYYYYMMDD(startDate),
+    dateTo: formatYYYYMMDD(endDate),
   };
 }

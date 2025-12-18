@@ -2,8 +2,9 @@
 // Sitemap generation utilities for SEO optimization
 
 import { MetadataRoute } from 'next';
+import { getSiteUrl } from './siteUrl';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://racelab.kr';
+const BASE_URL = getSiteUrl();
 const MAX_URLS_PER_SITEMAP = 50000;
 
 export interface RaceForSitemap {

@@ -1,9 +1,12 @@
 // src/app/api/results/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchHistoricalResults } from '@/lib/api';
-import { RaceType, PaginatedResults, HistoricalRace } from '@/types';
-import { ApiResponse } from '@/lib/utils/apiResponse';
-import { getTodayYYYYMMDD } from '@/lib/utils/date';
+import { PaginatedResults, HistoricalRace, RaceType } from '@/types';
+import {
+  buildResultsResponse,
+  normalizeResultsQuery,
+  getResultsDefaultRange,
+  type ResultsApiResponse,
+} from '@/lib/services/resultsService';
 import { SUCCESS_CACHE_CONTROL, ERROR_CACHE_CONTROL } from '@/lib/constants/cacheControl';
 
 // Route handlers that read request.url must opt out of static rendering
@@ -12,100 +15,83 @@ export const fetchCache = 'force-no-store';
 
 export async function GET(
   request: NextRequest
-): Promise<NextResponse<ApiResponse<PaginatedResults<HistoricalRace>>>> {
+): Promise<NextResponse<ResultsApiResponse<PaginatedResults<HistoricalRace>>>> {
   try {
     const { searchParams } = request.nextUrl;
-
-    // Determine if caller explicitly provided date filters
-    const requestedDateFrom = searchParams.get('dateFrom');
-    const requestedDateTo = searchParams.get('dateTo');
-
-    // Parse query parameters
-    const dateFrom = requestedDateFrom || getTodayYYYYMMDD();
-    const dateTo = requestedDateTo || getTodayYYYYMMDD();
     const typesParam = searchParams.get('types');
-    const track = searchParams.get('track') || undefined;
-    const jockey = searchParams.get('jockey') || undefined;
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
 
-    if (!Number.isFinite(page) || page < 1 || !Number.isFinite(limit) || limit < 1 || limit > 100) {
-      const errorResponse: ApiResponse<PaginatedResults<HistoricalRace>> = {
-        success: false,
-        error: {
-          code: 'INVALID_PAGINATION',
-          message: 'page must be >= 1 and limit must be between 1 and 100',
-        },
-        timestamp: new Date().toISOString(),
-      };
+    const types = typesParam
+      ?.split(',')
+      .map((type) => type.trim())
+      .filter((type): type is RaceType => ['horse', 'cycle', 'boat'].includes(type as RaceType));
 
-      return NextResponse.json(errorResponse, {
-        status: 400,
-        headers: {
-          'Cache-Control': ERROR_CACHE_CONTROL,
-        },
-      });
-    }
-
-    // Parse types array from comma-separated string
-    const types: RaceType[] | undefined = typesParam
-      ? (typesParam.split(',').filter((t) => ['horse', 'cycle', 'boat'].includes(t)) as RaceType[])
-      : undefined;
-
-    // Validate date range
-    if (dateFrom > dateTo) {
-      const errorResponse: ApiResponse<PaginatedResults<HistoricalRace>> = {
-        success: false,
-        error: {
-          code: 'INVALID_DATE_RANGE',
-          message: 'dateFrom must be before or equal to dateTo',
-        },
-        timestamp: new Date().toISOString(),
-      };
-      return NextResponse.json(errorResponse, {
-        status: 400,
-        headers: {
-          'Cache-Control': ERROR_CACHE_CONTROL,
-        },
-      });
-    }
-
-    // Fetch historical results with filters
-    const data = await fetchHistoricalResults({
-      dateFrom,
-      dateTo,
-      types,
-      track,
-      jockey,
-      page,
-      limit,
-      useDefaultDateRange: !requestedDateFrom && !requestedDateTo,
+    const normalized = normalizeResultsQuery({
+      dateFrom: searchParams.get('dateFrom') || undefined,
+      dateTo: searchParams.get('dateTo') || undefined,
+      types: types?.length ? types : undefined,
+      track: searchParams.get('track') || undefined,
+      jockey: searchParams.get('jockey') || undefined,
+      page: pageParam ? Number(pageParam) : undefined,
+      limit: limitParam ? Number(limitParam) : undefined,
     });
 
-    const response: ApiResponse<PaginatedResults<HistoricalRace>> = {
-      success: true,
-      data,
-      timestamp: new Date().toISOString(),
-    };
+    if (!normalized.ok) {
+      const defaults = getResultsDefaultRange();
+      const errorResponse: ResultsApiResponse<PaginatedResults<HistoricalRace>> = {
+        ok: false,
+        error: normalized.error,
+        meta: {
+          cacheHit: false,
+          generatedAt: new Date().toISOString(),
+          source: 'snapshot',
+          queryNormalized: {
+            dateFrom: defaults.dateFrom,
+            dateTo: defaults.dateTo,
+            page: 1,
+            limit: 20,
+          },
+        },
+      };
+
+      return NextResponse.json(errorResponse, {
+        status: 400,
+        headers: {
+          'Cache-Control': ERROR_CACHE_CONTROL,
+        },
+      });
+    }
+
+    const response = await buildResultsResponse(normalized.query);
 
     return NextResponse.json(response, {
-      status: 200,
+      status: response.ok ? 200 : 500,
       headers: {
-        'Cache-Control': SUCCESS_CACHE_CONTROL,
+        'Cache-Control': response.ok ? SUCCESS_CACHE_CONTROL : ERROR_CACHE_CONTROL,
       },
     });
   } catch (error: unknown) {
     console.error('Error fetching historical results:', error);
 
-    const errorMessage =
-      error instanceof Error ? error.message : 'Failed to fetch historical results';
-    const errorResponse: ApiResponse<PaginatedResults<HistoricalRace>> = {
-      success: false,
+    const defaults = getResultsDefaultRange();
+    const errorResponse: ResultsApiResponse<PaginatedResults<HistoricalRace>> = {
+      ok: false,
       error: {
-        code: 'SERVER_ERROR',
-        message: errorMessage,
+        code: 'DB_FAIL',
+        message: error instanceof Error ? error.message : 'Failed to fetch historical results',
       },
-      timestamp: new Date().toISOString(),
+      meta: {
+        cacheHit: false,
+        generatedAt: new Date().toISOString(),
+        source: 'snapshot',
+        queryNormalized: {
+          dateFrom: defaults.dateFrom,
+          dateTo: defaults.dateTo,
+          page: 1,
+          limit: 20,
+        },
+      },
     };
 
     return NextResponse.json(errorResponse, {
