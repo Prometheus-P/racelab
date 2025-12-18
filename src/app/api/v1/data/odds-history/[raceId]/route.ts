@@ -39,6 +39,7 @@ const TIER_LIMITS = {
   Bronze: 1000,
   Silver: 10000,
   Gold: 100000,
+  QuantLab: 500000, // Higher limit for QuantLab tier
 };
 
 type RouteParams = { raceId: string };
