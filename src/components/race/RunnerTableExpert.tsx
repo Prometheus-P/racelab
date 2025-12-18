@@ -13,14 +13,14 @@ const RunnerTableExpert = ({ runners }: RunnerTableExpertProps) => {
       <table className="w-full text-left text-base">
         <thead className="bg-gray-100 text-sm font-semibold text-gray-800">
           <tr>
-            <th className="px-2 py-2 text-center">번호</th>
-            <th className="px-2 py-2">마/선수</th>
-            <th className="px-2 py-2">기수</th>
-            <th className="px-2 py-2">조교사/소속</th>
-            <th className="px-2 py-2 text-center">오즈</th>
-            <th className="px-2 py-2 text-center">인기</th>
-            <th className="px-2 py-2">통산 요약</th>
-            <th className="px-2 py-2">최근폼(8)</th>
+            <th scope="col" className="px-2 py-2 text-center">번호</th>
+            <th scope="col" className="px-2 py-2">마/선수</th>
+            <th scope="col" className="px-2 py-2">기수</th>
+            <th scope="col" className="px-2 py-2">조교사/소속</th>
+            <th scope="col" className="px-2 py-2 text-center">오즈</th>
+            <th scope="col" className="px-2 py-2 text-center">인기</th>
+            <th scope="col" className="px-2 py-2">통산 요약</th>
+            <th scope="col" className="px-2 py-2">최근폼(8)</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">

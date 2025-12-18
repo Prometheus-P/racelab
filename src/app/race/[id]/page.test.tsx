@@ -11,6 +11,17 @@ jest.mock('@/lib/api', () => ({
   fetchRaceByIdWithStatus: jest.fn(),
 }));
 
+// Mock next/navigation for components using useRouter
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  usePathname: () => '/race/horse-1-1-20240115',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe('RaceDetailPage', () => {
   const mockRace: Race = {
     id: 'horse-1-1-20240115',
