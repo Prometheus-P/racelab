@@ -5,7 +5,6 @@ import {
   getClientTierConfig,
   isClientActive,
   logApiUsage,
-  hashApiKey,
   getApiKeyPrefix,
 } from '@/lib/db/queries/clients';
 import {
@@ -313,7 +312,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
 
   // Try to get cached client info first
   const prefix = getApiKeyPrefix(apiKey);
-  let cachedInfo = await getCachedClientInfo(prefix);
+  const cachedInfo = await getCachedClientInfo(prefix);
 
   let client: Client | null = null;
   let tierConfig: TierConfig | null = null;
