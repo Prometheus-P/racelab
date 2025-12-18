@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { ResultFilters } from './ResultFilters';
 import { RaceType } from '@/types';
-import { getResultsDefaultRange } from '@/lib/services/resultsService';
+import { getResultsDefaultRange } from '@/lib/utils/date';
 
 interface FilterValues {
   dateFrom?: string;

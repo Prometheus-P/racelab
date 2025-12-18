@@ -42,17 +42,6 @@ export function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function getKoreanDateRange(days: number): { start: string; end: string } {
-  const endDate = getKoreanDate();
-  const startDate = new Date(endDate);
-  startDate.setDate(endDate.getDate() - days);
-
-  return {
-    start: formatYYYYMMDD(startDate),
-    end: formatYYYYMMDD(endDate),
-  };
-}
-
 /**
  * Check if a given date is today (in Korean timezone)
  */
@@ -130,5 +119,21 @@ export function getKoreanDateRange(daysAgo: number): { start: string; end: strin
   return {
     start: formatDate(startDate),
     end: formatDate(endDate),
+  };
+}
+
+const DEFAULT_RESULTS_DAYS = 6; // last 7 days inclusive
+
+/**
+ * Get default date range for results search (last 7 days)
+ * Returns dates in YYYYMMDD format for API compatibility
+ */
+export function getResultsDefaultRange(): { dateFrom: string; dateTo: string } {
+  const endDate = getKoreanDate();
+  const startDate = new Date(endDate);
+  startDate.setDate(endDate.getDate() - DEFAULT_RESULTS_DAYS);
+  return {
+    dateFrom: formatYYYYMMDD(startDate),
+    dateTo: formatYYYYMMDD(endDate),
   };
 }
