@@ -9,9 +9,15 @@ import { AISummary } from '@/components/seo';
 import ErrorBanner from '@/components/ErrorBanner';
 import { RACE_TYPES } from '@/config/raceTypes';
 import { getSiteUrl } from '@/lib/seo/siteUrl';
+import ViewModeToggle from '@/components/shared/ViewModeToggle';
+import PrintPdfButton from '@/components/shared/PrintPdfButton';
+import RunnerTableDense from '@/components/race/RunnerTableDense';
+import RunnerTableExpert from '@/components/race/RunnerTableExpert';
+import { BookViewMode, RunnerVM } from '@/lib/view-models/bookVM';
 
 type Props = {
   params: { id: string };
+  searchParams?: { view?: BookViewMode };
 };
 
 export async function generateMetadata(
@@ -35,7 +41,7 @@ export async function generateMetadata(
   });
 }
 
-export default async function RaceDetailPage({ params }: Props) {
+export default async function RaceDetailPage({ params, searchParams = {} }: Props) {
   const result = await fetchRaceByIdWithStatus(params.id);
 
   if (result.status === 'NOT_FOUND' || !result.data) {
@@ -67,6 +73,19 @@ export default async function RaceDetailPage({ params }: Props) {
     },
   };
 
+  const viewMode: BookViewMode = searchParams?.view === 'expert' ? 'expert' : 'compact';
+  const runnerVMs: RunnerVM[] = race.entries.map((entry) => ({
+    number: entry.no,
+    name: entry.name,
+    age: entry.age,
+    sex: undefined,
+    jockey: entry.jockey,
+    trainer: entry.trainer,
+    odds: entry.odds,
+    popularity: undefined,
+    formLines: [],
+  }));
+
   return (
     <>
       <Script
@@ -83,7 +102,14 @@ export default async function RaceDetailPage({ params }: Props) {
       <AISummary race={race} results={[]} dividends={[]} />
 
       <div className="space-y-6">
-        <BackNavigation raceType={race.type} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <BackNavigation raceType={race.type} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ViewModeToggle viewMode={viewMode} />
+            <PrintPdfButton label="PDF/인쇄" />
+          </div>
+        </div>
+
         <ErrorBanner
           show={showError}
           message="데이터 제공 시스템 지연으로 일부 정보가 표시되지 않을 수 있습니다"
@@ -106,6 +132,13 @@ export default async function RaceDetailPage({ params }: Props) {
             </span>
           </div>
         </section>
+
+        {/* Runner Table (Book Mode) */}
+        {race.entries.length > 0 && viewMode === 'expert' ? (
+          <RunnerTableExpert runners={runnerVMs} />
+        ) : race.entries.length > 0 ? (
+          <RunnerTableDense runners={runnerVMs} viewMode={viewMode} />
+        ) : null}
 
         {/* Entry List */}
         {race.entries.length > 0 && (

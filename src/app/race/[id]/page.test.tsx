@@ -11,6 +11,17 @@ jest.mock('@/lib/api', () => ({
   fetchRaceByIdWithStatus: jest.fn(),
 }));
 
+// Mock next/navigation for components using useRouter
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  usePathname: () => '/race/horse-1-1-20240115',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe('RaceDetailPage', () => {
   const mockRace: Race = {
     id: 'horse-1-1-20240115',
@@ -79,12 +90,12 @@ describe('RaceDetailPage', () => {
       const resolvedPage = await RaceDetailPage({ params: { id: 'horse-1-1-20240115' } });
       render(resolvedPage);
 
-      // Check for entry names
-      expect(screen.getByText('말1')).toBeInTheDocument();
-      expect(screen.getByText('말2')).toBeInTheDocument();
+      // Check for entry names (may appear in both runner table and entry list)
+      expect(screen.getAllByText('말1').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('말2').length).toBeGreaterThanOrEqual(1);
       // Check for jockey names
-      expect(screen.getByText('기수1')).toBeInTheDocument();
-      expect(screen.getByText('기수2')).toBeInTheDocument();
+      expect(screen.getAllByText('기수1').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('기수2').length).toBeGreaterThanOrEqual(1);
     });
 
     it('should display odds values', async () => {

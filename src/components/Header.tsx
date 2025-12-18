@@ -61,6 +61,9 @@ const Header: React.FC = () => {
   const currentTab = searchParams.get('tab');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const bookDate = new Date().toISOString().split('T')[0];
+  const bookHref = `/book/${bookDate}`;
+
   const isActive = (tab: string) => currentTab === tab;
   const isResultsPage = pathname === '/results';
 
@@ -121,6 +124,13 @@ const Header: React.FC = () => {
               {isResultsPage && (
                 <span className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-current" />
               )}
+            </Link>
+            <Link
+              href={bookHref}
+              title="북 모드 보기"
+              className="relative min-h-touch min-w-touch rounded-rl-md px-5 py-3 text-body-medium font-semibold text-on-surface transition-all duration-rl-fast ease-rl-standard hover:bg-surface-dim hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              <span aria-hidden="true">📕</span> <span>북모드</span>
             </Link>
           </nav>
 
@@ -214,6 +224,18 @@ const Header: React.FC = () => {
                   </span>
                   <span>결과</span>
                   {isResultsPage && <span className="ml-auto text-label-small">현재 페이지</span>}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={bookHref}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex min-h-touch items-center rounded-rl-md px-5 py-4 text-body-medium font-semibold text-on-surface transition-all duration-rl-fast ease-rl-standard hover:bg-surface-dim hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  <span aria-hidden="true" className="mr-3 text-xl">
+                    📕
+                  </span>
+                  <span>북모드</span>
                 </Link>
               </li>
             </ul>
