@@ -34,6 +34,9 @@ export {
   getOddsTimeSeries,
   getOddsDrift,
   getSnapshotCount,
+  getOddsHistoryStream,
+  getOddsTimeSeriesStream,
+  getOddsExportData,
 } from './odds';
 
 // Result queries
@@ -48,6 +51,23 @@ export {
   getTopPerformers,
 } from './results';
 
+// Client queries
+export {
+  hashApiKey,
+  getApiKeyPrefix,
+  getClientByApiKeyPrefix,
+  validateClientApiKey,
+  getClientById,
+  getClientTierConfig,
+  isClientActive,
+  logApiUsage,
+  getClientUsageStats,
+  createClient,
+  updateClientStatus,
+  updateClientTier,
+} from './clients';
+
 // Re-export types
-export type { OddsHistoryOptions } from './odds';
+export type { OddsHistoryOptions, StreamingOddsOptions } from './odds';
 export type { GetRacesOptions } from './races';
+export type { UsageStats } from './clients';
