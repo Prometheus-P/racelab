@@ -65,48 +65,143 @@ coverage/
 .cache/
 .turbo/
 
+# =====================
 # Security - Certificates & Keys
+# =====================
 *.pem
 *.key
 *.p12
 *.pfx
 *.crt
 *.cer
+*.jks
+*.keystore
 
-# Security - Credentials
+# =====================
+# Security - Credentials & Secrets
+# =====================
 *.local
 *credentials*.json
 *secrets*.json
 *service-account*.json
 .secrets/
 secrets/
+.credentials/
+credentials/
 
-# Security - SSH
+# API Keys & Tokens
+*api_key*
+*apikey*
+*access_token*
+*auth_token*
+*.token
+!src/**/*.token.ts
+
+# =====================
+# Security - SSH & GPG
+# =====================
 id_rsa*
 id_ed25519*
+id_ecdsa*
+id_dsa*
 *.ppk
+*.gpg
+.gnupg/
 
-# AI Assistant - Local Settings (user-specific, contains permissions)
+# =====================
+# Security - Database
+# =====================
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+!db/migrations/*.sql
+!drizzle/*.sql
+*.dump
+*.backup
+
+# =====================
+# Security - Docker & K8s Secrets
+# =====================
+docker-compose.override.yml
+docker-compose.local.yml
+.docker/
+kubeconfig
+*.kubeconfig
+
+# =====================
+# AI Assistants
+# =====================
+# Claude Code - Local Settings (user-specific, contains permissions)
 .claude/settings.local.json
+.claude/plans/
 claude_desktop_config.json
 
 # Note: .claude/commands/ is TRACKED (shared speckit commands)
 # Note: .specify/ is TRACKED (shared templates and scripts)
 
+# Cursor AI
+.cursorignore
+.cursorrules
+.cursor/
+
+# GitHub Copilot
+.copilot/
+
+# Gemini
+.gemini/
+
+# Other AI
+.ai/
+.llm/
+
+# =====================
+# Backup Files
+# =====================
+*.bak
+*.backup
+*.old
+*.orig
+*~
+\#*\#
+.#*
+
+# =====================
 # Storybook (if added later)
+# =====================
 storybook-static/
 
+# =====================
 # PWA (if added later)
+# =====================
 public/sw.js
 public/workbox-*.js
 
-# Temporary report files
+# =====================
+# Temporary & Report Files
+# =====================
 *.html
+!src/**/*.html
+!public/**/*.html
 report.zip*
 report_data/
 report_unpacked/
 all_errors.md
 unzip_report.py
+tmp/
+temp/
+*.tmp
+*.temp
 
-.gemini/
+# =====================
+# CI/CD Credentials
+# =====================
 gha-creds-*.json
+.github/workflows/*.local.yml
+
+# =====================
+# Package Manager Lock Files (keep only npm)
+# =====================
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
