@@ -251,6 +251,20 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
         },
+        // Landing page animations
+        'gradient-shift': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'slide-in-right': {
+          '0%': { opacity: '0', transform: 'translateX(-20px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        'typewriter-cursor': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite ease-in-out',
@@ -258,6 +272,10 @@ const config: Config = {
         'fade-in-up': 'fade-in-up 400ms cubic-bezier(0.4, 0, 0.2, 1)',
         'grow-up': 'grow-up 600ms cubic-bezier(0.4, 0, 0.2, 1)',
         pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        // Landing page animations
+        gradient: 'gradient-shift 8s ease infinite',
+        'slide-in': 'slide-in-right 400ms ease-out forwards',
+        cursor: 'typewriter-cursor 1s step-end infinite',
       },
       // Opacity tokens
       opacity: {
