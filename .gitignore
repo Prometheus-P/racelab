@@ -205,3 +205,30 @@ gha-creds-*.json
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
+
+# =====================
+# Proprietary & Confidential
+# =====================
+# Internal documentation
+docs/internal/
+docs/confidential/
+*.confidential.*
+
+# Business logic exports
+exports/
+data-exports/
+
+# Analytics & Reports (sensitive)
+analytics/
+reports/
+*.xlsx
+*.csv
+!public/**/*.csv
+
+# =====================
+# Production Configs
+# =====================
+*.production.json
+*.prod.json
+production.env
+prod.env
