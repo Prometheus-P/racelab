@@ -5,11 +5,7 @@
  * Phase 3: 필수 면책조항 생성기
  */
 
-import {
-  generateDisclaimer,
-  type BacktestDisclaimer,
-  DISCLAIMER_TEXTS,
-} from './disclaimer';
+import { generateDisclaimer, DISCLAIMER_TEXTS } from './disclaimer';
 
 // =============================================================================
 // BacktestDisclaimer Type Tests

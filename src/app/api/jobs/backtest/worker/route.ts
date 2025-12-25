@@ -17,7 +17,8 @@ import {
   saveResult,
   deleteCheckpoint,
 } from '@/lib/backtest/jobManager';
-import { BacktestExecutor, MockRaceDataSource } from '@/lib/backtest/executor';
+import { BacktestExecutor, MockRaceDataSource, type RaceDataSource } from '@/lib/backtest/executor';
+import { PostgresDataSource, checkDatabaseHasData } from '@/lib/backtest/datasource';
 import { enhanceSummary } from '@/lib/backtest/metrics';
 import type { QStashBacktestPayload, JobError } from '@/lib/backtest/types';
 import type { BacktestResult } from '@/lib/strategy/types';
@@ -124,12 +125,8 @@ async function processJob(payload: QStashBacktestPayload, startTime: number) {
 
   try {
     // 5. Create data source
-    // In production, this would use a real database source
-    // For now, using MockRaceDataSource for testing
-    const dataSource = new MockRaceDataSource();
-
-    // Generate mock data based on date range
-    await generateMockData(dataSource, backtestRequest.dateRange);
+    // Use PostgresDataSource if DB has data, otherwise fallback to MockRaceDataSource
+    const dataSource = await createDataSource(backtestRequest.dateRange);
 
     // 6. Create executor with progress callback
     let lastProgressUpdate = 0;
@@ -251,6 +248,34 @@ function isRetryableError(error: unknown): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Create appropriate data source based on database availability
+ * Uses PostgresDataSource if DB has finished race data,
+ * otherwise falls back to MockRaceDataSource for testing
+ */
+async function createDataSource(
+  dateRange: { from: string; to: string }
+): Promise<RaceDataSource> {
+  try {
+    const hasData = await checkDatabaseHasData();
+
+    if (hasData) {
+      console.log('[Worker] Using PostgresDataSource - DB has data');
+      return new PostgresDataSource();
+    }
+
+    console.log('[Worker] Using MockRaceDataSource - DB empty, generating mock data');
+    const mockDataSource = new MockRaceDataSource();
+    await generateMockData(mockDataSource, dateRange);
+    return mockDataSource;
+  } catch (error) {
+    console.warn('[Worker] DB check failed, falling back to MockRaceDataSource:', error);
+    const mockDataSource = new MockRaceDataSource();
+    await generateMockData(mockDataSource, dateRange);
+    return mockDataSource;
+  }
 }
 
 /**

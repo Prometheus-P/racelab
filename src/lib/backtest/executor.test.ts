@@ -6,7 +6,6 @@
  */
 
 import {
-  BacktestExecutor,
   MockRaceDataSource,
   runBacktest,
   type RaceResultData,
