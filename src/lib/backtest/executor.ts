@@ -17,7 +17,14 @@ import type {
   EquityPoint,
 } from '../strategy/types';
 import type { WorkerCheckpoint } from './types';
-import { PROGRESS_UPDATE_INTERVAL } from './types';
+import { PROGRESS_UPDATE_INTERVAL, TAX_RATE } from './types';
+import {
+  applySlippage,
+  createSeededRng,
+  DEFAULT_SLIPPAGE_CONFIG,
+  type SlippageConfig,
+} from './slippage';
+import { generateDisclaimer } from './disclaimer';
 
 // =============================================================================
 // Types
@@ -41,6 +48,9 @@ export interface ExecutorOptions {
 
   /** 타임아웃 체크 콜백 */
   shouldStop?: () => boolean;
+
+  /** 슬리피지 설정 (선택) */
+  slippage?: SlippageConfig;
 }
 
 /**
@@ -84,6 +94,7 @@ export class BacktestExecutor {
   private evaluator: StrategyEvaluator;
   private dataSource: RaceDataSource;
   private options: ExecutorOptions;
+  private slippageRng: () => number;
 
   constructor(
     request: BacktestRequest,
@@ -92,13 +103,23 @@ export class BacktestExecutor {
   ) {
     this.evaluator = new StrategyEvaluator(request.strategy);
     this.dataSource = dataSource;
+
+    // 슬리피지 설정 (기본값: 비활성화)
+    const slippageConfig = options.slippage ?? DEFAULT_SLIPPAGE_CONFIG;
+
     this.options = {
       initialCapital: options.initialCapital ?? request.initialCapital ?? 1_000_000,
       defaultBetAmount: options.defaultBetAmount ?? 10_000,
       onProgress: options.onProgress,
       onCheckpoint: options.onCheckpoint,
       shouldStop: options.shouldStop,
+      slippage: slippageConfig,
     };
+
+    // 시드 기반 RNG 또는 Math.random 사용
+    this.slippageRng = slippageConfig.seed
+      ? createSeededRng(slippageConfig.seed)
+      : Math.random;
   }
 
   /**
@@ -252,6 +273,9 @@ export class BacktestExecutor {
 
     const executionTimeMs = Date.now() - startTime;
 
+    // 슬리피지 활성화 여부 확인
+    const slippageEnabled = this.options.slippage?.enabled ?? false;
+
     return {
       request,
       summary,
@@ -259,6 +283,8 @@ export class BacktestExecutor {
       equityCurve,
       executedAt: new Date().toISOString(),
       executionTimeMs,
+      // 필수 면책조항 (항상 포함)
+      disclaimer: generateDisclaimer(true, slippageEnabled),
     };
   }
 
@@ -318,6 +344,8 @@ export class BacktestExecutor {
         result: 'refund',
         profit: 0,
         cumulativeCapital: currentCapital,
+        grossPayout: 0,
+        taxDeducted: 0,
       };
     }
 
@@ -334,6 +362,8 @@ export class BacktestExecutor {
         result: 'refund',
         profit: 0,
         cumulativeCapital: currentCapital,
+        grossPayout: 0,
+        taxDeducted: 0,
       };
     }
 
@@ -342,7 +372,8 @@ export class BacktestExecutor {
     const oddsAtBet = this.getEntryOdds(race, entryNo);
 
     let isWin = false;
-    let payout = 0;
+    let grossPayout = 0;
+    let oddsAfterSlippage: number | undefined;
 
     // 베팅 유형에 따른 승리 판정
     if (action === 'bet_win') {
@@ -350,18 +381,29 @@ export class BacktestExecutor {
       isWin = position === 1;
       if (isWin) {
         const winOdds = result.dividends.win.get(entryNo) ?? oddsAtBet;
-        payout = Math.floor(betAmount * winOdds);
+        // 슬리피지 적용
+        const slippageConfig = this.options.slippage ?? DEFAULT_SLIPPAGE_CONFIG;
+        const effectiveOdds = applySlippage(winOdds, slippageConfig, this.slippageRng);
+        oddsAfterSlippage = slippageConfig.enabled ? effectiveOdds : undefined;
+        grossPayout = Math.floor(betAmount * effectiveOdds);
       }
     } else if (action === 'bet_place') {
       // 복승: 1~3등 (경마 기준)
       isWin = position !== undefined && position <= 3;
       if (isWin) {
         const placeOdds = result.dividends.place?.get(entryNo) ?? oddsAtBet * 0.5;
-        payout = Math.floor(betAmount * placeOdds);
+        // 슬리피지 적용
+        const slippageConfig = this.options.slippage ?? DEFAULT_SLIPPAGE_CONFIG;
+        const effectiveOdds = applySlippage(placeOdds, slippageConfig, this.slippageRng);
+        oddsAfterSlippage = slippageConfig.enabled ? effectiveOdds : undefined;
+        grossPayout = Math.floor(betAmount * effectiveOdds);
       }
     }
 
-    const profit = isWin ? payout - betAmount : -betAmount;
+    // 세금 계산 (27% 강제 적용)
+    const taxDeducted = isWin ? Math.floor(grossPayout * TAX_RATE) : 0;
+    const netPayout = grossPayout - taxDeducted;
+    const profit = isWin ? netPayout - betAmount : -betAmount;
     const newCapital = currentCapital + profit;
 
     return {
@@ -375,6 +417,9 @@ export class BacktestExecutor {
       result: isWin ? 'win' : 'lose',
       profit,
       cumulativeCapital: newCapital,
+      grossPayout,
+      taxDeducted,
+      oddsAfterSlippage,
     };
   }
 
