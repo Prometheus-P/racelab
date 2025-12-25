@@ -14,6 +14,8 @@ import type {
   BetAction,
 } from './types';
 import { FIELD_METADATA } from './types';
+import type { DSLScoring, ScoringContext, ParsedExpression } from './dsl/types';
+import { parseFormula, evaluateFormula } from './dsl/expression';
 
 // =============================================================================
 // Data Context Types
@@ -87,6 +89,20 @@ export interface ConditionResult {
   actualValue: unknown;
   matched: boolean;
   error?: string;
+}
+
+/**
+ * 스코어링 적용된 평가 결과
+ */
+export interface ScoredEvaluationResult extends EvaluationResult {
+  /** 스코어링 점수 (수식이 없으면 undefined) */
+  score?: number;
+  /** 사용된 수식 */
+  formula?: string;
+  /** 스코어 계산에 사용된 변수 값들 */
+  scoringVariables?: Record<string, number>;
+  /** 스코어 계산 오류 */
+  scoringError?: string;
 }
 
 // =============================================================================
@@ -376,6 +392,105 @@ export class StrategyEvaluator {
       (field) => FIELD_METADATA[field].phase <= maxPhase
     );
   }
+
+  // ===========================================================================
+  // Scoring Methods
+  // ===========================================================================
+
+  /**
+   * 스코어링 적용 경주 평가
+   * @param race 경주 컨텍스트
+   * @param scoring 스코어링 설정 (수식, 임계값)
+   * @returns 스코어 계산된 평가 결과 (점수 높은 순 정렬)
+   */
+  evaluateRaceWithScoring(
+    race: RaceContext,
+    scoring?: DSLScoring
+  ): ScoredEvaluationResult[] {
+    // 기본 조건 평가
+    const matched = this.evaluateRace(race);
+
+    // 스코어링 설정이 없으면 기본 결과 반환
+    if (!scoring?.formula) {
+      return matched.map((m) => ({ ...m }));
+    }
+
+    // 수식 파싱 (한 번만)
+    let parsedFormula: ParsedExpression;
+    try {
+      parsedFormula = parseFormula(scoring.formula);
+    } catch (error) {
+      // 파싱 실패 시 모든 결과에 에러 표시
+      return matched.map((m) => ({
+        ...m,
+        scoringError: error instanceof Error ? error.message : 'Formula parse error',
+        formula: scoring.formula,
+      }));
+    }
+
+    // 각 매칭 결과에 스코어 계산
+    const scoredResults: ScoredEvaluationResult[] = [];
+
+    for (const result of matched) {
+      // 해당 엔트리 찾기
+      const entry = race.entries.find((e) => e.entryNo === result.entryNo);
+      if (!entry) {
+        scoredResults.push({
+          ...result,
+          scoringError: 'Entry not found for scoring',
+        });
+        continue;
+      }
+
+      // 스코어링 컨텍스트 생성
+      const context = this.buildScoringContext(entry, race);
+
+      try {
+        // 수식 평가
+        const score = evaluateFormula(parsedFormula, context);
+
+        // 임계값 확인
+        if (scoring.threshold !== undefined && score < scoring.threshold) {
+          // 임계값 미만이면 제외
+          continue;
+        }
+
+        scoredResults.push({
+          ...result,
+          score,
+          formula: scoring.formula,
+          scoringVariables: context as Record<string, number>,
+        });
+      } catch (error) {
+        scoredResults.push({
+          ...result,
+          scoringError: error instanceof Error ? error.message : 'Scoring error',
+          formula: scoring.formula,
+        });
+      }
+    }
+
+    // 점수 높은 순 정렬
+    return scoredResults.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  }
+
+  /**
+   * 엔트리 데이터를 스코어링 컨텍스트로 변환
+   */
+  private buildScoringContext(entry: EntryContext, race: RaceContext): ScoringContext {
+    return {
+      odds_win: entry.odds_win,
+      odds_place: entry.odds_place,
+      odds_drift_pct: entry.odds_drift_pct,
+      odds_stddev: entry.odds_stddev,
+      popularity_rank: entry.popularity_rank,
+      pool_total: entry.pool_total,
+      pool_win_pct: entry.pool_win_pct,
+      horse_rating: entry.horse_rating,
+      burden_weight: entry.burden_weight,
+      entry_count: race.entries.length,
+    };
+  }
 }
 
 // =============================================================================
@@ -448,4 +563,16 @@ export function evaluateRaces(
   }
 
   return results;
+}
+
+/**
+ * 편의 함수: 스코어링 적용 경주 평가
+ */
+export function evaluateRaceWithScoring(
+  strategy: StrategyDefinition,
+  race: RaceContext,
+  scoring?: DSLScoring
+): ScoredEvaluationResult[] {
+  const evaluator = new StrategyEvaluator(strategy);
+  return evaluator.evaluateRaceWithScoring(race, scoring);
 }
