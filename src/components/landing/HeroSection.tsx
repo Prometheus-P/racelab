@@ -3,18 +3,9 @@ import { ArrowRight, TrendingUp } from 'lucide-react';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-neutral-background py-16 md:py-24 lg:py-32">
-      {/* Background gradient effect */}
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(129, 199, 132, 0.3), transparent), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(100, 181, 246, 0.2), transparent)',
-        }}
-        aria-hidden="true"
-      />
+    <section className="bg-gradient-to-b from-horse-container/20 to-neutral-background py-16 md:py-24 lg:py-32">
 
-      <div className="container relative z-10 mx-auto px-4 text-center">
+      <div className="container mx-auto px-4 text-center">
         {/* Badge */}
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-horse/30 bg-horse-container px-4 py-2">
           <TrendingUp className="h-4 w-4 text-horse-bold" />

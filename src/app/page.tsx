@@ -1,5 +1,24 @@
 import type { Metadata } from 'next';
-import { HeroSection, DemoTerminal, FeaturesSection, CTASection } from '@/components/landing';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { HeroSection, FeaturesSection, CTASection } from '@/components/landing';
+
+// Lazy load DemoTerminal - heavy component with Framer Motion animations
+const DemoTerminal = dynamic(
+  () => import('@/components/landing/DemoTerminal').then((mod) => mod.DemoTerminal),
+  {
+    loading: () => (
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-6 text-center">
+          <div className="h-8 w-48 mx-auto bg-neutral-200 rounded animate-pulse" />
+          <div className="mt-2 h-5 w-72 mx-auto bg-neutral-100 rounded animate-pulse" />
+        </div>
+        <div className="h-[450px] rounded-xl bg-neutral-800 animate-pulse" />
+      </div>
+    ),
+    ssr: true,
+  }
+);
 
 export const metadata: Metadata = {
   title: 'RaceLab | 데이터 기반 경주 전략 백테스팅 플랫폼',
@@ -24,7 +43,19 @@ export default function LandingPage() {
       <HeroSection />
 
       <section id="demo" className="bg-neutral-background py-16 md:py-24">
-        <DemoTerminal />
+        <Suspense
+          fallback={
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-6 text-center">
+                <div className="h-8 w-48 mx-auto bg-neutral-200 rounded animate-pulse" />
+                <div className="mt-2 h-5 w-72 mx-auto bg-neutral-100 rounded animate-pulse" />
+              </div>
+              <div className="h-[450px] rounded-xl bg-neutral-800 animate-pulse" />
+            </div>
+          }
+        >
+          <DemoTerminal />
+        </Suspense>
       </section>
 
       <FeaturesSection />
