@@ -79,7 +79,7 @@ export function DemoTerminal() {
             <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
             <div className="h-3 w-3 rounded-full bg-green-500/60" />
           </div>
-          <div className="flex items-center gap-2 text-label-small text-neutral-500">
+          <div className="flex items-center gap-2 text-label-small text-neutral-400">
             <Terminal className="h-3.5 w-3.5" />
             <span>racelab-cli -- backtest</span>
           </div>

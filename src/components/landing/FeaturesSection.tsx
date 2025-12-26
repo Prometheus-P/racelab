@@ -45,7 +45,7 @@ function FeatureCard({ icon, title, description, color }: Feature) {
         {icon}
       </div>
       <h3 className="mb-2 text-title-medium font-semibold text-neutral-text-primary">{title}</h3>
-      <p className="text-body-medium leading-relaxed text-neutral-text-secondary">{description}</p>
+      <p className="text-body-medium leading-relaxed text-zinc-600">{description}</p>
     </div>
   );
 }
@@ -58,7 +58,7 @@ export function FeaturesSection() {
           <h2 className="text-headline-large font-bold text-neutral-text-primary">
             데이터 기반 의사결정
           </h2>
-          <p className="mt-3 text-body-large text-neutral-text-secondary">
+          <p className="mt-3 text-body-large text-zinc-600">
             퀀트 투자의 핵심 기능을 모두 갖춘 플랫폼
           </p>
         </div>

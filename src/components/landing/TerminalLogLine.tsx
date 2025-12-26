@@ -64,7 +64,7 @@ export function TerminalLogLine({
     <div
       className={`font-mono text-sm leading-relaxed transition-opacity duration-200 ${variantStyles[variant]} ${isVisible ? 'opacity-100' : 'opacity-0'}`}
     >
-      <span className="mr-2 select-none text-neutral-500">
+      <span className="mr-2 select-none text-neutral-400">
         [{new Date().toLocaleTimeString('ko-KR', { hour12: false })}]
       </span>
       <span>

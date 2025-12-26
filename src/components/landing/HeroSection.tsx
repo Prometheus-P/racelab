@@ -41,7 +41,7 @@ export function HeroSection() {
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
             href="/dashboard"
-            className="group inline-flex min-h-[48px] items-center gap-2 rounded-full bg-primary px-8 py-3 text-label-large font-semibold text-on-primary shadow-lg shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30"
+            className="group inline-flex min-h-[48px] items-center gap-2 rounded-full bg-cycle-bold px-8 py-3 text-label-large font-semibold text-white shadow-lg shadow-cycle-bold/20 transition-all hover:bg-red-900 hover:shadow-xl hover:shadow-cycle-bold/30"
           >
             무료로 전략 검증하기
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

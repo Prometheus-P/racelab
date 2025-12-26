@@ -26,7 +26,7 @@ function MetricCard({ label, value, subValue, variant }: MetricCardProps) {
     <div className="rounded-lg border border-neutral-700 bg-neutral-800/50 p-4">
       <div className="text-label-small text-neutral-400">{label}</div>
       <div className={`mt-1 text-data-large font-bold ${valueColors[variant]}`}>{value}</div>
-      {subValue && <div className="mt-0.5 text-label-small text-neutral-500">{subValue}</div>}
+      {subValue && <div className="mt-0.5 text-label-small text-neutral-400">{subValue}</div>}
     </div>
   );
 }
