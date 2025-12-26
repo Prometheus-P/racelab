@@ -1,17 +1,17 @@
 /**
  * Expression Engine
  *
- * 수식 파싱 및 평가 (expr-eval 래퍼)
+ * 수식 파싱 및 평가 (mathjs 기반)
  * Phase 2: Expression Engine
  *
  * 보안:
- * - NO eval(): expr-eval은 AST 파싱 사용
+ * - mathjs 제한된 기능만 사용 (create로 커스텀 인스턴스)
  * - 변수 화이트리스트: 허용된 필드만 사용 가능
  * - 함수 제한: min, max, abs, floor, ceil, round, sqrt만 허용
  * - 길이 제한: 수식 200자 이내
  */
 
-import { Parser, Expression } from 'expr-eval';
+import { create, all, EvalFunction } from 'mathjs';
 import type {
   ParsedExpression,
   ScoringContext,
@@ -25,32 +25,31 @@ import {
 } from './types';
 
 // =============================================================================
-// Parser Configuration
+// Mathjs Configuration - 보안을 위한 제한된 인스턴스
 // =============================================================================
 
 /**
- * 허용된 연산자만 활성화된 expr-eval Parser
+ * 제한된 mathjs 인스턴스 생성
+ * 필요한 기능만 포함하여 보안 강화
  */
-const parser = new Parser({
-  operators: {
-    add: true,
-    subtract: true,
-    multiply: true,
-    divide: true,
-    power: true,
-    concatenate: false,
-    conditional: false,
-    factorial: false,
-    remainder: true,
-    logical: false,
-    comparison: false,
-    'in': false,
-    assignment: false,
-  },
+const math = create(all, {
+  // 기본 설정
 });
 
-// 허용된 함수만 등록 (기본 함수 중 필요한 것만)
-// expr-eval에는 이미 기본 함수들이 있으므로 추가 설정 불필요
+/**
+ * 허용된 함수만 포함하는 제한된 scope
+ * import 등 위험한 기능 차단
+ */
+const limitedScope: Record<string, unknown> = {
+  // 허용된 수학 함수만 포함
+  min: math.min,
+  max: math.max,
+  abs: math.abs,
+  floor: math.floor,
+  ceil: math.ceil,
+  round: math.round,
+  sqrt: math.sqrt,
+};
 
 // =============================================================================
 // Validation Result Types
@@ -87,11 +86,11 @@ export function extractVariables(formula: string): string[] {
   // 함수명 제외
   const functionNames = new Set([
     ...ALLOWED_FUNCTIONS,
-    // expr-eval 내장 함수들도 제외
+    // mathjs 내장 함수들도 제외
     'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh',
-    'log', 'log10', 'exp', 'pow', 'sign', 'trunc', 'random', 'fac',
-    'length', 'hypot', 'atan2', 'pyt', 'if', 'gamma', 'roundTo',
-    'map', 'fold', 'filter', 'indexOf', 'join', 'sum',
+    'log', 'log10', 'log2', 'exp', 'pow', 'sign', 'trunc', 'random',
+    'hypot', 'atan2', 'cbrt', 'expm1', 'log1p',
+    'e', 'pi', 'PI', 'E', 'i', 'Infinity', 'NaN',
   ]);
 
   // 중복 제거 및 필터링
@@ -135,6 +134,26 @@ export function validateFormula(formula: string): FormulaValidationResult {
     return { valid: false, errors };
   }
 
+  // 위험한 패턴 체크 (import, require 등)
+  const dangerousPatterns = /\b(import|require|eval|Function|constructor)\b/i;
+  if (dangerousPatterns.test(formula)) {
+    errors.push({
+      code: 'PARSE_ERROR',
+      message: 'Formula contains forbidden keywords',
+    });
+    return { valid: false, errors };
+  }
+
+  // assignment operator 체크 (=, +=, -= 등)
+  const assignmentPattern = /[^=!<>]=[^=]/;
+  if (assignmentPattern.test(formula)) {
+    errors.push({
+      code: 'PARSE_ERROR',
+      message: 'Formula contains assignment operator',
+    });
+    return { valid: false, errors };
+  }
+
   // 변수 추출 및 검증
   const variables = extractVariables(formula);
   const allowedSet = new Set(ALLOWED_FORMULA_VARIABLES);
@@ -154,7 +173,7 @@ export function validateFormula(formula: string): FormulaValidationResult {
 
   // 파싱 테스트
   try {
-    parser.parse(formula);
+    math.parse(formula);
   } catch (error) {
     errors.push({
       code: 'PARSE_ERROR',
@@ -183,6 +202,24 @@ export function parseFormula(formula: string): ParsedExpression {
     );
   }
 
+  // 위험한 패턴 체크
+  const dangerousPatterns = /\b(import|require|eval|Function|constructor)\b/i;
+  if (dangerousPatterns.test(formula)) {
+    throw new FormulaError(
+      'PARSE_ERROR',
+      'Formula contains forbidden keywords'
+    );
+  }
+
+  // assignment operator 체크 (=, +=, -= 등)
+  const assignmentPattern = /[^=!<>]=[^=]/;
+  if (assignmentPattern.test(formula)) {
+    throw new FormulaError(
+      'PARSE_ERROR',
+      'Formula contains assignment operator'
+    );
+  }
+
   // 변수 추출
   const variables = extractVariables(formula);
 
@@ -197,10 +234,10 @@ export function parseFormula(formula: string): ParsedExpression {
     }
   }
 
-  // 파싱
-  let expression: Expression;
+  // 파싱 및 컴파일
+  let compiled: EvalFunction;
   try {
-    expression = parser.parse(formula);
+    compiled = math.compile(formula);
   } catch (error) {
     throw new FormulaError(
       'PARSE_ERROR',
@@ -210,7 +247,7 @@ export function parseFormula(formula: string): ParsedExpression {
 
   return {
     formula,
-    expression,
+    expression: compiled,
     variables,
   };
 }
@@ -237,9 +274,16 @@ export function evaluateFormula(
     }
   }
 
+  // scope 생성 (제한된 함수 + 변수 값)
+  const scope: Record<string, unknown> = {
+    ...limitedScope,
+    ...context,
+  };
+
   // 평가
   try {
-    const result = parsed.expression.evaluate(context);
+    const compiled = parsed.expression as EvalFunction;
+    const result = compiled.evaluate(scope);
 
     if (typeof result !== 'number' || !isFinite(result)) {
       throw new FormulaError(

@@ -239,7 +239,7 @@ export interface ParsedExpression {
   /** 원본 수식 문자열 */
   formula: string;
 
-  /** 파싱된 표현식 (expr-eval Expression) */
+  /** 파싱된 표현식 (mathjs EvalFunction) */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expression: any;
 
