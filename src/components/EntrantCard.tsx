@@ -157,7 +157,7 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
                 isAnimationActive={false}
               />
               <Tooltip
-                formatter={(value: number) => `${value}/100`}
+                formatter={(value) => `${value}/100`}
                 contentStyle={{ background: '#0f172a', border: '1px solid #1e293b' }}
               />
             </RadarChart>

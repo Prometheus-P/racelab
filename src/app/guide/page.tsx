@@ -1,5 +1,6 @@
 // src/app/guide/page.tsx
 import { Metadata } from 'next';
+import Link from 'next/link';
 import FAQJsonLd from '@/components/seo/FAQJsonLd';
 import { getSiteUrl } from '@/lib/seo/siteUrl';
 
@@ -88,27 +89,27 @@ export default function GuidePage() {
             바로가기
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
+            <Link
               href="/?tab=horse"
               className="block p-4 border border-horse rounded-lg hover:bg-horse/5 transition-colors"
             >
               <h3 className="font-bold text-horse">경마</h3>
               <p className="text-sm text-gray-600">오늘의 경마 일정 보기</p>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/?tab=cycle"
               className="block p-4 border border-cycle rounded-lg hover:bg-cycle/5 transition-colors"
             >
               <h3 className="font-bold text-cycle">경륜</h3>
               <p className="text-sm text-gray-600">오늘의 경륜 일정 보기</p>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/?tab=boat"
               className="block p-4 border border-boat rounded-lg hover:bg-boat/5 transition-colors"
             >
               <h3 className="font-bold text-boat">경정</h3>
               <p className="text-sm text-gray-600">오늘의 경정 일정 보기</p>
-            </a>
+            </Link>
           </div>
         </section>
       </div>
