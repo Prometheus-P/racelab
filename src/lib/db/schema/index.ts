@@ -24,3 +24,15 @@ export {
   type NewApiUsage,
   type TierConfig,
 } from './clients';
+
+// Auth schemas (NextAuth.js)
+export {
+  users,
+  accounts,
+  sessions,
+  verificationTokens,
+  type User,
+  type NewUser,
+  type Account,
+  type Session,
+} from './auth';

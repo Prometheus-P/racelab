@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RaceLabLogo } from '@/components/brand/RaceLabLogo';
+import { AuthButton } from '@/components/auth';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,21 +33,24 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              href={link.href}
-              key={link.href}
-              className={`rounded-lg px-4 py-2 text-label-large font-medium transition-colors ${
-                isActive(link.href)
-                  ? 'bg-primary-container text-primary'
-                  : 'text-neutral-text-secondary hover:bg-surface-dim hover:text-neutral-text-primary'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="hidden items-center gap-4 md:flex">
+          <nav className="flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                href={link.href}
+                key={link.href}
+                className={`rounded-lg px-4 py-2 text-label-large font-medium transition-colors ${
+                  isActive(link.href)
+                    ? 'bg-primary-container text-primary'
+                    : 'text-neutral-text-secondary hover:bg-surface-dim hover:text-neutral-text-primary'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <AuthButton />
+        </div>
 
         {/* Mobile Menu Button */}
         <button
@@ -91,6 +95,9 @@ const Header = () => {
               </Link>
             ))}
           </nav>
+          <div className="border-t border-neutral-divider p-4">
+            <AuthButton />
+          </div>
         </div>
       )}
     </header>

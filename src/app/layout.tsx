@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { Analytics } from '@vercel/analytics/react';
 import { HeaderSkeleton } from '@/components/Skeletons';
 import { getSiteUrl } from '@/lib/seo/siteUrl';
+import { SessionProvider } from '@/components/auth';
 
 // Noto Sans KR - Primary font for Korean text (optimized for 50-60 demographic)
 // next/font/google automatically:
@@ -270,18 +271,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       {/* RaceLab Design System V1.0 - 순백 배경 (#FFFFFF) */}
       <body className={`flex min-h-screen flex-col bg-white text-on-surface font-sans ${notoSansKR.className}`}>
-        <Suspense fallback={<HeaderSkeleton />}>
-          <Header />
-        </Suspense>
+        <SessionProvider>
+          <Suspense fallback={<HeaderSkeleton />}>
+            <Header />
+          </Suspense>
 
-        <main
-          id="main-content"
-          className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
-        >
-          {children}
-        </main>
+          <main
+            id="main-content"
+            className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
+          >
+            {children}
+          </main>
 
-        <Footer />
+          <Footer />
+        </SessionProvider>
         <Analytics />
       </body>
     </html>
