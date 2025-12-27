@@ -2,7 +2,13 @@
 import { test, expect } from '@playwright/test';
 import { ResultsPage } from '../pages/results.page';
 
+// Skip Results tests in CI environment without API keys
+const isCI = process.env.CI === 'true';
+const hasAPIKeys = !!(process.env.KRA_API_KEY && process.env.KSPO_API_KEY);
+
 test.describe('Results Page - Browse Recent Results (US1)', () => {
+  // Skip all Results tests in CI without API keys
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   let resultsPage: ResultsPage;
 
   test.beforeEach(async ({ page }) => {
@@ -78,6 +84,7 @@ test.describe('Results Page - Browse Recent Results (US1)', () => {
 });
 
 test.describe('Results Page - Pagination', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   test('should display pagination when multiple pages exist', async ({ page }) => {
     const resultsPage = new ResultsPage(page);
     await resultsPage.goto();
@@ -114,6 +121,7 @@ test.describe('Results Page - Pagination', () => {
 });
 
 test.describe('Results Page - Expand Card Detail (US5)', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   test('should expand card to show full details on click', async ({ page }) => {
     const resultsPage = new ResultsPage(page);
     await resultsPage.goto();
@@ -144,6 +152,7 @@ test.describe('Results Page - Expand Card Detail (US5)', () => {
 });
 
 test.describe('Results Page - Mobile', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   test.use({ viewport: { width: 375, height: 667 } });
 
   test('should display mobile-friendly layout', async ({ page }) => {
@@ -172,6 +181,7 @@ test.describe('Results Page - Mobile', () => {
 });
 
 test.describe('Results Page - Accessibility', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   test('should have proper heading structure', async ({ page }) => {
     const resultsPage = new ResultsPage(page);
     await resultsPage.goto();
@@ -204,6 +214,7 @@ test.describe('Results Page - Accessibility', () => {
 });
 
 test.describe('Results Page - Filter by Date and Type (US2)', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   let resultsPage: ResultsPage;
 
   test.beforeEach(async ({ page }) => {
@@ -355,6 +366,7 @@ test.describe('Results Page - Filter by Date and Type (US2)', () => {
 });
 
 test.describe('Results Page - Filter Mobile (US2)', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   test.use({ viewport: { width: 375, height: 667 } });
 
   test('should collapse filters by default on mobile', async ({ page }) => {
@@ -391,6 +403,7 @@ test.describe('Results Page - Filter Mobile (US2)', () => {
 });
 
 test.describe('Results Page - Search by Jockey (US4)', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   let resultsPage: ResultsPage;
 
   test.beforeEach(async ({ page }) => {
@@ -485,6 +498,7 @@ test.describe('Results Page - Search by Jockey (US4)', () => {
 });
 
 test.describe('Results Page - Filter by Track (US3)', () => {
+  test.skip(isCI && !hasAPIKeys, 'Skipping Results tests in CI without API keys');
   let resultsPage: ResultsPage;
 
   test.beforeEach(async ({ page }) => {

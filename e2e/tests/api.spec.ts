@@ -1,7 +1,14 @@
 // e2e/tests/api.spec.ts
 import { test, expect, APIRequestContext } from '@playwright/test';
 
+// Skip API tests in CI environment without API keys
+const isCI = process.env.CI === 'true';
+const hasAPIKeys = !!(process.env.KRA_API_KEY && process.env.KSPO_API_KEY);
+
 test.describe('API Endpoints', () => {
+  // Skip all API tests in CI without API keys
+  test.skip(isCI && !hasAPIKeys, 'Skipping API tests in CI without API keys');
+
   test.describe('Race Schedule APIs', () => {
     test('GET /api/races/horse should return 200', async ({ request }) => {
       const response = await request.get(`/api/races/horse`);
