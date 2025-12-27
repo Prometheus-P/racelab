@@ -38,10 +38,10 @@ export function HeroSection() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            href="/docs/api"
+            href="/guide"
             className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-neutral-border px-8 py-3 text-label-large font-medium text-neutral-text-primary transition-all hover:border-primary hover:text-primary"
           >
-            API 문서 보기
+            이용 가이드
             <span aria-hidden="true">-&gt;</span>
           </Link>
         </div>
