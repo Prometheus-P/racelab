@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In production, integrate with email service (Mailchimp, ConvertKit, Resend, etc.)
-// For now, we'll log and return success
+import { sendEmail, getWelcomeEmailHtml, getWelcomeEmailText } from '@/lib/email';
 
 interface NewsletterRequest {
   email: string;
@@ -22,15 +20,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Integrate with email service
-    // Example: await mailchimp.lists.addListMember(listId, { email_address: email });
-
-    // For now, log the subscription
+    // Log subscription
     console.log(`[Newsletter] New subscription: ${email} (source: ${source})`);
+
+    // Send welcome email via Resend
+    const emailResult = await sendEmail({
+      to: email,
+      subject: '🏇 RaceLab 가입을 환영합니다! 무료 전략 가이드가 곧 도착합니다',
+      html: getWelcomeEmailHtml(email),
+      text: getWelcomeEmailText(email),
+    });
+
+    if (!emailResult.success) {
+      console.error('[Newsletter] Failed to send welcome email:', emailResult.error);
+      // Still return success to user - email sending failure shouldn't block subscription
+    }
 
     return NextResponse.json({
       success: true,
-      message: '구독이 완료되었습니다! 곧 가이드를 보내드릴게요.',
+      message: '구독이 완료되었습니다! 가이드를 이메일로 보내드렸어요.',
     });
   } catch (error) {
     console.error('[Newsletter] Error:', error);
