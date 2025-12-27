@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-import { HeroSection, FeaturesSection, CTASection } from '@/components/landing';
+import { HeroSection, SocialProofSection, FeaturesSection, CTASection } from '@/components/landing';
 
 // Lazy load DemoTerminal - heavy component with Framer Motion animations
 const DemoTerminal = dynamic(
@@ -57,6 +57,8 @@ export default function LandingPage() {
           <DemoTerminal />
         </Suspense>
       </section>
+
+      <SocialProofSection />
 
       <FeaturesSection />
 
