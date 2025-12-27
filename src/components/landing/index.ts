@@ -4,4 +4,5 @@ export { TerminalLogLine } from './TerminalLogLine';
 export { TerminalMetrics } from './TerminalMetrics';
 export { SocialProofSection } from './SocialProofSection';
 export { FeaturesSection } from './FeaturesSection';
+export { LeadMagnetSection } from './LeadMagnetSection';
 export { CTASection } from './CTASection';
