@@ -21,9 +21,18 @@
   --rl-cycle: #e57373; /* Soft Coral - 경륜 */
   --rl-boat: #64b5f6; /* Steel Blue - 경정 */
 
+  /* TradingView 스타일 금융 컬러 */
+  --rl-bullish: #26a69a; /* 상승 */
+  --rl-bearish: #ef5350; /* 하락 */
+
   /* Legacy support */
   --foreground-rgb: 39, 39, 42;
   --background-rgb: 255, 255, 255;
+}
+
+/* Monospace font for financial data */
+.font-mono {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
 body {

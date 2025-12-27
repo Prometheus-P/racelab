@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Script from 'next/script';
-import { Noto_Sans_KR, Exo_2 } from 'next/font/google';
+import { Noto_Sans_KR, Exo_2, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import '@/styles/typography.css';
 import Header from '@/components/Header';
@@ -31,6 +31,15 @@ const exo2 = Exo_2({
   display: 'swap',
   variable: '--font-exo-2',
   preload: false, // Lower priority than main font
+});
+
+// JetBrains Mono - Monospace font for financial data/numbers
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+  preload: false, // Only used for data display
 });
 
 const siteUrl = getSiteUrl();
@@ -217,7 +226,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="ko" className={`${notoSansKR.variable} ${exo2.variable}`}>
+    <html lang="ko" className={`${notoSansKR.variable} ${exo2.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />

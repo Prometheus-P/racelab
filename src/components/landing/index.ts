@@ -6,3 +6,5 @@ export { SocialProofSection } from './SocialProofSection';
 export { FeaturesSection } from './FeaturesSection';
 export { LeadMagnetSection } from './LeadMagnetSection';
 export { CTASection } from './CTASection';
+export { LiveTicker } from './LiveTicker';
+export { MiniChart } from './MiniChart';

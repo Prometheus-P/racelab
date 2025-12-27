@@ -57,12 +57,21 @@ const testimonials: Testimonial[] = [
 ];
 
 function StatCard({ stat }: { stat: Stat }) {
+  // Use bullish color for ROI stat
+  const isRoi = stat.label.includes('ROI');
+
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl bg-white p-6 shadow-sm border border-neutral-divider">
-      <div className="flex items-center gap-2 text-horse-bold">
+      <div className={`flex items-center gap-2 ${isRoi ? 'text-bullish' : 'text-horse-bold'}`}>
         {stat.icon}
       </div>
-      <span className="text-display-small font-bold text-neutral-text-primary">{stat.value}</span>
+      <span
+        className={`font-mono text-display-small font-bold ${
+          isRoi ? 'text-bullish' : 'text-neutral-text-primary'
+        }`}
+      >
+        {stat.value}
+      </span>
       <span className="text-body-medium text-zinc-600">{stat.label}</span>
     </div>
   );

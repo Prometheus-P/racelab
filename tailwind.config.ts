@@ -12,6 +12,7 @@ const config: Config = {
       fontFamily: {
         sans: ['Noto Sans KR', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
         brand: ['Exo 2', 'Noto Sans KR', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       // Typography Scale - 50-60대 사용자 최적화 (1-2단계 큰 폰트)
       fontSize: {
@@ -41,6 +42,10 @@ const config: Config = {
         'label-small': ['12px', { lineHeight: '18px', letterSpacing: '0.4px' }],
       },
       colors: {
+        // TradingView 스타일 금융 컬러
+        bullish: '#26A69A',  // 상승 (TradingView 그린)
+        bearish: '#EF5350',  // 하락 (TradingView 레드)
+
         // RaceLab Primary Colors - 로고 기반 (채도 낮춤)
         // Sage Green - 경마/안정/긍정적 지표
         horse: {
@@ -265,6 +270,10 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite ease-in-out',
@@ -276,6 +285,7 @@ const config: Config = {
         gradient: 'gradient-shift 8s ease infinite',
         'slide-in': 'slide-in-right 400ms ease-out forwards',
         cursor: 'typewriter-cursor 1s step-end infinite',
+        marquee: 'marquee 30s linear infinite',
       },
       // Opacity tokens
       opacity: {
