@@ -82,8 +82,8 @@ export function MiniChart({ strategyName = '샘플 전략', roi = 18.7 }: MiniCh
           <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#26A69A" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#26A69A" stopOpacity={0} />
+                <stop offset="5%" stopColor="#00897B" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#00897B" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis dataKey="day" hide />
@@ -105,7 +105,7 @@ export function MiniChart({ strategyName = '샘플 전략', roi = 18.7 }: MiniCh
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#26A69A"
+              stroke="#00897B"
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorValue)"

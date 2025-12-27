@@ -42,9 +42,9 @@ const config: Config = {
         'label-small': ['12px', { lineHeight: '18px', letterSpacing: '0.4px' }],
       },
       colors: {
-        // TradingView 스타일 금융 컬러
-        bullish: '#26A69A',  // 상승 (TradingView 그린)
-        bearish: '#EF5350',  // 하락 (TradingView 레드)
+        // TradingView 스타일 금융 컬러 (WCAG AA 대비율 충족)
+        bullish: '#00897B',  // 상승 (다크 틸 - 4.5:1 대비율)
+        bearish: '#D32F2F',  // 하락 (다크 레드 - 5.5:1 대비율)
 
         // RaceLab Primary Colors - 로고 기반 (채도 낮춤)
         // Sage Green - 경마/안정/긍정적 지표

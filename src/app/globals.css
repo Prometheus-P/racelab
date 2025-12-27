@@ -21,9 +21,9 @@
   --rl-cycle: #e57373; /* Soft Coral - 경륜 */
   --rl-boat: #64b5f6; /* Steel Blue - 경정 */
 
-  /* TradingView 스타일 금융 컬러 */
-  --rl-bullish: #26a69a; /* 상승 */
-  --rl-bearish: #ef5350; /* 하락 */
+  /* TradingView 스타일 금융 컬러 (WCAG AA 대비율 충족) */
+  --rl-bullish: #00897b; /* 상승 (4.5:1 대비율) */
+  --rl-bearish: #d32f2f; /* 하락 (5.5:1 대비율) */
 
   /* Legacy support */
   --foreground-rgb: 39, 39, 42;

@@ -1,6 +1,37 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ArrowRight, TrendingUp } from 'lucide-react';
-import { MiniChart } from './MiniChart';
+
+// Lazy load MiniChart - heavy component with Recharts
+const MiniChart = dynamic(
+  () => import('./MiniChart').then((mod) => mod.MiniChart),
+  {
+    loading: () => (
+      <div className="rounded-2xl border border-neutral-divider bg-white p-6 shadow-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <div className="h-4 w-24 bg-neutral-200 rounded animate-pulse" />
+            <div className="mt-2 h-8 w-20 bg-neutral-200 rounded animate-pulse" />
+          </div>
+          <div className="text-right">
+            <div className="h-3 w-16 bg-neutral-200 rounded animate-pulse" />
+            <div className="mt-1 h-5 w-12 bg-neutral-200 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="h-32 bg-neutral-100 rounded animate-pulse" />
+        <div className="mt-4 grid grid-cols-3 gap-4 border-t border-neutral-divider pt-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center">
+              <div className="h-3 w-8 mx-auto bg-neutral-200 rounded animate-pulse" />
+              <div className="mt-1 h-5 w-10 mx-auto bg-neutral-200 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    ssr: false, // Recharts doesn't work well with SSR
+  }
+);
 
 export function HeroSection() {
   return (
