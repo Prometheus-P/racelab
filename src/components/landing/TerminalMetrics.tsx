@@ -58,33 +58,33 @@ export function TerminalMetrics({ metrics, isVisible }: TerminalMetricsProps) {
 
   const formattedMetrics = [
     {
-      label: 'Total ROI',
+      label: '총 수익률',
       value: `+${metrics.roi.toFixed(1)}%`,
       variant: 'positive' as const,
     },
     {
-      label: 'Win Rate',
+      label: '승률',
       value: `${metrics.winRate.toFixed(1)}%`,
-      subValue: `${metrics.totalBets} bets`,
+      subValue: `${metrics.totalBets}회 베팅`,
       variant: 'neutral' as const,
     },
     {
-      label: 'Sharpe Ratio',
+      label: '안정성 지수',
       value: metrics.sharpeRatio.toFixed(2),
       variant: metrics.sharpeRatio >= 1 ? ('positive' as const) : ('neutral' as const),
     },
     {
-      label: 'Max Drawdown',
+      label: '최대 손실',
       value: `-${metrics.maxDrawdown.toFixed(1)}%`,
       variant: 'negative' as const,
     },
     {
-      label: 'Profit Factor',
+      label: '수익 배수',
       value: `${metrics.profitFactor.toFixed(2)}x`,
       variant: metrics.profitFactor >= 1.5 ? ('positive' as const) : ('neutral' as const),
     },
     {
-      label: 'Final Capital',
+      label: '최종 자산',
       value: `${(metrics.finalCapital / 10000).toFixed(0)}만원`,
       subValue: `+${((metrics.finalCapital - 1000000) / 10000).toFixed(0)}만원`,
       variant: 'positive' as const,
@@ -100,7 +100,7 @@ export function TerminalMetrics({ metrics, isVisible }: TerminalMetricsProps) {
     >
       <div className="mb-4 flex items-center gap-2">
         <div className="h-2 w-2 animate-pulse rounded-full bg-horse" />
-        <span className="text-label-medium font-medium text-horse">Performance Summary</span>
+        <span className="text-label-medium font-medium text-horse">성과 요약</span>
       </div>
 
       <motion.div className="grid grid-cols-2 gap-3 md:grid-cols-3" variants={containerVariants}>

@@ -8,3 +8,7 @@ export { LeadMagnetSection } from './LeadMagnetSection';
 export { CTASection } from './CTASection';
 export { LiveTicker } from './LiveTicker';
 export { MiniChart } from './MiniChart';
+export { InteractiveDemo } from './InteractiveDemo';
+export { TodayPicksSection } from './TodayPicksSection';
+export { PricingPreview } from './PricingPreview';
+export { BeforeAfterSection } from './BeforeAfterSection';

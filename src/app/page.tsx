@@ -1,7 +1,17 @@
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-import { HeroSection, SocialProofSection, FeaturesSection, LeadMagnetSection, CTASection, LiveTicker } from '@/components/landing';
+import {
+  HeroSection,
+  SocialProofSection,
+  FeaturesSection,
+  LeadMagnetSection,
+  CTASection,
+  LiveTicker,
+  TodayPicksSection,
+  PricingPreview,
+  BeforeAfterSection,
+} from '@/components/landing';
 
 // Lazy load DemoTerminal - heavy component with Framer Motion animations
 const DemoTerminal = dynamic(
@@ -44,6 +54,8 @@ export default function LandingPage() {
 
       <LiveTicker />
 
+      <TodayPicksSection />
+
       <section id="demo" className="bg-neutral-background py-16 md:py-24">
         <Suspense
           fallback={
@@ -59,6 +71,10 @@ export default function LandingPage() {
           <DemoTerminal />
         </Suspense>
       </section>
+
+      <PricingPreview />
+
+      <BeforeAfterSection />
 
       <SocialProofSection />
 
