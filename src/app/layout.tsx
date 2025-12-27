@@ -251,6 +251,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(imageGallerySchema) }}
         />
 
+        {/* Google AdSense */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8557127827003139"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+
         {/* Google Analytics Scripts */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
