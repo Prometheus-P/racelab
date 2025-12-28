@@ -235,6 +235,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* RaceLab Design System V1.0 - Soft Coral (#E57373) as primary */}
         <meta name="theme-color" content="#E57373" />
 
+        {/* Theme initialization script - runs before React hydration to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('racelab-theme');
+                  if (stored) {
+                    var parsed = JSON.parse(stored);
+                    var theme = parsed.state && parsed.state.theme;
+                    if (theme === 'dark') {
+                      document.documentElement.classList.add('dark');
+                    } else if (theme === 'light') {
+                      document.documentElement.classList.add('light');
+                    } else if (theme === 'system' || !theme) {
+                      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.documentElement.classList.add('dark');
+                      }
+                    }
+                  } else {
+                    // Default to system preference
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                      document.documentElement.classList.add('dark');
+                    }
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+
         {/* JSON-LD Structured Data - Enhanced with ImageObject for AI crawlers */}
         <Script
           id="organization-schema"

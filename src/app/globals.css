@@ -591,3 +591,53 @@ a:focus-visible {
 nav a:hover {
   text-decoration: none;
 }
+
+/* =============================================================================
+   DARK MODE OVERRIDES - bg-white 및 하드코딩된 색상 대응
+   ============================================================================= */
+
+/* bg-white를 다크모드에서 surface 색상으로 변환 */
+.dark .bg-white {
+  background-color: var(--rl-surface) !important;
+}
+
+/* text-black을 다크모드에서 적절한 텍스트 색상으로 변환 */
+.dark .text-black {
+  color: var(--rl-text-primary) !important;
+}
+
+/* border-gray-xxx를 다크모드에서 적절한 border 색상으로 변환 */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--rl-border) !important;
+}
+
+/* bg-gray-xxx를 다크모드에서 적절한 배경 색상으로 변환 */
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--rl-surface-container) !important;
+}
+
+.dark .bg-gray-200,
+.dark .bg-gray-300 {
+  background-color: var(--rl-surface-container-high) !important;
+}
+
+/* text-gray-xxx를 다크모드에서 적절한 텍스트 색상으로 변환 */
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--rl-text-secondary) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: var(--rl-text-primary) !important;
+}
+
+/* divide-gray-xxx를 다크모드에서 적절한 divider 색상으로 변환 */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--rl-divider) !important;
+}
