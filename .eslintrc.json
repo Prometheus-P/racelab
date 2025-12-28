@@ -1,5 +1,9 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript",
+    "plugin:storybook/recommended"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -9,8 +13,21 @@
       }
     ],
     "@typescript-eslint/no-explicit-any": "error",
-    "max-lines-per-function": ["warn", { "max": 50, "skipBlankLines": true, "skipComments": true }],
-    "max-depth": ["warn", 4],
-    "complexity": ["warn", 15]
+    "max-lines-per-function": [
+      "warn",
+      {
+        "max": 50,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "max-depth": [
+      "warn",
+      4
+    ],
+    "complexity": [
+      "warn",
+      15
+    ]
   }
 }

@@ -1,0 +1,118 @@
+# RaceLab Design System
+
+> **Version**: 1.0.0
+> **Target Users**: 50-60대 중장년층 + 데이터 분석가
+
+---
+
+## 개요
+
+RaceLab Design System은 한국 경마/경륜/경정 데이터 플랫폼을 위한 커스텀 디자인 시스템입니다.
+Material Design 3 원칙을 기반으로, 50-60대 사용자의 가독성과 접근성을 최우선으로 설계되었습니다.
+
+## 핵심 원칙
+
+### 1. CLARITY (명확성)
+- 정보의 우선순위를 명확히 표현
+- 높은 대비, 큰 글씨로 가독성 확보
+- 불필요한 시각적 요소 최소화
+
+### 2. BALANCE (균형)
+- 데이터 밀집도와 여백의 조화
+- 시각적 무게감의 적절한 분배
+- 색상 사용의 절제
+
+### 3. COMFORT (편안함)
+- 터치 타겟 48px 이상 보장
+- 눈의 피로를 줄이는 색상 조합
+- 일관된 인터랙션 패턴
+
+---
+
+## 컬러 시스템
+
+### Primary Race Colors (로고 기반)
+
+| Race Type | Color | Hex | Usage |
+|-----------|-------|-----|-------|
+| 경마 (Horse) | 🟢 Sage Green | #81C784 | 안정감, 긍정적 지표 |
+| 경륜 (Cycle) | 🔴 Soft Coral | #E57373 | CTA, 주요 액션 |
+| 경정 (Boat) | 🔵 Steel Blue | #64B5F6 | 링크, 데이터 시각화 |
+
+### Semantic Colors
+
+| Semantic | Color | Usage |
+|----------|-------|-------|
+| Positive | #4CAF50 | 상승, 이익, 성공 |
+| Negative | #F44336 | 하락, 손실, 실패 |
+| Warning | #FF9800 | 주의, 경고 |
+
+### Neutral Colors
+
+| Name | Hex | Usage |
+|------|-----|-------|
+| Text Primary | #27272A | 본문, 제목 |
+| Text Secondary | #71717A | 보조 텍스트 |
+| Text Tertiary | #A1A1AA | 비활성 텍스트 |
+| Border | #D4D4D8 | 구분선 |
+| Surface Dim | #F4F4F5 | 테이블 줄무늬 |
+| Background | #FFFFFF | 기본 배경 |
+
+---
+
+## 타이포그래피
+
+Noto Sans KR을 기본 폰트로 사용하며, 50-60대 사용자를 위해 업계 표준보다 1-2단계 큰 크기를 적용합니다.
+
+| Style | Size | Weight | Usage |
+|-------|------|--------|-------|
+| Display | 36-48px | Bold | 히어로 섹션 |
+| Headline | 28-32px | Bold | 페이지 제목 |
+| Title | 20-24px | SemiBold | 섹션 제목 |
+| Body | 16-18px | Regular | 본문 |
+| Label | 14-16px | Medium | 레이블, 버튼 |
+| Data | Mono 16px | Medium | 숫자, 금액 |
+
+---
+
+## 간격 시스템
+
+8px 그리드 시스템을 기반으로 합니다.
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| xs | 4px | 아이콘 간격 |
+| sm | 8px | 인라인 요소 간격 |
+| md | 16px | 컴포넌트 내부 패딩 |
+| lg | 24px | 섹션 간격 |
+| xl | 32px | 카드 간격 |
+| 2xl | 48px | 페이지 섹션 간격 |
+
+---
+
+## 터치 타겟
+
+접근성 가이드라인(WCAG)에 따라 최소 48x48px 터치 타겟을 보장합니다.
+
+| Element | Min Size |
+|---------|----------|
+| Button | 48px height |
+| Icon Button | 48x48px |
+| Table Row | 48px height |
+| Input | 48px height |
+
+---
+
+## 컴포넌트 목록
+
+Storybook에서 다음 컴포넌트들을 확인할 수 있습니다:
+
+- **M3Button** - 5가지 variant의 버튼
+- **M3Card** - 3가지 variant의 카드
+- **M3TextField** - 입력 필드
+- **M3Chip** - 선택/필터 칩
+- **M3Dialog** - 모달 다이얼로그
+- **M3SearchBar** - 검색 바
+- **Badge** - 상태 표시 뱃지
+- **DataTable** - 데이터 테이블
+- **Skeleton** - 로딩 스켈레톤
