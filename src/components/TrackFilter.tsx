@@ -84,7 +84,7 @@ export function TrackFilter({
 
         return (
           <div key={raceType} className="flex flex-col gap-1.5">
-            <span className="text-label-small text-on-surface-variant dark:text-gray-400">
+            <span className="text-label-small text-on-surface-variant">
               {RACE_TYPE_NAMES[raceType]}
             </span>
             <div className="flex flex-wrap gap-1.5">
