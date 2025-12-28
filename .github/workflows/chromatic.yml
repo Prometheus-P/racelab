@@ -1,0 +1,49 @@
+name: Chromatic Visual Testing
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/components/**'
+      - 'src/stories/**'
+      - '.storybook/**'
+      - 'package.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/components/**'
+      - 'src/stories/**'
+      - '.storybook/**'
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  chromatic:
+    name: Visual Regression Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for Chromatic to compare changes
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          buildScriptName: build-storybook
+          exitZeroOnChanges: true # Don't fail on visual changes (just flag them)
+          exitOnceUploaded: true # Exit once upload is done
+          onlyChanged: true # Only test stories that changed
+          externals: public/**
