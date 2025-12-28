@@ -78,7 +78,7 @@ function RaceCard({ race }: { race: RacePick }) {
   const colors = typeColors[race.type];
 
   return (
-    <div className="group rounded-xl border border-neutral-divider bg-white p-5 transition-all hover:border-primary/30 hover:shadow-lg">
+    <div className="group cursor-pointer rounded-xl border border-neutral-divider bg-white p-5 transition-all hover:border-primary/30 hover:shadow-lg dark:bg-[var(--rl-surface)] dark:border-[var(--rl-border)]">
       {/* Header */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -185,7 +185,9 @@ export function TodayPicksSection() {
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {picks.map((race) => (
-              <RaceCard key={race.id} race={race} />
+              <Link key={race.id} href={`/race/${race.id}`}>
+                <RaceCard race={race} />
+              </Link>
             ))}
           </div>
         )}
