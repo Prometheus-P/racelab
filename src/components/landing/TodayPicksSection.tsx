@@ -88,10 +88,10 @@ const typeLabels = {
 };
 
 const statusConfig = {
-  upcoming: { label: '예정', icon: Clock, bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
-  live: { label: 'LIVE', icon: Radio, bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
-  finished: { label: '종료', icon: Trophy, bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400' },
-  canceled: { label: '취소', icon: Clock, bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-500' },
+  upcoming: { label: '예정', icon: Clock, bg: 'bg-status-info-bg', text: 'text-status-info-text' },
+  live: { label: 'LIVE', icon: Radio, bg: 'bg-status-warning-bg', text: 'text-status-warning-text' },
+  finished: { label: '종료', icon: Trophy, bg: 'bg-[var(--rl-surface-container)]', text: 'text-[var(--rl-text-secondary)]' },
+  canceled: { label: '취소', icon: Clock, bg: 'bg-status-error-bg', text: 'text-status-error-text' },
 };
 
 function RaceCard({ race }: { race: RacePick }) {

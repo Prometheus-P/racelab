@@ -201,8 +201,8 @@ function RaceList({ races, type, trackFilter }: { races: Race[]; type: RaceType;
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${
               race.status === 'finished'
-                ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                ? 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)]'
+                : 'bg-status-info-bg text-status-info-text'
             }`}>
               {race.status === 'finished' ? '종료' : '예정'}
             </span>
