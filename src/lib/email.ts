@@ -1,7 +1,19 @@
 // src/lib/email.ts
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - Resend 인스턴스를 실제 사용 시점에 생성
+let resendInstance: Resend | null = null;
+
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[Email] RESEND_API_KEY is not configured');
+    return null;
+  }
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+}
 
 // Resend 무료 플랜: onboarding@resend.dev에서만 발송 가능
 // 도메인 인증 후 커스텀 발신자 사용 가능
@@ -16,6 +28,13 @@ export interface SendEmailOptions {
 
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
   try {
+    const resend = getResendClient();
+
+    if (!resend) {
+      console.log('[Email] Skipping email send - API key not configured');
+      return { success: true, skipped: true };
+    }
+
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: [to],
