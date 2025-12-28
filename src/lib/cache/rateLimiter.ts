@@ -20,9 +20,15 @@ export interface RateLimitResult {
 }
 
 /**
- * In-memory fallback store (used when Redis is unavailable)
+ * In-memory fallback store (DEVELOPMENT ONLY - not safe for production)
+ * In production, Redis is required for distributed rate limiting
  */
 const memoryStore = new Map<string, { count: number; resetTime: number }>();
+
+/**
+ * Check if we're in production environment
+ */
+const isProduction = process.env.NODE_ENV === 'production';
 
 /**
  * Rate limit window in seconds
@@ -100,8 +106,19 @@ export async function checkRateLimit(
 
   const redis = await getRedisClient();
 
-  // Fallback to memory if Redis unavailable
+  // In production, Redis is REQUIRED - reject request if unavailable
   if (!redis) {
+    if (isProduction) {
+      console.error('[RateLimiter] CRITICAL: Redis unavailable in production');
+      return {
+        allowed: false,
+        remaining: 0,
+        limit: config.requestsPerMinute,
+        resetIn: 60,
+      };
+    }
+    // Development only: fallback to in-memory
+    console.warn('[RateLimiter] DEV: Using in-memory fallback (not safe for production)');
     return checkRateLimitMemory(clientId, config.requestsPerMinute);
   }
 
@@ -122,13 +139,24 @@ export async function checkRateLimit(
       resetIn: result[2],
     };
   } catch (error) {
-    console.error('[RateLimiter] Redis error, falling back to memory:', error);
+    console.error('[RateLimiter] Redis error:', error);
+    if (isProduction) {
+      // In production, fail closed (deny access) when Redis errors occur
+      return {
+        allowed: false,
+        remaining: 0,
+        limit: config.requestsPerMinute,
+        resetIn: 60,
+      };
+    }
+    // Development only: fallback to in-memory
     return checkRateLimitMemory(clientId, config.requestsPerMinute);
   }
 }
 
 /**
- * In-memory rate limit fallback
+ * In-memory rate limit fallback (DEVELOPMENT ONLY)
+ * WARNING: Not safe for production - requests are not distributed across instances
  */
 function checkRateLimitMemory(clientId: string, maxRequests: number): RateLimitResult {
   const now = Date.now();

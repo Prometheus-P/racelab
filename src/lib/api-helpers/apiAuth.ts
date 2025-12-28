@@ -26,8 +26,12 @@ const LEGACY_API_KEYS = process.env.B2B_API_KEYS?.split(',') || [];
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.API_RATE_LIMIT || '100', 10);
 
-// In-memory rate limit store (fallback for legacy auth)
+// In-memory rate limit store (DEVELOPMENT ONLY for legacy auth)
+// WARNING: Not safe for production - use Redis-based B2B auth instead
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Check if we're in production
+const isProduction = process.env.NODE_ENV === 'production';
 
 export interface ApiAuthResult {
   authenticated: boolean;
@@ -89,9 +93,13 @@ function validateApiKey(apiKey: string): boolean {
 }
 
 /**
- * Check rate limit for the given API key
+ * Check rate limit for the given API key (LEGACY - uses in-memory store)
+ * WARNING: Not safe for production - use withB2BAuth with Redis instead
  */
 function checkRateLimit(apiKey: string): { allowed: boolean; remaining: number; resetIn: number } {
+  if (isProduction) {
+    console.warn('[apiAuth] DEPRECATED: Legacy in-memory rate limiting used in production. Migrate to withB2BAuth.');
+  }
   const now = Date.now();
   const record = rateLimitStore.get(apiKey);
 

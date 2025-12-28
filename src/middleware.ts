@@ -21,11 +21,10 @@ export default auth((req) => {
   }
 
   // Protected routes - require login
-  // Note: Currently disabled for MVP, enable when ready
-  // if (pathname.startsWith('/dashboard') && !isLoggedIn) {
-  //   const callbackUrl = encodeURIComponent(pathname);
-  //   return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, req.url));
-  // }
+  if (pathname.startsWith('/dashboard') && !isLoggedIn) {
+    const callbackUrl = encodeURIComponent(pathname);
+    return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, req.url));
+  }
 
   return NextResponse.next();
 });
