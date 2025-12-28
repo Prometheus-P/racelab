@@ -16,6 +16,7 @@ language: Korean (한국어)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Storybook](https://img.shields.io/badge/Storybook-10.1-FF4785?logo=storybook)](https://prometheus-p.github.io/racelab/)
+[![Chromatic](https://img.shields.io/badge/Chromatic-Visual%20Testing-FC521F?logo=chromatic)](https://www.chromatic.com/library?appId=695109a3632a897c300d1cde)
 [![License: ISC](https://img.shields.io/badge/License-ISC-green.svg)](https://opensource.org/licenses/ISC)
 
 ---
