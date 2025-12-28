@@ -1,5 +1,8 @@
 /**
  * Auth exports for use throughout the application
+ *
+ * IMPORTANT: This module exports full auth with database adapter.
+ * For middleware (Edge Runtime), import from ./auth.config instead.
  */
 
 import NextAuth from 'next-auth';
