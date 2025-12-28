@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { HistoricalRace, RaceType } from '@/types';
 import { M3Card } from './ui/M3Card';
 import { DividendDisplay } from './DividendDisplay';
@@ -140,6 +141,20 @@ export function ResultCard({
         {!isCanceled && winDividend && (
           <div data-testid="dividend">
             <DividendDisplay dividends={[winDividend]} compact />
+          </div>
+        )}
+
+        {/* Detail Link */}
+        {race.id && (
+          <div className="flex justify-end pt-2">
+            <Link
+              href={`/race/${race.id}`}
+              className="text-label-medium font-medium text-primary hover:text-primary-dark hover:underline"
+              onClick={(e) => e.stopPropagation()}
+              data-testid="detail-link"
+            >
+              상세 보기 →
+            </Link>
           </div>
         )}
 
