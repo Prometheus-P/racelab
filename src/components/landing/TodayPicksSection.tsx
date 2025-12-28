@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CalendarDays, TrendingUp, Users, ArrowRight, Loader2 } from 'lucide-react';
+import { CalendarDays, TrendingUp, Users, ArrowRight, Loader2, Trophy, Clock, Radio } from 'lucide-react';
 
 interface RacePick {
   id: string;
@@ -13,6 +13,9 @@ interface RacePick {
   entryCount: number;
   highlight: string;
   type: 'horse' | 'cycle' | 'boat';
+  status: 'upcoming' | 'live' | 'finished' | 'canceled';
+  grade?: string;
+  winnerName?: string; // 1착 마/선수 (종료된 경주만)
 }
 
 // API 응답에서 사용되는 경주 데이터 타입
@@ -21,11 +24,14 @@ interface ApiRace {
   track?: string;
   venue?: string;
   raceNumber?: number;
+  raceNo?: number;
   startTime?: string;
   time?: string;
   distance?: string;
   entryCount?: number;
-  entries?: unknown[];
+  entries?: Array<{ no: number; name: string; jockey?: string }>;
+  status?: 'upcoming' | 'live' | 'finished' | 'canceled';
+  grade?: string;
 }
 
 // 더미 데이터 (API 실패 시 fallback)
@@ -39,6 +45,9 @@ const FALLBACK_PICKS: RacePick[] = [
     entryCount: 12,
     highlight: '배당률 변동 활발',
     type: 'horse',
+    status: 'finished',
+    grade: '국6등급',
+    winnerName: '파드슈발',
   },
   {
     id: 'busan-3r',
@@ -49,6 +58,8 @@ const FALLBACK_PICKS: RacePick[] = [
     entryCount: 10,
     highlight: '인기마 접전',
     type: 'horse',
+    status: 'upcoming',
+    grade: '국5등급',
   },
   {
     id: 'jeju-2r',
@@ -59,6 +70,8 @@ const FALLBACK_PICKS: RacePick[] = [
     entryCount: 8,
     highlight: '역배팅 기회',
     type: 'horse',
+    status: 'live',
+    grade: '국4등급',
   },
 ];
 
@@ -74,8 +87,17 @@ const typeLabels = {
   boat: '경정',
 };
 
+const statusConfig = {
+  upcoming: { label: '예정', icon: Clock, bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
+  live: { label: 'LIVE', icon: Radio, bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
+  finished: { label: '종료', icon: Trophy, bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400' },
+  canceled: { label: '취소', icon: Clock, bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-500' },
+};
+
 function RaceCard({ race }: { race: RacePick }) {
   const colors = typeColors[race.type];
+  const statusInfo = statusConfig[race.status];
+  const StatusIcon = statusInfo.icon;
 
   return (
     <div className="group cursor-pointer rounded-xl border border-neutral-divider bg-white p-5 transition-all hover:border-primary/30 hover:shadow-lg dark:bg-[var(--rl-surface)] dark:border-[var(--rl-border)]">
@@ -87,15 +109,19 @@ function RaceCard({ race }: { race: RacePick }) {
           >
             {typeLabels[race.type]}
           </span>
-          <span className="text-title-medium font-bold text-neutral-text-primary">
+          <span className="text-title-medium font-bold text-neutral-text-primary dark:text-[var(--rl-text-primary)]">
             {race.track} {race.raceNumber}R
           </span>
         </div>
-        <span className="text-label-medium text-neutral-text-secondary">{race.time}</span>
+        {/* Status Badge */}
+        <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-label-small font-medium ${statusInfo.bg} ${statusInfo.text}`}>
+          <StatusIcon className={`h-3 w-3 ${race.status === 'live' ? 'animate-pulse' : ''}`} />
+          {statusInfo.label}
+        </span>
       </div>
 
       {/* Stats */}
-      <div className="mb-3 flex items-center gap-4 text-body-small text-neutral-text-secondary">
+      <div className="mb-3 flex items-center gap-4 text-body-small text-neutral-text-secondary dark:text-[var(--rl-text-secondary)]">
         <div className="flex items-center gap-1">
           <CalendarDays className="h-4 w-4" />
           <span>{race.distance}</span>
@@ -104,13 +130,37 @@ function RaceCard({ race }: { race: RacePick }) {
           <Users className="h-4 w-4" />
           <span>{race.entryCount}두 출전</span>
         </div>
+        {race.grade && (
+          <span className="text-label-small text-neutral-text-tertiary dark:text-[var(--rl-text-tertiary)]">
+            {race.grade}
+          </span>
+        )}
       </div>
 
-      {/* Highlight */}
-      <div className="flex items-center gap-2 rounded-lg bg-horse-container/50 px-3 py-2">
-        <TrendingUp className="h-4 w-4 text-horse-bold" />
-        <span className="text-body-medium font-medium text-horse-bold">{race.highlight}</span>
-      </div>
+      {/* Result or Highlight */}
+      {race.status === 'finished' && race.winnerName ? (
+        <div className="flex items-center gap-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2">
+          <Trophy className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          <span className="text-body-medium font-medium text-yellow-700 dark:text-yellow-300">
+            1착: {race.winnerName}
+          </span>
+        </div>
+      ) : (
+        <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
+          race.status === 'live'
+            ? 'bg-red-50 dark:bg-red-900/20'
+            : 'bg-horse-container/50 dark:bg-horse-container/20'
+        }`}>
+          <TrendingUp className={`h-4 w-4 ${
+            race.status === 'live' ? 'text-red-600 dark:text-red-400' : 'text-horse-bold'
+          }`} />
+          <span className={`text-body-medium font-medium ${
+            race.status === 'live' ? 'text-red-700 dark:text-red-300' : 'text-horse-bold'
+          }`}>
+            {race.highlight}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,12 +183,15 @@ export function TodayPicksSection() {
           const topRaces = data.data.slice(0, 3).map((race: ApiRace, index: number) => ({
             id: race.id || `race-${index}`,
             track: race.track || race.venue || '서울',
-            raceNumber: race.raceNumber || index + 1,
+            raceNumber: race.raceNo || race.raceNumber || index + 1,
             time: race.startTime || race.time || '11:00',
             distance: race.distance || '1200m',
             entryCount: race.entryCount || race.entries?.length || 10,
-            highlight: getHighlight(index),
+            highlight: getHighlight(index, race.status),
             type: 'horse' as const,
+            status: race.status || 'upcoming',
+            grade: race.grade,
+            winnerName: race.status === 'finished' && race.entries?.[0]?.name,
           }));
           setPicks(topRaces);
         } else {
@@ -203,8 +256,14 @@ export function TodayPicksSection() {
   );
 }
 
-// Helper function to generate highlight text
-function getHighlight(index: number): string {
+// Helper function to generate highlight text based on status
+function getHighlight(index: number, status?: string): string {
+  if (status === 'finished') {
+    return '경주 종료';
+  }
+  if (status === 'live') {
+    return '진행 중';
+  }
   const highlights = [
     '배당률 변동 활발',
     '인기마 접전',
