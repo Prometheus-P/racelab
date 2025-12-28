@@ -13,6 +13,8 @@ const customJestConfig = {
   moduleNameMapper: {
     // Handle module aliases (this will be automatically configured for you soon)
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Mock next-auth to avoid ESM import issues
+    '^next-auth/react$': '<rootDir>/__mocks__/next-auth/react.js',
   },
   testEnvironment: 'jsdom',
   testMatch: [
@@ -20,6 +22,10 @@ const customJestConfig = {
     '**/src/app/**/*.test.tsx',
     '**/src/hooks/**/*.test.ts',
     '**/tests/unit/components/**/*.test.tsx',
+  ],
+  // Transform ESM modules that Jest can't parse natively
+  transformIgnorePatterns: [
+    '/node_modules/(?!(next-auth|@auth|oauth4webapi|jose|openid-client|@panva)/)',
   ],
 };
 
