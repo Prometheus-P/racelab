@@ -146,7 +146,7 @@ function TrackFilter({ type, currentTrack }: TrackFilterProps) {
         className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
           !currentTrack
             ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+            : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
         }`}
       >
         전체
@@ -158,7 +158,7 @@ function TrackFilter({ type, currentTrack }: TrackFilterProps) {
           className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             currentTrack === track
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
           }`}
         >
           {track}
