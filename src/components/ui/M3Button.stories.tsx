@@ -198,3 +198,20 @@ export const RaceTypeButtons: Story = {
     </div>
   ),
 };
+
+// CTA Buttons
+export const CTAButtons: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4">
+      <h3 className="text-label-large font-medium text-neutral-text-secondary">CTA 버튼 예제</h3>
+      <div className="flex gap-4">
+        <M3Button variant="filled" size="lg">
+          지금 시작하기
+        </M3Button>
+        <M3Button variant="outlined" size="lg">
+          자세히 보기
+        </M3Button>
+      </div>
+    </div>
+  ),
+};
