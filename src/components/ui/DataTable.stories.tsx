@@ -35,8 +35,9 @@ const meta: Meta<typeof DataTable> = {
 export default meta;
 type Story = StoryObj<typeof DataTable>;
 
-// Sample data types
+// Sample data types with index signature for DataTable compatibility
 interface RaceEntry {
+  [key: string]: unknown;
   id: number;
   rank: number;
   horseName: string;
@@ -46,6 +47,7 @@ interface RaceEntry {
 }
 
 interface RaceResult {
+  [key: string]: unknown;
   race: string;
   winner: string;
   time: string;

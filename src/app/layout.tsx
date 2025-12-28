@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { HeaderSkeleton } from '@/components/Skeletons';
 import { getSiteUrl } from '@/lib/seo/siteUrl';
 import { SessionProvider } from '@/components/auth';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 // Noto Sans KR - Primary font for Korean text (optimized for 50-60 demographic)
 // next/font/google automatically:
@@ -279,22 +280,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         )}
       </head>
-      {/* RaceLab Design System V1.0 - 순백 배경 (#FFFFFF) */}
-      <body className={`flex min-h-screen flex-col bg-white text-on-surface font-sans ${notoSansKR.className}`}>
-        <SessionProvider>
-          <Suspense fallback={<HeaderSkeleton />}>
-            <Header />
-          </Suspense>
+      {/* RaceLab Design System V1.0 - CSS 변수 기반 테마 */}
+      <body className={`flex min-h-screen flex-col bg-[var(--rl-background)] text-[var(--rl-text-primary)] font-sans ${notoSansKR.className}`}>
+        <ThemeProvider>
+          <SessionProvider>
+            <Suspense fallback={<HeaderSkeleton />}>
+              <Header />
+            </Suspense>
 
-          <main
-            id="main-content"
-            className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
-          >
-            {children}
-          </main>
+            <main
+              id="main-content"
+              className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
+            >
+              {children}
+            </main>
 
-          <Footer />
-        </SessionProvider>
+            <Footer />
+          </SessionProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

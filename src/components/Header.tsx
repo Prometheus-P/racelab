@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { RaceLabLogo } from './brand';
+import { ThemeToggle } from './ui/ThemeToggle';
 
 interface NavItem {
   href: string;
@@ -68,7 +69,7 @@ const Header: React.FC = () => {
   const isResultsPage = pathname === '/results';
 
   return (
-    <header className="border-b border-neutral-divider bg-white shadow-rl-1">
+    <header className="border-b border-[var(--rl-border)] bg-[var(--rl-surface)] shadow-[var(--rl-shadow-1)]">
       {/* Skip to main content link - Accessibility */}
       <a
         href="#main-content"
@@ -132,6 +133,8 @@ const Header: React.FC = () => {
             >
               <span aria-hidden="true">📕</span> <span>북모드</span>
             </Link>
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -182,7 +185,7 @@ const Header: React.FC = () => {
           <nav
             id="mobile-menu"
             aria-label="모바일 네비게이션"
-            className="mt-4 border-t border-neutral-divider pt-4 md:hidden"
+            className="mt-4 border-t border-[var(--rl-divider)] pt-4 md:hidden"
           >
             <ul className="space-y-2">
               {navItems.map((item) => (
@@ -237,6 +240,13 @@ const Header: React.FC = () => {
                   </span>
                   <span>북모드</span>
                 </Link>
+              </li>
+              {/* Theme Toggle in Mobile Menu */}
+              <li className="pt-2 border-t border-[var(--rl-divider)]">
+                <div className="flex items-center justify-between px-5 py-2">
+                  <span className="text-body-medium font-semibold text-[var(--rl-text-primary)]">테마</span>
+                  <ThemeToggle />
+                </div>
               </li>
             </ul>
           </nav>
