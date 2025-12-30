@@ -5,6 +5,8 @@
  * 보안을 위해 whitelist 기반 파싱만 허용
  */
 
+import type { ExtendedConditionField as ExtendedField } from './field-metadata';
+
 // Extended field metadata 재export
 export {
   type FieldCategory,
@@ -233,8 +235,8 @@ export type TimeReference =
  * 단일 조건 정의
  */
 export interface StrategyCondition {
-  /** 평가할 필드 */
-  field: ConditionField;
+  /** 평가할 필드 (확장 필드 포함) */
+  field: ConditionField | ExtendedField;
 
   /** 비교 연산자 */
   operator: ConditionOperator;

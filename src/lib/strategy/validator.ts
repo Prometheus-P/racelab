@@ -15,7 +15,9 @@ import {
   type ConditionOperator,
   type TimeReference,
   type BetAction,
+  type ExtendedConditionField,
   FIELD_METADATA,
+  EXTENDED_FIELD_METADATA,
   OPERATOR_METADATA,
   MAX_CONDITIONS,
 } from './types';
@@ -210,8 +212,11 @@ export function validateStrategy(input: unknown): ValidationResult {
 
     // Phase 1+ 필드 사용 경고
     for (const condition of strategy.conditions) {
-      const metadata = FIELD_METADATA[condition.field];
-      if (metadata.phase > 0) {
+      // 기본 필드 메타데이터 또는 확장 필드 메타데이터 조회
+      const metadata =
+        FIELD_METADATA[condition.field as ConditionField] ??
+        EXTENDED_FIELD_METADATA[condition.field as ExtendedConditionField];
+      if (metadata && metadata.phase > 0) {
         warnings.push(
           `Field '${condition.field}' is Phase ${metadata.phase} feature and may have limited data`
         );
