@@ -13,6 +13,7 @@ const config: Config = {
       fontFamily: {
         sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
         brand: ['Exo 2', 'Pretendard', 'sans-serif'],
+        display: ['Welcome', 'Pretendard', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       // Typography Scale - 50-60대 사용자 최적화 (1-2단계 큰 폰트)

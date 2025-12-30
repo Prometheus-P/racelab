@@ -70,6 +70,24 @@
 }
 
 /* =============================================================================
+   Welcome Font - 디스플레이/브랜드용
+   ============================================================================= */
+
+@font-face {
+  font-family: 'Welcome';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/OTWelcomeRA.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Welcome';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/OTWelcomeBA.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* =============================================================================
    RaceLab Design System V1.0 - Global Styles
    핵심 원칙: CLARITY (명확성), BALANCE (균형), COMFORT (편안함)
    ============================================================================= */
