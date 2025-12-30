@@ -2,11 +2,31 @@
  * Excel Export Utilities
  *
  * exceljs를 사용하여 스타일링된 Excel 파일 생성
+ *
+ * NOTE: exceljs (22MB)와 file-saver는 동적 임포트로 번들 최적화
  */
 
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
+import type ExcelJS from 'exceljs';
 import type { BacktestResult, BetRecord } from '@/lib/strategy/types';
+
+// 동적 임포트용 캐시
+let excelJsModule: typeof import('exceljs') | null = null;
+let saveAsFunc: ((data: Blob, filename?: string) => void) | null = null;
+
+async function getExcelJS(): Promise<typeof import('exceljs')> {
+  if (!excelJsModule) {
+    excelJsModule = await import('exceljs');
+  }
+  return excelJsModule;
+}
+
+async function getSaveAs(): Promise<(data: Blob, filename?: string) => void> {
+  if (!saveAsFunc) {
+    const fileSaverMod = await import('file-saver');
+    saveAsFunc = fileSaverMod.saveAs;
+  }
+  return saveAsFunc;
+}
 
 // =============================================================================
 // Style Constants
@@ -278,6 +298,8 @@ export interface ExcelExportOptions {
 
 /**
  * 백테스트 결과를 Excel 파일로 내보내기
+ *
+ * exceljs와 file-saver를 동적으로 로드하여 번들 최적화
  */
 export async function exportToExcel(
   result: BacktestResult,
@@ -290,7 +312,11 @@ export async function exportToExcel(
     filename,
   } = options;
 
-  const workbook = new ExcelJS.Workbook();
+  // 동적 임포트 (필요할 때만 로드)
+  const ExcelJSModule = await getExcelJS();
+  const saveAs = await getSaveAs();
+
+  const workbook = new ExcelJSModule.Workbook();
   workbook.creator = 'RaceLab';
   workbook.created = new Date();
   workbook.modified = new Date();
