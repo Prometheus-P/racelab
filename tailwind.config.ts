@@ -11,8 +11,8 @@ const config: Config = {
     extend: {
       // RaceLab Design System V1.0 Typography
       fontFamily: {
-        sans: ['Noto Sans KR', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-        brand: ['Exo 2', 'Noto Sans KR', 'sans-serif'],
+        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        brand: ['Exo 2', 'Pretendard', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       // Typography Scale - 50-60대 사용자 최적화 (1-2단계 큰 폰트)
