@@ -4,7 +4,7 @@
  * 일일 추천의 성과를 추적하고 계산
  */
 
-import type { DailySelection, DailyPerformance, SelectionResult } from './types';
+import type { DailySelection, DailyPerformance } from './types';
 
 /** 기본 베팅 금액 */
 const DEFAULT_BET_AMOUNT = 10_000; // 1만원

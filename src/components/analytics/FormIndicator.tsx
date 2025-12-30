@@ -20,9 +20,9 @@ export function FormIndicator({ score, showLabel = false }: FormIndicatorProps) 
   return (
     <div className="flex items-center gap-1">
       <span className="text-sm">
-        {Array.from({ length: normalizedScore }, (_, i) => '🔥').join('')}
-        {Array.from({ length: maxScore - normalizedScore }, (_, i) => (
-          <span key={i} className="opacity-20">
+        {Array.from({ length: normalizedScore }, () => '🔥').join('')}
+        {Array.from({ length: maxScore - normalizedScore }, (_, idx) => (
+          <span key={idx} className="opacity-20">
             🔥
           </span>
         ))}

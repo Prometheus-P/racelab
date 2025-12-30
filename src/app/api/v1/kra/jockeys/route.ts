@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   fetchJockeyRanking,
-  fetchAllJockeyResults,
   searchJockeysByName,
   formatDateParam,
 } from '@/lib/api/kra';
