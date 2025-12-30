@@ -218,9 +218,9 @@ docs/confidential/
 exports/
 data-exports/
 
-# Analytics & Reports (sensitive)
-analytics/
-reports/
+# Analytics & Reports (sensitive) - root level only, not src/
+/analytics/
+/reports/
 *.xlsx
 *.csv
 !public/**/*.csv
