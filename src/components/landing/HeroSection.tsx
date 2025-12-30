@@ -40,10 +40,10 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-display-medium font-bold tracking-tight text-neutral-text-primary md:text-display-large lg:text-[40px] lg:leading-[48px]">
+            <h1 className="font-display text-display-medium font-bold tracking-tight text-neutral-text-primary md:text-display-large lg:text-[40px] lg:leading-[48px]">
               운에 맡기지 마세요.
               <br />
-              <span className="text-primary">백테스트</span>하세요.
+              <span className="text-primary">연습</span>하세요.
             </h1>
 
             {/* Subheadline */}

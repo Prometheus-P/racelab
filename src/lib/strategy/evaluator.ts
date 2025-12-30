@@ -12,6 +12,7 @@ import type {
   ConditionOperator,
   TimeReference,
   BetAction,
+  ExtendedConditionField,
 } from './types';
 import { FIELD_METADATA } from './types';
 import type { DSLScoring, ScoringContext, ParsedExpression } from './dsl/types';
@@ -51,6 +52,9 @@ export interface EntryContext {
     odds_win: number;
     odds_place?: number;
   }>;
+
+  // 확장 필드 지원 (ExtendedConditionField)
+  [key: string]: unknown;
 }
 
 /**
@@ -83,7 +87,7 @@ export interface EvaluationResult {
  * 개별 조건 평가 결과
  */
 export interface ConditionResult {
-  field: ConditionField;
+  field: ConditionField | ExtendedConditionField;
   operator: ConditionOperator;
   expectedValue: unknown;
   actualValue: unknown;
@@ -216,7 +220,7 @@ export class StrategyEvaluator {
    * 필드 값 추출 (시간 참조 포함)
    */
   private getFieldValue(
-    field: ConditionField,
+    field: ConditionField | ExtendedConditionField,
     entry: EntryContext,
     timeRef?: TimeReference
   ): number | undefined {
@@ -233,7 +237,7 @@ export class StrategyEvaluator {
    * 시간 참조 기반 값 추출
    */
   private getTimeRefValue(
-    field: ConditionField,
+    field: ConditionField | ExtendedConditionField,
     entry: EntryContext,
     timeRef: TimeReference
   ): number | undefined {
@@ -271,7 +275,7 @@ export class StrategyEvaluator {
    */
   private getOddsFromSnapshot(
     snapshot: { odds_win: number; odds_place?: number },
-    field: ConditionField
+    field: ConditionField | ExtendedConditionField
   ): number | undefined {
     if (field === 'odds_win') return snapshot.odds_win;
     if (field === 'odds_place') return snapshot.odds_place;
@@ -284,7 +288,7 @@ export class StrategyEvaluator {
   private findClosestSnapshot(
     sorted: Array<{ time: Date; odds_win: number; odds_place?: number }>,
     minutesBefore: number,
-    field: ConditionField
+    field: ConditionField | ExtendedConditionField
   ): number | undefined {
     // 마지막 스냅샷을 경주 시작 시간으로 가정
     const lastTime = sorted[sorted.length - 1].time;
