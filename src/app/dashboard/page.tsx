@@ -7,10 +7,10 @@ import {
   StrategySelector,
   PeriodSelector,
   ResultsSummary,
-  EquityCurveChart,
   BetHistoryTable,
   type Period,
 } from './components';
+import { LazyEquityCurveChart } from './components/LazyEquityCurveChart';
 import { getBacktestResult, type BacktestResult } from '@/lib/dashboard/mockResults';
 import { getStrategyById } from '@/lib/dashboard/presetStrategies';
 
@@ -117,8 +117,8 @@ export default function DashboardPage() {
             {/* Results Summary */}
             <ResultsSummary result={result} isLoading={isLoading} />
 
-            {/* Equity Curve Chart */}
-            <EquityCurveChart
+            {/* Equity Curve Chart - Lazy loaded for bundle optimization */}
+            <LazyEquityCurveChart
               data={result?.equityCurve ?? null}
               isLoading={isLoading}
             />

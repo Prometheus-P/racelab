@@ -5,5 +5,6 @@
  */
 
 export { LazyMiniChart } from './LazyMiniChart';
-export { LazyEntrantRadarChart, EntrantRadarChart } from './LazyEntrantRadar';
-export type { EntrantRadarChartProps } from './LazyEntrantRadar';
+export { LazyEntrantRadarChart } from './LazyEntrantRadar';
+export { EntrantRadarChart } from './EntrantRadarChart';
+export type { EntrantRadarChartProps } from './EntrantRadarChart';
