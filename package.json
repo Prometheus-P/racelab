@@ -40,7 +40,7 @@
     "file-saver": "^2.0.5",
     "framer-motion": "^12.23.26",
     "ioredis": "^5.8.2",
-    "lucide-react": "^0.561.0",
+    "lucide-react": "^0.562.0",
     "mathjs": "^15.1.0",
     "next": "14.2.35",
     "next-auth": "^5.0.0-beta.30",
