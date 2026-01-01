@@ -1,8 +1,11 @@
 // src/lib/api/kraClient.ts
 
-import { Race } from '@/types';
-import { mapKRA299ToRaces } from '../api-helpers/mappers'; // Adjust path as needed
-import { KRA299ResultItem } from '../api-helpers/mappers'; // Adjust path as needed
+import { Race, RaceResult } from '@/types';
+import {
+  mapKRA299ToRaces,
+  mapKRA299ToResults,
+  KRA299ResultItem,
+} from '../api-helpers/mappers';
 import { fetchApi } from './fetcher';
 
 const KRA_BASE_URL = 'https://apis.data.go.kr/B551015';
@@ -27,4 +30,37 @@ export async function fetchHorseRaceSchedules(rcDate: string): Promise<Race[]> {
   // API299 returns grouped race result data
   const races = mapKRA299ToRaces(rawItems as KRA299ResultItem[]);
   return races;
+}
+
+/**
+ * Fetch race results for a specific race from API299
+ * @param rcDate Race date in YYYYMMDD format
+ * @param meetCode Meet code (1=서울, 2=제주, 3=부경)
+ * @param raceNo Race number
+ */
+export async function fetchHorseRaceResults(
+  rcDate: string,
+  meetCode: string,
+  raceNo: number
+): Promise<RaceResult[]> {
+  const KRA_API_KEY = process.env.KRA_API_KEY;
+
+  const rawItems = await fetchApi(
+    KRA_BASE_URL,
+    '/API299/Race_Result_total',
+    KRA_API_KEY,
+    {},
+    rcDate,
+    'KRA API299',
+    'KRA_API_KEY'
+  );
+
+  // Map to RaceResult format for the specific race
+  const results = mapKRA299ToResults(
+    rawItems as KRA299ResultItem[],
+    meetCode,
+    raceNo
+  );
+
+  return results;
 }

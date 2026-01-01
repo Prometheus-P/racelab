@@ -114,7 +114,7 @@ describe('GET /api/v1/kra/jockeys', () => {
     it('should pass date parameter', async () => {
       mockFetchJockeyRanking.mockResolvedValue(mockJockeys);
 
-      const response = await GET(
+      await GET(
         createRequest('http://localhost/api/v1/kra/jockeys?date=2024-12-25')
       );
 

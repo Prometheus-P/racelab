@@ -13,22 +13,37 @@ interface Props {
   searchParams?: { date?: string; view?: BookViewMode };
 }
 
-const fetchRaces = async (date: string): Promise<Race[]> => {
-  const safe = async (fn: (d: string) => Promise<Race[]>) => {
+interface FetchResult {
+  races: Race[];
+  failedTypes: ('horse' | 'cycle' | 'boat')[];
+}
+
+const fetchRaces = async (date: string): Promise<FetchResult> => {
+  const failedTypes: ('horse' | 'cycle' | 'boat')[] = [];
+
+  const safe = async (
+    fn: (d: string) => Promise<Race[]>,
+    type: 'horse' | 'cycle' | 'boat'
+  ): Promise<Race[]> => {
     try {
       return await fn(date);
     } catch (error) {
-      console.error('venue fetch 실패', error);
+      console.error(`venue ${type} fetch 실패`, error);
+      failedTypes.push(type);
       return [];
     }
   };
 
   const [horse, cycle, boat] = await Promise.all([
-    safe(fetchHorseRaceSchedules),
-    safe(fetchCycleRaceSchedules),
-    safe(fetchBoatRaceSchedules),
+    safe(fetchHorseRaceSchedules, 'horse'),
+    safe(fetchCycleRaceSchedules, 'cycle'),
+    safe(fetchBoatRaceSchedules, 'boat'),
   ]);
-  return [...horse, ...cycle, ...boat];
+
+  return {
+    races: [...horse, ...cycle, ...boat],
+    failedTypes,
+  };
 };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -42,8 +57,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function VenuePage({ params, searchParams }: Props) {
   const date = searchParams?.date ?? formatDate(getKoreanDate());
   const rcDate = date.replace(/-/g, '');
-  const races = await fetchRaces(rcDate);
+  const { races, failedTypes } = await fetchRaces(rcDate);
   const viewModel = buildBookViewModel({ date, races });
+  const hasPartialFailure = failedTypes.length > 0 && failedTypes.length < 3;
   const viewMode: BookViewMode = searchParams?.view === 'expert' ? 'expert' : 'compact';
   const venueVM = viewModel.venues.find((venue) => venue.name === params.id || venue.id === params.id);
   const selectedVenue =
@@ -65,6 +81,14 @@ export default async function VenuePage({ params, searchParams }: Props) {
   return (
     <BookPageShell>
       <Script id="venue-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(placeSchema) }} />
+      {hasPartialFailure && (
+        <div className="mb-4 rounded-xl border border-dashed border-orange-200 bg-orange-50 p-4 text-sm text-orange-800">
+          <div className="font-semibold">일부 데이터 로드 실패</div>
+          <div className="text-xs">
+            {failedTypes.map((t) => (t === 'horse' ? '경마' : t === 'cycle' ? '경륜' : '경정')).join(', ')} 데이터를 불러오지 못했습니다.
+          </div>
+        </div>
+      )}
       <VenueSection venue={selectedVenue} viewMode={viewMode} />
       <ProGate feature="pdf" />
     </BookPageShell>

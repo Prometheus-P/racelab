@@ -1,7 +1,7 @@
 // src/components/ResultsList.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { HistoricalRace, PaginatedResults } from '@/types';
 import { ResultCard } from './ResultCard';
 import { Pagination } from './Pagination';
@@ -19,9 +19,9 @@ export function ResultsList({
 }: ResultsListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const handleCardClick = (raceId: string) => {
+  const handleCardClick = useCallback((raceId: string) => {
     setExpandedId((prev) => (prev === raceId ? null : raceId));
-  };
+  }, []);
 
   if (results.items.length === 0) {
     return (

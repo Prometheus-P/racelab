@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PredictionCard, PredictionCardSkeleton } from '@/components/predictions';
 import { M3Card } from '@/components/ui/M3Card';
-import type { RacePrediction, HorsePrediction } from '@/types/prediction';
+import type { HorsePrediction } from '@/types/prediction';
 
 interface PredictionsClientProps {
   date: string;

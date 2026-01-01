@@ -214,7 +214,7 @@ describe('M3Dialog', () => {
       expect(dialog).toHaveAttribute('aria-describedby', 'desc-id');
     });
 
-    it('traps focus within dialog', async () => {
+    it('traps focus within dialog (Tab wraps from last to first)', async () => {
       const user = userEvent.setup();
       render(
         <M3Dialog
@@ -231,11 +231,12 @@ describe('M3Dialog', () => {
       const btn1 = screen.getByTestId('btn1');
       const btn2 = screen.getByTestId('btn2');
 
-      btn1.focus();
-      expect(document.activeElement).toBe(btn1);
+      // Tab on last element should wrap to first
+      btn2.focus();
+      expect(document.activeElement).toBe(btn2);
 
       await user.tab();
-      expect(document.activeElement).toBe(btn2);
+      expect(document.activeElement).toBe(btn1);
     });
 
     it('accepts custom className', () => {

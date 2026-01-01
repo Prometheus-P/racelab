@@ -140,7 +140,7 @@ describe('PredictionCard', () => {
         isValue: false,
       },
     });
-    const { container } = render(<PredictionCard prediction={prediction} />);
+    render(<PredictionCard prediction={prediction} />);
 
     const edgeValue = screen.getByText('-4.5%');
     expect(edgeValue).toHaveClass('text-red-500');

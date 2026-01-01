@@ -7,7 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateMockScreeningResult } from '@/lib/daily/screener';
+import { runScreening, generateMockScreeningResult } from '@/lib/daily/screener';
+import { kraDataProvider } from '@/lib/daily/kraDataProvider';
 import { getPresetStrategyById, ALL_PRESET_STRATEGIES } from '@/lib/dashboard/strategies';
 import type { ScreeningResult } from '@/lib/daily/types';
 
@@ -101,9 +102,30 @@ export async function GET(request: NextRequest) {
       strategy = defaultPreset.strategy;
     }
 
-    // 스크리닝 실행 (현재는 더미 데이터)
-    // TODO: 실제 경주 데이터와 연동
-    const result = generateMockScreeningResult(strategy, date);
+    // 스크리닝 실행
+    let result: ScreeningResult;
+
+    try {
+      // Try real KRA data first
+      result = await runScreening(
+        {
+          strategy,
+          date,
+          limit: 50,
+        },
+        kraDataProvider
+      );
+
+      // If no selections found, try mock data as fallback
+      if (result.selections.length === 0 && result.totalRacesScreened === 0) {
+        console.log('[daily-selections] No real data, falling back to mock');
+        result = generateMockScreeningResult(strategy, date);
+      }
+    } catch (error) {
+      // Fallback to mock data on API error
+      console.error('[daily-selections] KRA API error, using mock data:', error);
+      result = generateMockScreeningResult(strategy, date);
+    }
 
     // 캐시 저장
     setToCache(cacheKey, result);

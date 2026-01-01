@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 /**
  * Ingestion API Authentication Middleware
@@ -9,6 +10,32 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const INGESTION_API_KEY = process.env.INGESTION_API_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
+
+/**
+ * Timing-safe string comparison to prevent timing attacks
+ *
+ * Uses crypto.timingSafeEqual which runs in constant time regardless
+ * of where the strings differ, preventing attackers from inferring
+ * secret values by measuring response times.
+ *
+ * @param a - First string to compare
+ * @param b - Second string to compare
+ * @returns true if strings are equal, false otherwise
+ */
+function timingSafeCompare(a: string, b: string): boolean {
+  // If lengths differ, we still need to do constant-time comparison
+  // to avoid leaking length information
+  if (a.length !== b.length) {
+    // Compare against a dummy value to maintain constant time
+    const dummy = Buffer.from(a);
+    crypto.timingSafeEqual(dummy, dummy);
+    return false;
+  }
+
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 export interface AuthResult {
   authenticated: boolean;
@@ -29,7 +56,7 @@ export interface AuthResult {
 export function validateIngestionAuth(request: NextRequest): AuthResult {
   // Check for API key in X-Ingestion-Key header
   const apiKey = request.headers.get('x-ingestion-key');
-  if (apiKey && INGESTION_API_KEY && apiKey === INGESTION_API_KEY) {
+  if (apiKey && INGESTION_API_KEY && timingSafeCompare(apiKey, INGESTION_API_KEY)) {
     return { authenticated: true, source: 'api_key' };
   }
 
@@ -37,7 +64,7 @@ export function validateIngestionAuth(request: NextRequest): AuthResult {
   const authHeader = request.headers.get('authorization');
   if (authHeader && CRON_SECRET) {
     const expectedAuth = `Bearer ${CRON_SECRET}`;
-    if (authHeader === expectedAuth) {
+    if (timingSafeCompare(authHeader, expectedAuth)) {
       return { authenticated: true, source: 'cron_secret' };
     }
   }

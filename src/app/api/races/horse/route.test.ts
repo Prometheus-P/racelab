@@ -38,7 +38,10 @@ describe('GET /api/races/horse', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue(mockHorseRaces);
+    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockHorseRaces,
+    });
   });
 
   describe('Success Cases', () => {
@@ -62,7 +65,10 @@ describe('GET /api/races/horse', () => {
     });
 
     it('should_return_empty_array_when_no_races', async () => {
-      (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue([]);
+      (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue({
+        success: true,
+        data: [],
+      });
 
       const response = await GET(createMockRequest());
       const jsonResponse = await response.json();

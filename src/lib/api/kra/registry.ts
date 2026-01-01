@@ -151,17 +151,17 @@ export const KRA_API_REGISTRY = {
   // 배당률 정보 (Odds)
   // =====================
 
-  /** 확정배당율 통합 정보 */
+  /** API301: 확정배당율종합 */
   ODDS_FINAL: {
-    endpoint: '/API???/finalOdds', // TODO: 정확한 엔드포인트 확인 필요
+    endpoint: '/API301/Dividend_rate_total',
     dateParam: 'rc_date',
     description: '확정배당율 통합 - 단승, 복승, 연승, 쌍승 등',
     optionalParams: ['meet', 'rcNo'],
   },
 
-  /** 당일 확정배당율종합 */
+  /** API301: 당일 확정배당율종합 (ODDS_FINAL과 동일) */
   ODDS_TODAY: {
-    endpoint: '/API???/todayOdds', // TODO: 정확한 엔드포인트 확인 필요
+    endpoint: '/API301/Dividend_rate_total',
     dateParam: 'rc_date',
     description: '당일 확정배당율 - WIN, PLC, QNL, EXA, QPL, TLA 등',
     optionalParams: ['meet', 'rcNo'],

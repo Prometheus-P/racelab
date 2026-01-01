@@ -20,7 +20,8 @@ import {
 } from '../core/scorer';
 import { createTrackConditionFromMoisture } from '@/types/track-condition';
 import { generateMockEntry, generateMockRaceContext } from '../mock/entry';
-import type { EntryInput, RaceContext } from '@/types/prediction';
+import type { EntryInput } from '@/types/prediction';
+import { DEFAULT_MODEL_WEIGHTS } from '../constants';
 
 describe('Individual Factor Scores', () => {
   let mockEntry: EntryInput;
@@ -192,12 +193,6 @@ describe('Individual Factor Scores', () => {
 });
 
 describe('Track and Gate Scores', () => {
-  let mockEntry: EntryInput;
-
-  beforeEach(() => {
-    mockEntry = generateMockEntry({ no: 1 });
-  });
-
   describe('calculateTrackConditionScore', () => {
     it('should give bonus to front-runner on wet track', () => {
       const frontRunner = generateMockEntry();
@@ -369,9 +364,9 @@ describe('Aggregate Scoring', () => {
       const defaultWeighted = calculateWeightedScore(factors);
 
       const customWeights = {
-        ...require('../constants').DEFAULT_MODEL_WEIGHTS,
+        ...DEFAULT_MODEL_WEIGHTS,
         internal: {
-          ...require('../constants').DEFAULT_MODEL_WEIGHTS.internal,
+          ...DEFAULT_MODEL_WEIGHTS.internal,
           rating: 0.5, // 큰 가중치
         },
       };

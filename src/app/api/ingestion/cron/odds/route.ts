@@ -30,6 +30,7 @@ import {
   shouldThrottleFallback,
 } from '@/ingestion/utils/fallbackMode';
 import { enforceCronSecret } from '../../utils/auth';
+import { alertCritical } from '@/lib/utils/alerting';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow up to 60 seconds for odds collection
@@ -174,13 +175,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to collect odds';
     console.error('[Cron/Odds] Error:', error);
+
+    // Send critical alert for cron failures (운영 알림)
+    await alertCritical('Cron/Odds 수집 실패', errorMessage, {
+      endpoint: '/api/ingestion/cron/odds',
+      timestamp: now.toISOString(),
+      stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined,
+    });
+
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to collect odds',
+          message: errorMessage,
         },
         timestamp: new Date().toISOString(),
       },

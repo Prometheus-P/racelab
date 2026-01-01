@@ -140,3 +140,14 @@ export {
   type MockEntryOptions,
   type MockRaceOptions,
 } from './mock/entry';
+
+// =============================================================================
+// Live Data Sources
+// =============================================================================
+
+export {
+  fetchTodaysRaces,
+  fetchRaceData,
+  type LiveRaceData,
+  type FetchResult,
+} from './data-source';

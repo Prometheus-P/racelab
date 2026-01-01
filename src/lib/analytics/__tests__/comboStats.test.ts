@@ -12,7 +12,6 @@ import {
   isPositiveSynergy,
   getComboReliability,
   type ComboAnalysis,
-  type ComboSearchFilters,
 } from '../comboStats';
 import type { ComboStats } from '../types';
 

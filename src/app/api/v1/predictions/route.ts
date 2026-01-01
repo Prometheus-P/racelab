@@ -2,16 +2,19 @@
  * GET /api/v1/predictions
  *
  * 오늘의 경주 예측 조회
+ *
+ * KRA 공공데이터 API에서 실시간 출마표를 조회하여
+ * 예측 엔진으로 승률을 계산합니다.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PredictionEngine } from '@/lib/predictions';
+import { PredictionEngine, fetchTodaysRaces } from '@/lib/predictions';
 import {
   generateMockRaceContext,
   generateMockEntries,
-  createFullFieldScenario,
 } from '@/lib/predictions/mock/entry';
-import type { HorsePrediction, RacePrediction } from '@/types/prediction';
+import { getTodayDate } from '@/lib/api/kra';
+import type { HorsePrediction } from '@/types/prediction';
 
 interface RaceWithPredictions {
   raceId: string;
@@ -25,15 +28,52 @@ interface RaceWithPredictions {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const date = searchParams.get('date');
-    const meet = searchParams.get('meet');
+    const date = searchParams.get('date') || getTodayDate();
+    const meet = searchParams.get('meet') as '1' | '2' | '3' | null;
     const raceNo = searchParams.get('raceNo');
-
-    // TODO: 실제 API 연동 시 KRA API에서 오늘 경주 데이터 조회
-    // 현재는 Mock 데이터로 예측 생성
+    const useMock = searchParams.get('mock') === 'true';
 
     const engine = new PredictionEngine();
-    const races = generateMockRacesWithPredictions(engine, meet);
+    let races: RaceWithPredictions[];
+    let source: 'kra-live' | 'mock' = 'mock';
+    const warnings: string[] = [];
+
+    // Mock 강제 사용 또는 실제 API 조회
+    if (useMock) {
+      races = generateMockRacesWithPredictions(engine, meet);
+    } else {
+      // 실제 KRA API에서 데이터 조회
+      const result = await fetchTodaysRaces(date, meet || undefined);
+
+      if (result.success && result.races.length > 0) {
+        // 실데이터로 예측 실행
+        races = result.races.map((race) => {
+          const prediction = engine.predictRace(race.predictionInput);
+
+          return {
+            raceId: race.raceId,
+            raceNo: race.raceNo,
+            raceName: race.raceName,
+            track: race.trackName,
+            distance: race.distance,
+            predictions: prediction.predictions,
+          };
+        });
+
+        source = 'kra-live';
+        warnings.push(...result.warnings);
+      } else {
+        // 데이터 없으면 Mock 폴백
+        races = generateMockRacesWithPredictions(engine, meet);
+        source = 'mock';
+
+        if (result.warnings.length > 0) {
+          warnings.push(...result.warnings);
+        } else {
+          warnings.push('경주 데이터가 없어 Mock 데이터를 사용합니다.');
+        }
+      }
+    }
 
     // 특정 경주만 필터
     const filteredRaces = raceNo
@@ -44,10 +84,12 @@ export async function GET(request: NextRequest) {
       success: true,
       data: filteredRaces,
       meta: {
-        date: date || new Date().toISOString().split('T')[0].replace(/-/g, ''),
+        date,
         total: filteredRaces.length,
+        source,
         generatedAt: new Date().toISOString(),
         modelVersion: '1.0.0-mvp',
+        warnings: warnings.length > 0 ? warnings : undefined,
       },
       timestamp: new Date().toISOString(),
     });
@@ -69,7 +111,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Mock 경주 데이터로 예측 생성
+ * Mock 경주 데이터로 예측 생성 (폴백용)
  */
 function generateMockRacesWithPredictions(
   engine: PredictionEngine,

@@ -8,7 +8,6 @@ import {
   quickPrediction,
 } from '../core/predictor';
 import {
-  generateMockEntries,
   generateMockRaceContext,
   createFullFieldScenario,
   createSmallFieldScenario,

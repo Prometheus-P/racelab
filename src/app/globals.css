@@ -362,6 +362,11 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Modal scroll lock - prevents layout thrashing vs inline styles */
+body.modal-open {
+  overflow: hidden;
+}
+
 /* =============================================================================
    경마/경륜/경정 색상 테마
    ============================================================================= */

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Star, StarOff } from 'lucide-react';
 
 import type { EntrantData, EntrantStats } from '@/types';
@@ -62,15 +62,15 @@ function resolveBadge(entrant: EntrantData): string | null {
 
 export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange }: EntrantCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(Boolean(entrant.favorite));
+  // Uncontrolled fallback state (only used when onFavoriteChange is not provided)
+  const [uncontrolledFavorite, setUncontrolledFavorite] = useState(Boolean(entrant.favorite));
   const headingId = `entrant-${entrant.id}-title`;
+
+  // Use prop directly when controlled, fallback to local state when uncontrolled
+  const isFavorite = onFavoriteChange ? Boolean(entrant.favorite) : uncontrolledFavorite;
 
   const radarData = useMemo(() => toRadarData(entrant.stats), [entrant.stats]);
   const badgeLabel = useMemo(() => resolveBadge(entrant), [entrant]);
-
-  useEffect(() => {
-    setIsFavorite(Boolean(entrant.favorite));
-  }, [entrant.favorite]);
 
   const toggleExpand = () => {
     const next = !expanded;
@@ -80,8 +80,11 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
 
   const toggleFavorite = () => {
     const next = !isFavorite;
-    setIsFavorite(next);
-    onFavoriteChange?.(entrant.id, next);
+    if (onFavoriteChange) {
+      onFavoriteChange(entrant.id, next);
+    } else {
+      setUncontrolledFavorite(next);
+    }
   };
 
   return (

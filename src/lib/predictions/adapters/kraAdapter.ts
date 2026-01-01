@@ -305,7 +305,7 @@ export function getSurfaceByMeet(
 export function getDefaultBurden(
   age: number,
   sex: string,
-  grade?: string
+  _grade?: string
 ): number {
   // 연령별 기본 부담
   let base = 55;

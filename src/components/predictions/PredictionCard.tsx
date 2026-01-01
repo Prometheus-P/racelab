@@ -52,7 +52,6 @@ export function PredictionCard({
     entryNo,
     horseName,
     winProbability,
-    confidence,
     confidenceLevel,
     predictedRank,
     recommendation,

@@ -5,7 +5,6 @@
  */
 
 import type { EntryInput, RaceContext } from '@/types/prediction';
-import type { TrackCondition } from '@/types/track-condition';
 import { createTrackConditionFromMoisture } from '@/types/track-condition';
 
 // =============================================================================

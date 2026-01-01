@@ -6,10 +6,41 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer, useCallback } from 'react';
 import { fetchJockeyRanking } from '@/lib/analytics/api';
 import type { JockeyStats, RankingFilters, RankingResult } from '@/lib/analytics/types';
 import { JockeyRankingTable } from '@/components/analytics';
+
+// State batching with useReducer (INP 최적화)
+interface FetchState {
+  result: RankingResult<JockeyStats>;
+  loading: boolean;
+  error: string | null;
+}
+
+type FetchAction =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: RankingResult<JockeyStats> }
+  | { type: 'FETCH_ERROR'; payload: string };
+
+const initialState: FetchState = {
+  result: { items: [], total: 0, page: 1, limit: 20, filters: {} },
+  loading: true,
+  error: null,
+};
+
+function fetchReducer(state: FetchState, action: FetchAction): FetchState {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_SUCCESS':
+      return { result: action.payload, loading: false, error: null };
+    case 'FETCH_ERROR':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
 
 export default function JockeysPage() {
   const [filters, setFilters] = useState<RankingFilters>({
@@ -19,39 +50,28 @@ export default function JockeysPage() {
     limit: 20,
   });
 
-  const [result, setResult] = useState<RankingResult<JockeyStats>>({
-    items: [],
-    total: 0,
-    page: 1,
-    limit: 20,
-    filters: {},
-  });
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(fetchReducer, initialState);
+  const { result, loading, error } = state;
 
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
-      setError(null);
+      dispatch({ type: 'FETCH_START' });
 
       try {
         const data = await fetchJockeyRanking(filters);
-        setResult(data);
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (err) {
         console.error('[JockeysPage] Error:', err);
-        setError('기수 데이터를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
+        dispatch({ type: 'FETCH_ERROR', payload: '기수 데이터를 불러오는데 실패했습니다.' });
       }
     };
 
     loadData();
   }, [filters]);
 
-  const handleFilterChange = (newFilters: Partial<RankingFilters>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<RankingFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
+  }, []);
 
   return (
     <main className="min-h-screen bg-gray-50 py-8">

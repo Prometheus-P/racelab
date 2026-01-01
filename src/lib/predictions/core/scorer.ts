@@ -17,12 +17,10 @@ import {
   normalizeRating,
   normalizeRecentForm,
   normalizeBurdenFit,
-  normalizeRestDays,
   normalizeWinRate,
   normalizeComboSynergy,
-  minMaxNormalize,
 } from './normalizer';
-import { DEFAULT_MODEL_WEIGHTS, getPositionScore } from '../constants';
+import { DEFAULT_MODEL_WEIGHTS } from '../constants';
 
 // =============================================================================
 // Factor Score Calculation
@@ -97,7 +95,7 @@ export function calculateGatePositionScore(
  */
 export function calculateDistanceFitScore(
   entry: EntryInput,
-  raceDistance: number
+  _raceDistance: number
 ): FactorScore {
   // 혈통 기반 거리 적성
   const distanceApt = entry.bloodline?.distanceAptitude ?? 3;
@@ -307,7 +305,7 @@ export function calculateComboScore(entry: EntryInput): FactorScore {
 /**
  * 혈통 적성 점수 계산 (MVP에서는 간소화)
  */
-export function calculateBloodlineScore(entry: EntryInput): FactorScore {
+export function calculateBloodlineScore(_entry: EntryInput): FactorScore {
   // MVP에서는 가중치 0이므로 기본값
   return {
     factor: 'bloodlineAptitude',

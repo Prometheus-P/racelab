@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Target, Zap, Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -77,16 +77,31 @@ export function InteractiveDemo() {
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleStrategyClick = (strategyId: string) => {
     if (isAnimating) return;
+
+    // Clear any pending timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
     setIsAnimating(true);
     setShowResults(false);
     setSelectedStrategy(strategyId);
 
     // 로딩 애니메이션 후 결과 표시
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setShowResults(true);
       setIsAnimating(false);
     }, 800);

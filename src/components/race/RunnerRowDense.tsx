@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { RunnerVM, BookViewMode } from '@/lib/view-models/bookVM';
 import FormLinesCell from './FormLinesCell';
 
@@ -6,7 +7,7 @@ interface RunnerRowDenseProps {
   viewMode: BookViewMode;
 }
 
-export function RunnerRowDense({ runner, viewMode }: RunnerRowDenseProps) {
+export const RunnerRowDense = memo(function RunnerRowDense({ runner, viewMode }: RunnerRowDenseProps) {
   const maxFormLines = viewMode === 'expert' ? 8 : 5;
 
   return (
@@ -34,6 +35,6 @@ export function RunnerRowDense({ runner, viewMode }: RunnerRowDenseProps) {
       </td>
     </tr>
   );
-}
+});
 
 export default RunnerRowDense;

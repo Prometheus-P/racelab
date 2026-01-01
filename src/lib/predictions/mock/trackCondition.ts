@@ -6,7 +6,7 @@
  */
 
 import type { TrackCondition, TrackConditionCode } from '@/types/track-condition';
-import { createTrackCondition, createTrackConditionFromMoisture, MOISTURE_RANGES } from '@/types/track-condition';
+import { createTrackConditionFromMoisture } from '@/types/track-condition';
 
 // =============================================================================
 // Types

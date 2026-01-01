@@ -15,7 +15,6 @@ import type {
   FactorScore,
   PredictionRecommendation,
 } from '@/types/prediction';
-import type { TrackCondition } from '@/types/track-condition';
 import {
   calculateAllFactorScores,
   createScoreBreakdown,
@@ -26,7 +25,6 @@ import {
   calculatePlaceProbability,
   calculateExpectedPosition,
   analyzeValue,
-  calculateDataCompleteness,
   calculatePredictionConsistency,
   calculateOverallConfidence,
   getConfidenceLevel,

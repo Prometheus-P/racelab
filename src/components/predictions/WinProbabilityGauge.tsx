@@ -59,6 +59,11 @@ export function WinProbabilityGauge({
 
   return (
     <div
+      role="meter"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`승률 ${probability.toFixed(1)}%${rank ? `, 예상 순위 ${rank}위` : ''}`}
       className="relative inline-flex items-center justify-center"
       data-testid={testId}
       style={{ width: size, height: size }}

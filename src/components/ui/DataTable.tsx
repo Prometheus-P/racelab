@@ -104,6 +104,8 @@ function DataTable<T extends Record<string, unknown>>({
               <td
                 colSpan={columns.length}
                 className="px-4 py-12 text-center text-on-surface-variant"
+                role="status"
+                aria-live="polite"
               >
                 {emptyMessage}
               </td>
@@ -116,6 +118,7 @@ function DataTable<T extends Record<string, unknown>>({
                 className={`min-h-touch ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-surface-dim'} ${onRowClick ? 'cursor-pointer transition-colors duration-rl-fast hover:bg-surface-container-high' : ''} `}
                 role={onRowClick ? 'button' : undefined}
                 tabIndex={onRowClick ? 0 : undefined}
+                aria-label={onRowClick ? `행 ${rowIndex + 1} 선택` : undefined}
                 onKeyDown={(e) => {
                   if (onRowClick && (e.key === 'Enter' || e.key === ' ')) {
                     e.preventDefault();
