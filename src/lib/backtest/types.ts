@@ -464,3 +464,6 @@ export const PROGRESS_UPDATE_INTERVAL = 10;
 
 /** 예상 경주당 처리 시간 (ms) */
 export const ESTIMATED_MS_PER_RACE = 50;
+
+/** 세금율 27% - 비활성화 불가 (Korean gambling tax) */
+export const TAX_RATE = 0.27;

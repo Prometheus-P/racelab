@@ -635,7 +635,8 @@ describe('Backtest Execution Integration', () => {
     expect(result.bets.length).toBe(1);
     expect(result.bets[0].result).toBe('win');
     expect(result.bets[0].betAmount).toBe(10000); // fixed stake
-    expect(result.bets[0].profit).toBe(10000 * 6.0 - 10000); // payout - bet
+    // Profit with 27% tax: (10000 * 6.0) - (10000 * 6.0 * 0.27) - 10000 = 33800
+    expect(result.bets[0].profit).toBe(33800);
   });
 
   it('should calculate correct loss', async () => {

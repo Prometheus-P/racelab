@@ -395,6 +395,15 @@ export interface BetRecord {
 
   /** 베팅 후 누적 자본 */
   cumulativeCapital: number;
+
+  /** 세전 지급액 (승리 시) */
+  grossPayout: number;
+
+  /** 세금 공제액 (27% 자동 적용) */
+  taxDeducted: number;
+
+  /** 슬리피지 적용 후 배당률 (선택) */
+  oddsAfterSlippage?: number;
 }
 
 /**
@@ -460,6 +469,17 @@ export interface EquityPoint {
 }
 
 /**
+ * 백테스트 면책조항 (disclaimer.ts에서 정의)
+ */
+export interface BacktestDisclaimer {
+  title: string;
+  items: string[];
+  helpline: string;
+  language: 'ko' | 'en';
+  generatedAt: string;
+}
+
+/**
  * 완전한 백테스트 결과
  */
 export interface BacktestResult {
@@ -478,6 +498,9 @@ export interface BacktestResult {
   /** 실행 메타데이터 */
   executedAt: string;
   executionTimeMs: number;
+
+  /** 필수 면책조항 - 모든 결과에 반드시 포함 */
+  disclaimer: BacktestDisclaimer;
 }
 
 // =============================================================================
