@@ -9,25 +9,85 @@ updates:
       time: "09:00"
       timezone: "Asia/Seoul"
     open-pull-requests-limit: 10
+
+    # 그룹핑으로 PR 수 감소
     groups:
+      # 테스트 관련
       testing:
         patterns:
           - "@testing-library/*"
           - "jest*"
           - "@playwright/*"
           - "playwright"
+          - "@types/jest*"
+          - "jest-*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Storybook 관련
       storybook:
         patterns:
           - "storybook"
           - "@storybook/*"
           - "chromatic"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Babel 관련
       babel:
         patterns:
           - "@babel/*"
           - "babel-*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # TypeScript 타입 정의
+      types:
+        patterns:
+          - "@types/*"
+        exclude-patterns:
+          - "@types/jest*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # ESLint 관련
+      linting:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "prettier*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Next.js 생태계 (주의 필요)
+      nextjs:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "next-auth"
+        update-types:
+          - "patch"
+
     labels:
       - "dependencies"
       - "npm"
+
+    # 커밋 메시지 형식
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+
+    # 리뷰어 자동 지정
+    reviewers:
+      - "x-ordo/maintainers"
+
+    # 보안 업데이트 우선
+    versioning-strategy: increase
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -38,6 +98,19 @@ updates:
       time: "09:00"
       timezone: "Asia/Seoul"
     open-pull-requests-limit: 5
+
+    groups:
+      # GitHub 공식 액션
+      github-actions:
+        patterns:
+          - "actions/*"
+        update-types:
+          - "minor"
+          - "patch"
+
     labels:
       - "dependencies"
       - "github-actions"
+
+    commit-message:
+      prefix: "chore(deps)"
