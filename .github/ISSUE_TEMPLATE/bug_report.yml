@@ -1,0 +1,62 @@
+name: Bug Report
+description: 버그 리포트
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        버그 리포트 감사합니다. 아래 내용을 최대한 상세히 작성해주세요.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 버그 설명
+      description: 어떤 버그인지 명확하게 설명해주세요
+      placeholder: 버그에 대한 설명
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      description: 버그를 재현하는 방법
+      placeholder: |
+        1. '...'로 이동
+        2. '...'를 클릭
+        3. '...'를 스크롤
+        4. 오류 발생
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 예상 동작
+      description: 어떻게 동작해야 하는지 설명해주세요
+    validations:
+      required: true
+
+  - type: dropdown
+    id: race-type
+    attributes:
+      label: 관련 경주 유형
+      options:
+        - 전체
+        - 경마 (Horse)
+        - 경륜 (Cycle)
+        - 경정 (Boat)
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 환경
+      description: 브라우저, OS 등
+      placeholder: |
+        - 브라우저: Chrome 120
+        - OS: macOS 14.0
+    validations:
+      required: false

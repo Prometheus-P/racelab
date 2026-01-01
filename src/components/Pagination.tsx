@@ -1,7 +1,7 @@
 // src/components/Pagination.tsx
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 
 export interface PaginationProps {
   currentPage: number;
@@ -32,8 +32,8 @@ export function Pagination({
     onPageChange?.(page);
   };
 
-  // Generate page numbers to display
-  const getPageNumbers = (): (number | 'ellipsis')[] => {
+  // Generate page numbers to display (memoized to prevent recalculation on every render)
+  const pageNumbers = useMemo((): (number | 'ellipsis')[] => {
     const pages: (number | 'ellipsis')[] = [];
     const maxVisible = 5;
 
@@ -70,9 +70,7 @@ export function Pagination({
     }
 
     return pages;
-  };
-
-  const pageNumbers = getPageNumbers();
+  }, [currentPage, totalPages]);
 
   return (
     <nav

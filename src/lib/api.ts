@@ -218,10 +218,33 @@ export async function fetchRaceOdds(_raceId: string): Promise<Odds | null> {
  * Fetch results for a specific race
  * @param raceId Race ID in format type-meetCode-raceNo-date
  */
-export async function fetchRaceResults(_raceId: string): Promise<RaceResult[]> {
-  // TODO: Implement actual results fetching from API
-  // For now, return empty array
-  return [];
+export async function fetchRaceResults(raceId: string): Promise<RaceResult[]> {
+  // Parse ID to get type, meetCode, raceNo, date
+  const parts = raceId.split('-');
+  if (parts.length < 4) {
+    console.warn(`Invalid race ID format: ${raceId}`);
+    return [];
+  }
+
+  const [type, meetCode, raceNoStr, date] = parts;
+  const raceNo = parseInt(raceNoStr, 10);
+
+  if (isNaN(raceNo)) {
+    console.warn(`Invalid race number in ID: ${raceId}`);
+    return [];
+  }
+
+  try {
+    if (type === 'horse') {
+      const { fetchHorseRaceResults } = await import('./api/kraClient');
+      return await fetchHorseRaceResults(date, meetCode, raceNo);
+    }
+    // TODO: Add support for cycle and boat race results
+    return [];
+  } catch (error) {
+    console.error(`Error fetching results for ${raceId}:`, error);
+    return [];
+  }
 }
 
 /**

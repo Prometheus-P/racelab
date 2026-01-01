@@ -11,21 +11,21 @@ export interface DemoLog {
 }
 
 export const DEMO_LOGS: DemoLog[] = [
-  { text: '$ racelab backtest --strategy="value-drift-hunter"', delay: 0, variant: 'default' },
-  { text: '> Initializing Quant Engine v2.1...', delay: 400, variant: 'default' },
-  { text: '> Connecting to TimescaleDB...', delay: 300, variant: 'default' },
-  { text: '> Date range: 2024-01-01 ~ 2024-06-30', delay: 200, variant: 'default' },
-  { text: '> Initial capital: 1,000,000 KRW', delay: 200, variant: 'default' },
-  { text: '> Fetching 30s odds snapshots...', delay: 500, variant: 'default' },
-  { text: 'Found 1,247 races matching criteria', delay: 700, variant: 'success' },
-  { text: '> Evaluating conditions...', delay: 400, variant: 'default' },
-  { text: '> Pattern: [Odds Drop > 20% && Popularity < 5]', delay: 300, variant: 'default' },
-  { text: 'Matched 312 entries for betting', delay: 600, variant: 'success' },
-  { text: '> Simulating bets...', delay: 400, variant: 'default' },
-  { text: '> Processing: [====================] 100%', delay: 1000, variant: 'progress' },
-  { text: '> Calculating Sharpe Ratio...', delay: 300, variant: 'default' },
-  { text: '> Analyzing drawdown periods...', delay: 300, variant: 'default' },
-  { text: 'Backtest complete!', delay: 400, variant: 'success' },
+  { text: '$ racelab backtest --strategy="배당급등추적"', delay: 0, variant: 'default' },
+  { text: '> 분석 엔진 v2.1 초기화 중...', delay: 400, variant: 'default' },
+  { text: '> 데이터베이스 연결 중...', delay: 300, variant: 'default' },
+  { text: '> 분석 기간: 2024-01-01 ~ 2024-06-30', delay: 200, variant: 'default' },
+  { text: '> 초기 자금: 1,000,000원', delay: 200, variant: 'default' },
+  { text: '> 30초 단위 배당률 데이터 조회 중...', delay: 500, variant: 'default' },
+  { text: '1,247개 경주 조건 충족', delay: 700, variant: 'success' },
+  { text: '> 전략 조건 평가 중...', delay: 400, variant: 'default' },
+  { text: '> 조건: [배당률 20% 이상 하락 & 인기순위 5위 이하]', delay: 300, variant: 'default' },
+  { text: '312건 베팅 대상 확정', delay: 600, variant: 'success' },
+  { text: '> 베팅 시뮬레이션 중...', delay: 400, variant: 'default' },
+  { text: '> 진행률: [====================] 100%', delay: 1000, variant: 'progress' },
+  { text: '> 안정성 지수 계산 중...', delay: 300, variant: 'default' },
+  { text: '> 손실 구간 분석 중...', delay: 300, variant: 'default' },
+  { text: '백테스트 완료!', delay: 400, variant: 'success' },
 ];
 
 export interface DemoMetrics {

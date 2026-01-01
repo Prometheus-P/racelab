@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,8 +11,10 @@ const config: Config = {
     extend: {
       // RaceLab Design System V1.0 Typography
       fontFamily: {
-        sans: ['Noto Sans KR', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-        brand: ['Exo 2', 'Noto Sans KR', 'sans-serif'],
+        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        brand: ['Exo 2', 'Pretendard', 'sans-serif'],
+        display: ['Welcome', 'Pretendard', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       // Typography Scale - 50-60대 사용자 최적화 (1-2단계 큰 폰트)
       fontSize: {
@@ -41,138 +44,143 @@ const config: Config = {
         'label-small': ['12px', { lineHeight: '18px', letterSpacing: '0.4px' }],
       },
       colors: {
-        // RaceLab Primary Colors - 로고 기반 (채도 낮춤)
+        // TradingView 스타일 금융 컬러 - CSS 변수 참조 (다크모드 지원)
+        bullish: 'var(--rl-bullish)',
+        bearish: 'var(--rl-bearish)',
+
+        // RaceLab Primary Colors - CSS 변수 참조 (다크모드 지원)
         // Sage Green - 경마/안정/긍정적 지표
         horse: {
-          DEFAULT: '#81C784',
-          light: '#C8E6C9',
-          dark: '#66BB6A',
-          container: '#E8F5E9',
-          'on-container': '#2E7D32',
-          bold: '#2E7D32', // Added bold variant
+          DEFAULT: 'var(--rl-horse)',
+          light: 'var(--rl-horse-light)',
+          dark: 'var(--rl-horse-dark)',
+          container: 'var(--rl-horse-container)',
+          'on-container': 'var(--rl-horse-on-container)',
+          bold: 'var(--rl-horse-on-container)',
         },
         // Soft Coral - 경륜/핵심/CTA
         cycle: {
-          DEFAULT: '#E57373',
-          light: '#FFCDD2',
-          dark: '#EF5350',
-          container: '#FFEBEE',
-          'on-container': '#C62828',
-          bold: '#C62828', // Added bold variant
+          DEFAULT: 'var(--rl-cycle)',
+          light: 'var(--rl-cycle-light)',
+          dark: 'var(--rl-cycle-dark)',
+          container: 'var(--rl-cycle-container)',
+          'on-container': 'var(--rl-cycle-on-container)',
+          bold: 'var(--rl-cycle-on-container)',
         },
         // Steel Blue - 경정/흐름/링크
         boat: {
-          DEFAULT: '#64B5F6',
-          light: '#BBDEFB',
-          dark: '#42A5F5',
-          container: '#E3F2FD',
-          'on-container': '#1565C0',
-          bold: '#1565C0', // Added bold variant
+          DEFAULT: 'var(--rl-boat)',
+          light: 'var(--rl-boat-light)',
+          dark: 'var(--rl-boat-dark)',
+          container: 'var(--rl-boat-container)',
+          'on-container': 'var(--rl-boat-on-container)',
+          bold: 'var(--rl-boat-on-container)',
         },
 
-        // CTA (Soft Coral 사용)
+        // CTA (Soft Coral 사용) - CSS 변수 참조 (다크모드 지원)
         primary: {
-          DEFAULT: '#E57373',
-          light: '#FFCDD2',
-          dark: '#EF5350',
-          container: '#FFEBEE',
-          'on-container': '#C62828',
+          DEFAULT: 'var(--rl-cycle)',
+          light: 'var(--rl-cycle-light)',
+          dark: 'var(--rl-cycle-dark)',
+          container: 'var(--rl-cycle-container)',
+          'on-container': 'var(--rl-cycle-on-container)',
         },
         'on-primary': {
           DEFAULT: '#ffffff',
         },
 
-        // Neutral Colors - 흰색 배경 최적화
+        // Neutral Colors - CSS 변수 참조 (다크모드 지원)
         neutral: {
-          background: '#FFFFFF',
-          'text-primary': '#27272A',
-          'text-secondary': '#71717A',
-          border: '#D4D4D8',
-          divider: '#E4E4E7',
-          'table-row-alt': '#F4F4F5',
+          background: 'var(--rl-background)',
+          'text-primary': 'var(--rl-text-primary)',
+          'text-secondary': 'var(--rl-text-secondary)',
+          'text-tertiary': 'var(--rl-text-tertiary)',
+          border: 'var(--rl-border)',
+          divider: 'var(--rl-divider)',
+          'table-row-alt': 'var(--rl-table-row-alt)',
         },
 
-        // Surface Colors
+        // Surface Colors - CSS 변수 참조 (다크모드 지원)
         surface: {
-          DEFAULT: '#FFFFFF',
-          dim: '#F4F4F5',
-          bright: '#FFFFFF',
-          container: '#F4F4F5',
-          'container-low': '#FAFAFA',
-          'container-high': '#E4E4E7',
-          'container-highest': '#D4D4D8',
+          DEFAULT: 'var(--rl-surface)',
+          dim: 'var(--rl-background-dim)',
+          bright: 'var(--rl-background)',
+          container: 'var(--rl-surface-container)',
+          'container-low': 'var(--rl-surface-container-low)',
+          'container-high': 'var(--rl-surface-container-high)',
+          'container-highest': 'var(--rl-border)',
         },
         'on-surface': {
-          DEFAULT: '#27272A',
-          variant: '#71717A',
+          DEFAULT: 'var(--rl-on-surface)',
+          variant: 'var(--rl-on-surface-variant)',
         },
         outline: {
           DEFAULT: '#A1A1AA',
           variant: '#D4D4D8',
         },
 
-        // Status Colors
+        // Status Colors - CSS 변수 참조 (다크모드 지원)
         status: {
           success: {
-            DEFAULT: '#81C784',
-            bg: '#E8F5E9',
-            text: '#2E7D32',
-            border: '#81C784',
+            DEFAULT: 'var(--rl-success)',
+            bg: 'var(--rl-success-bg)',
+            text: 'var(--rl-success-text)',
+            border: 'var(--rl-success)',
           },
           warning: {
-            DEFAULT: '#FFB74D',
-            bg: '#FFF8E1',
-            text: '#F57C00',
-            border: '#FFB74D',
+            DEFAULT: 'var(--rl-warning)',
+            bg: 'var(--rl-warning-bg)',
+            text: 'var(--rl-warning-text)',
+            border: 'var(--rl-warning)',
           },
           error: {
-            DEFAULT: '#E57373',
-            bg: '#FFEBEE',
-            text: '#C62828',
-            border: '#E57373',
+            DEFAULT: 'var(--rl-error)',
+            bg: 'var(--rl-error-bg)',
+            text: 'var(--rl-error-text)',
+            border: 'var(--rl-error)',
           },
           info: {
-            DEFAULT: '#64B5F6',
-            bg: '#E3F2FD',
-            text: '#1565C0',
-            border: '#64B5F6',
+            DEFAULT: 'var(--rl-info)',
+            bg: 'var(--rl-info-bg)',
+            text: 'var(--rl-info-text)',
+            border: 'var(--rl-info)',
           },
           live: {
-            bg: '#FFF8E1',
-            text: '#F57C00',
-            border: '#FFB74D',
+            bg: 'var(--rl-warning-bg)',
+            text: 'var(--rl-warning-text)',
+            border: 'var(--rl-warning)',
           },
           upcoming: {
-            bg: '#E3F2FD',
-            text: '#1565C0',
-            border: '#64B5F6',
+            bg: 'var(--rl-info-bg)',
+            text: 'var(--rl-info-text)',
+            border: 'var(--rl-info)',
           },
           completed: {
-            bg: '#F4F4F5',
-            text: '#71717A',
-            border: '#D4D4D8',
+            bg: 'var(--rl-surface-container)',
+            text: 'var(--rl-text-secondary)',
+            border: 'var(--rl-border)',
           },
           cancelled: {
-            bg: '#FFEBEE',
-            text: '#C62828',
-            border: '#E57373',
+            bg: 'var(--rl-error-bg)',
+            text: 'var(--rl-error-text)',
+            border: 'var(--rl-error)',
           },
         },
 
-        // Error Colors
+        // Error Colors - CSS 변수 참조 (다크모드 지원)
         error: {
-          DEFAULT: '#E57373',
-          container: '#FFEBEE',
-          'on-container': '#C62828',
+          DEFAULT: 'var(--rl-error)',
+          container: 'var(--rl-error-bg)',
+          'on-container': 'var(--rl-error-text)',
         },
       },
-      // Elevation (Box Shadow) - 부드러운 그림자
+      // Elevation (Box Shadow) - CSS 변수 참조 (다크모드 지원)
       boxShadow: {
         'rl-0': 'none',
-        'rl-1': '0 1px 3px 0 rgb(0 0 0 / 0.08)',
-        'rl-2': '0 2px 6px 0 rgb(0 0 0 / 0.1)',
-        'rl-3': '0 4px 12px 0 rgb(0 0 0 / 0.12)',
-        'rl-4': '0 8px 24px 0 rgb(0 0 0 / 0.14)',
+        'rl-1': 'var(--rl-shadow-1)',
+        'rl-2': 'var(--rl-shadow-2)',
+        'rl-3': 'var(--rl-shadow-3)',
+        'rl-4': 'var(--rl-shadow-4)',
         'rl-5': '0 16px 32px 0 rgb(0 0 0 / 0.16)',
         // Legacy M3 shadows
         'm3-0': 'none',
@@ -265,6 +273,10 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite ease-in-out',
@@ -276,6 +288,7 @@ const config: Config = {
         gradient: 'gradient-shift 8s ease infinite',
         'slide-in': 'slide-in-right 400ms ease-out forwards',
         cursor: 'typewriter-cursor 1s step-end infinite',
+        marquee: 'marquee 30s linear infinite',
       },
       // Opacity tokens
       opacity: {

@@ -1,17 +1,17 @@
 ---
-title: KRace 시스템 아키텍처
-version: 1.0.0
+title: RaceLab 시스템 아키텍처
+version: 2.0.0
 status: Approved
 owner: '@Prometheus-P'
 created: 2025-11-25
-updated: 2025-11-25
+updated: 2025-12-28
 reviewers: []
 language: Korean (한국어)
 ---
 
 # ARCHITECTURE.md - 시스템 아키텍처
 
-> **이 문서는 KRace 시스템의 전체 아키텍처를 정의합니다.**
+> **이 문서는 RaceLab 시스템의 전체 아키텍처를 정의합니다.**
 > 시스템 설계의 근거와 주요 결정 사항을 포함합니다.
 
 ---
@@ -20,15 +20,16 @@ language: Korean (한국어)
 
 | 버전  | 날짜       | 작성자        | 변경 내용 |
 | ----- | ---------- | ------------- | --------- |
+| 2.0.0 | 2025-12-28 | @Prometheus-P | DB, Auth, B2B API, Email, AdSense 추가 |
 | 1.0.0 | 2025-11-25 | @Prometheus-P | 최초 작성 |
 
 ## 관련 문서 (Related Documents)
 
 - [CONTEXT.md](../../CONTEXT.md) - 프로젝트 컨텍스트
+- [CLAUDE.md](../../CLAUDE.md) - 개발 가이드라인
 - [PRD.md](./PRD.md) - 제품 요구사항
 - [API_SPEC.md](./API_SPEC.md) - API 명세
-- [BACKEND_DESIGN.md](./BACKEND_DESIGN.md) - 백엔드 설계
-- [FRONTEND_SPEC.md](./FRONTEND_SPEC.md) - 프론트엔드 스펙
+- [DATA_MODEL.md](./DATA_MODEL.md) - 데이터 모델
 
 ---
 
@@ -36,13 +37,15 @@ language: Korean (한국어)
 
 1. [아키텍처 개요](#1-아키텍처-개요)
 2. [시스템 컨텍스트](#2-시스템-컨텍스트)
-3. [컨테이너 다이어그램](#3-컨테이너-다이어그램)
-4. [컴포넌트 다이어그램](#4-컴포넌트-다이어그램)
-5. [데이터 흐름](#5-데이터-흐름)
-6. [기술 스택](#6-기술-스택)
-7. [배포 아키텍처](#7-배포-아키텍처)
-8. [보안 아키텍처](#8-보안-아키텍처)
-9. [아키텍처 결정 기록](#9-아키텍처-결정-기록)
+3. [디렉토리 구조](#3-디렉토리-구조)
+4. [데이터 흐름](#4-데이터-흐름)
+5. [기술 스택](#5-기술-스택)
+6. [인증 아키텍처](#6-인증-아키텍처)
+7. [B2B API 아키텍처](#7-b2b-api-아키텍처)
+8. [데이터베이스 설계](#8-데이터베이스-설계)
+9. [보안 아키텍처](#9-보안-아키텍처)
+10. [배포 아키텍처](#10-배포-아키텍처)
+11. [아키텍처 결정 기록](#11-아키텍처-결정-기록)
 
 ---
 
@@ -61,32 +64,34 @@ language: Korean (한국어)
 │                                                             │
 │  2. 성능 우선 (Performance First)                           │
 │     • 사용자 경험에 직접 영향                                │
-│     • ISR, 캐싱 적극 활용                                    │
+│     • ISR, 캐싱, 스트리밍 응답 적극 활용                     │
 │                                                             │
 │  3. 확장 가능성 (Scalability)                               │
 │     • 수평 확장 가능한 설계                                  │
-│     • 서버리스 아키텍처 활용                                 │
+│     • 서버리스 + B2B Tier 시스템                            │
 │                                                             │
 │  4. 관심사 분리 (Separation of Concerns)                    │
-│     • UI, 비즈니스 로직, 데이터 접근 분리                    │
+│     • API Client → Mapper → Service → Route → Component    │
 │     • 각 레이어의 명확한 책임                                │
 │                                                             │
-│  5. 테스트 용이성 (Testability)                             │
-│     • 의존성 주입                                            │
-│     • 순수 함수 선호                                         │
+│  5. 타입 안전성 (Type Safety)                               │
+│     • TypeScript strict mode                                │
+│     • Drizzle ORM (SQL 타입 추론)                           │
+│     • Zod 스키마 검증                                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 1.2 아키텍처 스타일
 
-**선택: 모놀리식 + 서버리스 하이브리드**
+**선택: 모놀리식 + 서버리스 하이브리드 + B2B SaaS**
 
 | 스타일   | 적용            | 이유                     |
 | -------- | --------------- | ------------------------ |
 | 모놀리식 | Next.js 앱      | 초기 개발 속도, 단순성   |
 | 서버리스 | Vercel Edge     | 자동 스케일링, 비용 효율 |
 | JAMstack | 정적 생성 + ISR | 성능, SEO                |
+| B2B SaaS | Tier 기반 API   | 수익화, 확장성           |
 
 ---
 
@@ -97,414 +102,400 @@ language: Korean (한국어)
 ```mermaid
 graph TB
     subgraph External["외부 시스템"]
-        User["👤 사용자<br/>(모바일/데스크톱)"]
+        User["👤 일반 사용자"]
+        B2BClient["🏢 B2B 고객"]
         Admin["👤 관리자"]
-        KRA["🏇 한국마사회 API<br/>(경마 데이터)"]
-        KSPO["🚴 KSPO API<br/>(경륜/경정 데이터)"]
+        KRA["🏇 한국마사회 API"]
+        KSPO["🚴 KSPO API"]
         GA["📊 Google Analytics"]
         AdSense["💰 Google AdSense"]
+        Resend["📧 Resend Email"]
+        OAuth["🔐 Google/Kakao OAuth"]
     end
 
-    subgraph System["KRace 시스템"]
-        WebApp["📱 KRace 웹 애플리케이션<br/>(Next.js)"]
+    subgraph System["RaceLab 시스템"]
+        WebApp["📱 RaceLab 웹 애플리케이션"]
+        B2BAPI["⚙️ B2B API (v1)"]
+        Database["🗄️ PostgreSQL"]
+        Redis["⚡ Redis Cache"]
+        QStash["📬 Upstash QStash"]
     end
 
     User -->|"웹 브라우저"| WebApp
+    B2BClient -->|"REST API"| B2BAPI
     Admin -->|"관리"| WebApp
-    WebApp -->|"경마 데이터 요청"| KRA
-    WebApp -->|"경륜/경정 데이터 요청"| KSPO
-    WebApp -->|"사용자 행동 추적"| GA
-    WebApp -->|"광고 표시"| AdSense
+
+    WebApp -->|"경마 데이터"| KRA
+    WebApp -->|"경륜/경정 데이터"| KSPO
+    WebApp -->|"사용자 추적"| GA
+    WebApp -->|"광고"| AdSense
+    WebApp -->|"이메일"| Resend
+    WebApp -->|"OAuth 인증"| OAuth
+
+    B2BAPI --> Database
+    B2BAPI --> Redis
+    B2BAPI --> QStash
 
     style WebApp fill:#4A90D9,color:#fff
-    style User fill:#90EE90
-    style Admin fill:#90EE90
+    style B2BAPI fill:#E57373,color:#fff
+    style Database fill:#90EE90,color:#000
 ```
 
 ### 2.2 시스템 경계
 
-| 경계 내부               | 경계 외부        |
-| ----------------------- | ---------------- |
-| Next.js 웹 애플리케이션 | KSPO 공공 API    |
-| API Routes              | 한국마사회 API   |
-| 정적 자산               | Google Analytics |
-| ISR 캐시                | Google AdSense   |
-|                         | Vercel 인프라    |
-|                         | Cloudflare CDN   |
+| 경계 내부               | 경계 외부          |
+| ----------------------- | ------------------ |
+| Next.js 웹 애플리케이션 | KRA/KSPO 공공 API  |
+| B2B API Routes          | Google/Kakao OAuth |
+| PostgreSQL (Supabase)   | Resend Email       |
+| Redis (Upstash)         | Google Analytics   |
+| Drizzle ORM             | Google AdSense     |
+| NextAuth.js v5          | Vercel 인프라      |
 
 ---
 
-## 3. 컨테이너 다이어그램
+## 3. 디렉토리 구조
 
-### 3.1 C4 Container Diagram
-
-```mermaid
-graph TB
-    subgraph User["사용자"]
-        Browser["🌐 웹 브라우저"]
-    end
-
-    subgraph Vercel["Vercel Platform"]
-        subgraph NextApp["Next.js Application"]
-            Pages["📄 Pages<br/>(Server Components)"]
-            APIRoutes["⚙️ API Routes<br/>(Edge Functions)"]
-            StaticAssets["🖼️ Static Assets"]
-        end
-
-        ISRCache["💾 ISR Cache"]
-        EdgeNetwork["🌍 Edge Network"]
-    end
-
-    subgraph External["외부 API"]
-        KSPO["🏛️ KSPO API"]
-        KRA["🏛️ KRA API"]
-    end
-
-    Browser -->|"HTTPS"| EdgeNetwork
-    EdgeNetwork -->|"캐시 HIT"| ISRCache
-    EdgeNetwork -->|"캐시 MISS"| Pages
-    Pages -->|"데이터 요청"| APIRoutes
-    APIRoutes -->|"REST API"| KSPO
-    APIRoutes -->|"REST API"| KRA
-    ISRCache -.->|"저장"| Pages
-
-    style NextApp fill:#000,color:#fff
-    style EdgeNetwork fill:#4A90D9,color:#fff
 ```
+/src
+├── app/                          # Next.js 14 App Router
+│   ├── api/
+│   │   ├── auth/[...nextauth]/  # OAuth 인증 (NextAuth.js v5)
+│   │   ├── v1/                  # B2B API v1
+│   │   │   ├── backtest/        # 백테스트 작업
+│   │   │   ├── data/            # 데이터 조회
+│   │   │   ├── client/          # 클라이언트 정보
+│   │   │   └── health/          # 헬스체크
+│   │   ├── ingestion/           # 데이터 수집 (cron/trigger)
+│   │   ├── races/               # 경주 데이터 (레거시)
+│   │   ├── results/             # 결과 데이터
+│   │   └── newsletter/          # 뉴스레터
+│   ├── dashboard/               # 보호된 대시보드
+│   ├── login/                   # 로그인 페이지
+│   ├── race/[id]/              # 경주 상세
+│   ├── results/                 # 과거 결과
+│   └── layout.tsx               # 루트 레이아웃
+│
+├── components/
+│   ├── ads/                     # AdSense 컴포넌트
+│   ├── auth/                    # 인증 UI (AuthButton, SessionProvider)
+│   ├── landing/                 # 랜딩 페이지
+│   ├── race/                    # 경주 관련
+│   └── common/                  # 공통 컴포넌트
+│
+├── lib/
+│   ├── auth/                    # NextAuth.js 설정
+│   │   ├── config.ts            # providers, callbacks
+│   │   └── index.ts             # auth, signIn, signOut
+│   ├── db/
+│   │   ├── client.ts            # Drizzle PostgreSQL 클라이언트
+│   │   ├── schema/              # 테이블 스키마
+│   │   │   ├── auth.ts          # users, accounts, sessions
+│   │   │   ├── races.ts         # races
+│   │   │   ├── entries.ts       # entries
+│   │   │   ├── results.ts       # results
+│   │   │   ├── clients.ts       # B2B clients, tiers
+│   │   │   └── index.ts         # barrel export
+│   │   └── queries/             # 타입 안전 쿼리
+│   ├── api/                     # 외부 API 클라이언트
+│   │   ├── kraClient.ts         # 한국마사회
+│   │   ├── kspoCycleClient.ts   # 경륜
+│   │   └── kspoBoatClient.ts    # 경정
+│   ├── api-helpers/
+│   │   ├── mappers.ts           # 응답 변환
+│   │   ├── apiAuth.ts           # B2B 인증/Rate Limit
+│   │   └── dummy.ts             # 개발용 Mock
+│   ├── services/                # 비즈니스 로직
+│   ├── backtest/                # 백테스트 엔진
+│   ├── strategy/                # 전략 DSL
+│   ├── cache/                   # Redis 캐시
+│   ├── email.ts                 # Resend 이메일
+│   └── utils/                   # 유틸리티
+│
+├── types/                       # TypeScript 타입 정의
+├── store/                       # Zustand 상태관리
+├── hooks/                       # React Hooks
+├── styles/                      # CSS
+├── middleware.ts                # 라우트 보호
+└── ingestion/                   # 데이터 수집 워커
 
-### 3.2 컨테이너 설명
+/db
+└── migrations/                  # Drizzle 마이그레이션
 
-| 컨테이너          | 기술                    | 역할                |
-| ----------------- | ----------------------- | ------------------- |
-| **Pages**         | React Server Components | UI 렌더링, SEO      |
-| **API Routes**    | Next.js API Routes      | 데이터 프록시, 변환 |
-| **ISR Cache**     | Vercel Cache            | 페이지 캐싱         |
-| **Edge Network**  | Vercel Edge             | 전역 배포, 라우팅   |
-| **Static Assets** | CDN                     | 정적 파일 서빙      |
-
----
-
-## 4. 컴포넌트 다이어그램
-
-### 4.1 프론트엔드 컴포넌트
-
-```mermaid
-graph TB
-    subgraph Pages["📄 Pages"]
-        HomePage["HomePage<br/>/"]
-        RaceDetailPage["RaceDetailPage<br/>/race/[id]"]
-    end
-
-    subgraph Components["🧩 Components"]
-        subgraph Layout["Layout"]
-            Header["Header"]
-            Footer["Footer"]
-        end
-
-        subgraph Race["Race Components"]
-            TodayRaces["TodayRaces<br/>(Server)"]
-            RaceCard["RaceCard"]
-            EntryList["EntryList"]
-            OddsDisplay["OddsDisplay<br/>(Client)"]
-            ResultsTable["ResultsTable"]
-        end
-
-        subgraph Common["Common"]
-            TabGroup["TabGroup"]
-            LoadingSkeleton["LoadingSkeleton"]
-            ErrorBoundary["ErrorBoundary"]
-        end
-    end
-
-    subgraph Lib["📚 Lib"]
-        API["api.ts"]
-        Mappers["mappers.ts"]
-        Utils["utils/"]
-    end
-
-    HomePage --> Header
-    HomePage --> TodayRaces
-    HomePage --> Footer
-
-    RaceDetailPage --> Header
-    RaceDetailPage --> EntryList
-    RaceDetailPage --> OddsDisplay
-    RaceDetailPage --> ResultsTable
-    RaceDetailPage --> Footer
-
-    TodayRaces --> RaceCard
-    TodayRaces --> TabGroup
-
-    TodayRaces --> API
-    OddsDisplay --> API
-    API --> Mappers
-```
-
-### 4.2 백엔드 컴포넌트 (API Routes)
-
-```mermaid
-graph TB
-    subgraph APIRoutes["⚙️ API Routes"]
-        subgraph Races["Races API"]
-            HorseAPI["/api/races/horse"]
-            CycleAPI["/api/races/cycle"]
-            BoatAPI["/api/races/boat"]
-        end
-
-        subgraph RaceDetail["Race Detail API"]
-            EntriesAPI["/api/races/[type]/[id]/entries"]
-            OddsAPI["/api/races/[type]/[id]/odds"]
-            ResultsAPI["/api/races/[type]/[id]/results"]
-        end
-    end
-
-    subgraph Helpers["🔧 API Helpers"]
-        KSPOClient["kspoClient.ts"]
-        KRAClient["kraClient.ts"]
-        Mappers["mappers.ts"]
-        Cache["cache.ts"]
-    end
-
-    subgraph External["🌐 External"]
-        KSPO["KSPO API"]
-        KRA["KRA API"]
-    end
-
-    HorseAPI --> KRAClient
-    CycleAPI --> KSPOClient
-    BoatAPI --> KSPOClient
-
-    EntriesAPI --> KSPOClient
-    OddsAPI --> KSPOClient
-    ResultsAPI --> KSPOClient
-
-    KSPOClient --> Mappers
-    KRAClient --> Mappers
-    KSPOClient --> Cache
-
-    KSPOClient --> KSPO
-    KRAClient --> KRA
+/public
+├── ads.txt                      # AdSense 인증
+└── robots.txt                   # SEO
 ```
 
 ---
 
-## 5. 데이터 흐름
+## 4. 데이터 흐름
 
-### 5.1 경주 목록 조회 흐름
-
-```mermaid
-sequenceDiagram
-    participant User as 👤 사용자
-    participant Edge as 🌍 Edge Network
-    participant ISR as 💾 ISR Cache
-    participant Page as 📄 Page
-    participant API as ⚙️ API Route
-    participant KSPO as 🏛️ KSPO API
-
-    User->>Edge: GET /
-
-    alt 캐시 유효
-        Edge->>ISR: 캐시 조회
-        ISR-->>Edge: 캐시된 페이지
-        Edge-->>User: HTML (빠름)
-    else 캐시 만료/없음
-        Edge->>Page: 페이지 렌더링 요청
-        Page->>API: GET /api/races/horse
-        API->>KSPO: 경주 데이터 요청
-        KSPO-->>API: JSON 응답
-        API-->>Page: 변환된 데이터
-        Page-->>ISR: 페이지 캐시 저장
-        Page-->>Edge: 렌더링된 HTML
-        Edge-->>User: HTML
-    end
-
-    Note over ISR: revalidate: 30초
-```
-
-### 5.2 배당률 실시간 조회 흐름
-
-```mermaid
-sequenceDiagram
-    participant User as 👤 사용자
-    participant Client as 📱 Client Component
-    participant API as ⚙️ API Route
-    participant KSPO as 🏛️ KSPO API
-
-    User->>Client: 경주 상세 페이지 접속
-
-    loop 30초마다
-        Client->>API: GET /api/races/horse/123/odds
-        API->>KSPO: 배당률 요청
-        KSPO-->>API: 배당률 데이터
-        API-->>Client: JSON 응답
-        Client-->>User: UI 업데이트
-    end
-
-    Note over Client: useInterval(30000)
-```
-
-### 5.3 캐싱 전략
+### 4.1 전체 데이터 흐름
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  💾 캐싱 레이어                                              │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Layer 1: 브라우저 캐시                                      │
-│  ─────────────────────────────────────────────              │
-│  • 정적 자산 (JS, CSS, 이미지): 1년                          │
-│  • HTML: no-cache (ISR과 연동)                              │
-│                                                             │
-│  Layer 2: CDN (Vercel Edge)                                 │
-│  ─────────────────────────────────────────────              │
-│  • ISR 페이지: stale-while-revalidate                       │
-│  • API 응답: Cache-Control 헤더                             │
-│                                                             │
-│  Layer 3: ISR Cache                                         │
-│  ─────────────────────────────────────────────              │
-│  • 홈페이지: 30초                                            │
-│  • 경주 상세: 60초                                           │
-│  • 결과 페이지: 5분                                          │
-│                                                             │
-│  Layer 4: API Response Cache                                │
-│  ─────────────────────────────────────────────              │
-│  • 경주 목록: 30초                                           │
-│  • 출주표: 60초                                              │
-│  • 배당률: 캐시 없음 (실시간)                                 │
-│  • 결과: 5분 (확정 후)                                       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              데이터 흐름 다이어그램                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  External APIs          Fetchers           Mappers           Database       │
+│  ━━━━━━━━━━━━━━        ━━━━━━━━━━━         ━━━━━━━━━━━       ━━━━━━━━━━━   │
+│                                                                             │
+│  KRA API (경마)   ────→ kraClient.ts    ──→ mappers.ts    ──→ races         │
+│                                                              entries        │
+│  KSPO API (경륜)  ────→ kspoCycleClient ──→ kspoMappers   ──→ results       │
+│                                                              oddsSnapshots  │
+│  KSPO API (경정)  ────→ kspoBoatClient  ─────────────────→ tracks          │
+│                                                                             │
+│                                                                             │
+│  API Routes            Services            Components                       │
+│  ━━━━━━━━━━━━━         ━━━━━━━━━━━         ━━━━━━━━━━━                      │
+│                                                                             │
+│  /api/races/*     ←─── raceService     ←─── TodayRaces                     │
+│  /api/results/*   ←─── resultsService  ←─── ResultCard                     │
+│  /api/v1/*        ←─── backtestService ←─── (B2B Client)                   │
+│                                                                             │
+│                                                                             │
+│  OAuth Providers       NextAuth.js         Database                         │
+│  ━━━━━━━━━━━━━━━       ━━━━━━━━━━━         ━━━━━━━━━━━                      │
+│                                                                             │
+│  Google OAuth     ────→ config.ts      ──→ users                           │
+│  Kakao OAuth      ────→ DrizzleAdapter ──→ accounts                        │
+│                                          ──→ sessions                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### 4.2 API 응답 패턴
+
+```typescript
+// 모든 API 응답 표준 형식
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+  };
+  timestamp: string; // ISO 8601
+}
+```
+
+### 4.3 캐싱 전략
+
+| 레이어 | 대상 | TTL | 전략 |
+|--------|------|-----|------|
+| Browser | 정적 자산 | 1년 | immutable |
+| CDN | ISR 페이지 | 30s~5m | stale-while-revalidate |
+| Redis | Rate Limit | 1분 | sliding window |
+| Redis | API 응답 | 30s~5m | cache-aside |
 
 ---
 
-## 6. 기술 스택
+## 5. 기술 스택
 
-### 6.1 기술 스택 개요
+### 5.1 기술 스택 개요
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        FRONTEND                              │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Framework:    Next.js 14.2.33 (App Router)                 │
-│  UI Library:   React 18.3.1                                 │
-│  Language:     TypeScript 5.9.3                             │
-│  Styling:      Tailwind CSS 3.4.0                           │
-│  State:        React Server Components + useState           │
-│                                                             │
+│  Framework:    Next.js 14.2 (App Router)                    │
+│  UI Library:   React 18.3                                   │
+│  Language:     TypeScript 5.9                               │
+│  Styling:      Tailwind CSS 3.4                             │
+│  State:        Zustand (client) + Server Components         │
+│  Animation:    Framer Motion                                │
+│  Charts:       Recharts                                     │
 ├─────────────────────────────────────────────────────────────┤
 │                        BACKEND                               │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Runtime:      Next.js API Routes (Node.js)                 │
-│  Edge:         Vercel Edge Functions                        │
-│  Caching:      Vercel ISR + HTTP Cache                      │
-│                                                             │
+│  Runtime:      Next.js API Routes                           │
+│  Database:     PostgreSQL (Supabase)                        │
+│  ORM:          Drizzle ORM                                  │
+│  Cache:        Redis (Upstash)                              │
+│  Queue:        Upstash QStash                               │
+│  Auth:         NextAuth.js v5 (Google, Kakao)               │
+│  Email:        Resend                                       │
 ├─────────────────────────────────────────────────────────────┤
 │                      INFRASTRUCTURE                          │
 ├─────────────────────────────────────────────────────────────┤
-│                                                             │
 │  Hosting:      Vercel                                       │
-│  CDN:          Vercel Edge Network + Cloudflare             │
+│  Database:     Supabase (PostgreSQL)                        │
+│  CDN:          Vercel Edge Network                          │
 │  DNS:          Cloudflare                                   │
-│  Analytics:    Google Analytics 4                           │
-│  Monitoring:   Vercel Analytics                             │
-│                                                             │
+│  Monitoring:   Google Analytics, Vercel Analytics           │
+│  Ads:          Google AdSense                               │
 ├─────────────────────────────────────────────────────────────┤
 │                        TESTING                               │
 ├─────────────────────────────────────────────────────────────┤
+│  Unit:         Jest 30.2                                    │
+│  Component:    @testing-library/react                       │
+│  E2E:          Playwright 1.56                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 5.2 주요 의존성
+
+| 패키지 | 버전 | 용도 |
+|--------|------|------|
+| next | 14.2.33 | 프레임워크 |
+| react | 18.3.1 | UI 라이브러리 |
+| drizzle-orm | 0.45.0 | 데이터베이스 ORM |
+| next-auth | 5.0.0-beta.30 | OAuth 인증 |
+| resend | 6.6.0 | 이메일 서비스 |
+| zustand | 5.0.9 | 상태 관리 |
+| zod | 4.2.1 | 스키마 검증 |
+| ioredis | 5.8.2 | Redis 클라이언트 |
+| @upstash/qstash | 2.8.4 | 작업 큐 |
+
+---
+
+## 6. 인증 아키텍처
+
+### 6.1 인증 흐름
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 사용자
+    participant App as 📱 RaceLab
+    participant Auth as 🔐 NextAuth
+    participant OAuth as 🌐 Google/Kakao
+    participant DB as 🗄️ PostgreSQL
+
+    User->>App: 로그인 클릭
+    App->>Auth: signIn('google')
+    Auth->>OAuth: OAuth 요청
+    OAuth-->>User: 동의 화면
+    User->>OAuth: 승인
+    OAuth-->>Auth: 인증 코드
+    Auth->>OAuth: 토큰 교환
+    OAuth-->>Auth: Access Token
+    Auth->>DB: 사용자 생성/조회
+    DB-->>Auth: User 정보
+    Auth->>App: JWT 세션 생성
+    App-->>User: 로그인 완료
+```
+
+### 6.2 인증 설정
+
+| 항목 | 설정 |
+|------|------|
+| Providers | Google, Kakao |
+| Session Strategy | JWT (DB 조회 최소화) |
+| Session TTL | 30일 |
+| Protected Routes | /dashboard/* |
+| Adapter | DrizzleAdapter |
+
+### 6.3 관련 테이블
+
+```sql
+-- users: 사용자 기본 정보
+-- accounts: OAuth 계정 연결
+-- sessions: 활성 세션 (JWT이므로 미사용)
+-- verification_tokens: 이메일 인증용
+```
+
+---
+
+## 7. B2B API 아키텍처
+
+### 7.1 Tier 시스템
+
+| Tier | Rate Limit | 스트리밍 | 데이터 지연 | 백테스트 |
+|------|-----------|----------|-------------|----------|
+| **Bronze** | 10/분 | ❌ | 5분 | ❌ |
+| **Silver** | 60/분 | ✅ | 30초 | ❌ |
+| **Gold** | 무제한 | ✅ | 실시간 | 10회/월 |
+| **QuantLab** | 무제한 | ✅ | 실시간 | 무제한 |
+
+### 7.2 API 엔드포인트
+
+| 엔드포인트 | 메서드 | Tier | 설명 |
+|-----------|--------|------|------|
+| `/api/v1/health` | GET | - | 서비스 상태 |
+| `/api/v1/data/races` | GET | Bronze+ | 경주 목록 |
+| `/api/v1/data/odds-history` | GET | Silver+ | 배당률 이력 |
+| `/api/v1/backtest` | POST | Gold+ | 백테스트 생성 |
+| `/api/v1/backtest/[jobId]` | GET | Gold+ | 결과 조회 |
+| `/api/v1/client/info` | GET | Any | 클라이언트 정보 |
+
+### 7.3 인증 흐름
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  B2B API 인증 흐름                                          │
+├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Unit:         Jest 30.2.0                                  │
-│  Component:    @testing-library/react 16.3.0                │
-│  E2E:          Playwright 1.56.1                            │
+│  1. Request                                                 │
+│     X-API-Key: rk_xxxxx 또는 Authorization: Bearer rk_xxxx │
+│                                                             │
+│  2. apiAuth.ts                                              │
+│     ├── API Key 추출                                        │
+│     ├── clients 테이블 조회                                  │
+│     ├── Tier 권한 확인                                       │
+│     └── Rate Limit 체크 (Redis)                             │
+│                                                             │
+│  3. Response                                                │
+│     ├── 200: 데이터 반환                                     │
+│     ├── 401: 인증 실패                                       │
+│     ├── 403: 권한 부족                                       │
+│     └── 429: Rate Limit 초과                                │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 기술 선택 근거
+---
 
-| 기술           | 선택 이유                           | 대안                |
-| -------------- | ----------------------------------- | ------------------- |
-| **Next.js**    | SSR/ISR/SSG 통합, App Router        | Remix, Nuxt         |
-| **React**      | 생태계, 커뮤니티, Server Components | Vue, Svelte         |
-| **TypeScript** | 타입 안전성, DX                     | JavaScript          |
-| **Tailwind**   | 빠른 개발, 번들 최적화              | CSS Modules, Styled |
-| **Vercel**     | Next.js 최적화, 서버리스            | AWS, Netlify        |
-| **Jest**       | React 생태계 표준                   | Vitest              |
-| **Playwright** | 크로스 브라우저, 안정성             | Cypress             |
+## 8. 데이터베이스 설계
+
+### 8.1 테이블 구조
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  데이터베이스 스키마                                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Auth 도메인                                                │
+│  ─────────────────────                                      │
+│  users          사용자 기본 정보                             │
+│  accounts       OAuth 계정 연결                             │
+│  sessions       세션 정보 (JWT 사용시 미사용)                │
+│  verification_tokens  이메일 인증 토큰                      │
+│                                                             │
+│  Race 도메인                                                │
+│  ─────────────────────                                      │
+│  races          경주 기본 정보                               │
+│  entries        출전마/선수 정보                             │
+│  results        경주 결과                                    │
+│  odds_snapshots 배당률 스냅샷                               │
+│  tracks         경주장 정보                                  │
+│                                                             │
+│  B2B 도메인                                                 │
+│  ─────────────────────                                      │
+│  clients        B2B 고객 정보                               │
+│  api_usage      API 사용량 로그                             │
+│  backtest_jobs  백테스트 작업                               │
+│                                                             │
+│  운영 도메인                                                │
+│  ─────────────────────                                      │
+│  ingestion_failures  수집 실패 로그                         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 연결 정보
+
+| 환경 | 호스트 | Pooler |
+|------|--------|--------|
+| Production | Supabase | Transaction Pooler (6543) |
+| Development | Supabase | Direct Connection (5432) |
 
 ---
 
-## 7. 배포 아키텍처
+## 9. 보안 아키텍처
 
-### 7.1 배포 환경
-
-```mermaid
-graph LR
-    subgraph Development["개발 환경"]
-        Local["💻 로컬 개발"]
-    end
-
-    subgraph CI["CI/CD"]
-        GitHub["📦 GitHub"]
-        Actions["⚙️ GitHub Actions"]
-    end
-
-    subgraph Vercel["Vercel"]
-        Preview["🔍 Preview"]
-        Production["🚀 Production"]
-    end
-
-    subgraph CDN["CDN"]
-        Edge["🌍 Edge Network"]
-        CF["☁️ Cloudflare"]
-    end
-
-    Local -->|"git push"| GitHub
-    GitHub -->|"PR"| Actions
-    Actions -->|"빌드/테스트"| Preview
-    GitHub -->|"merge to main"| Production
-    Production --> Edge
-    Edge --> CF
-```
-
-### 7.2 환경별 설정
-
-| 환경       | URL           | 용도    | 캐시 TTL |
-| ---------- | ------------- | ------- | -------- |
-| Production | racelab.kr    | 운영    | 없음     |
-| Preview    | \*.vercel.app | PR 리뷰 | 30초     |
-| Production | racelab.kr    | 운영    | 5분      |
-
-### 7.3 배포 파이프라인
-
-```yaml
-# 배포 흐름
-1. PR 생성
-└─> GitHub Actions
-├─> Lint
-├─> Type Check
-├─> Unit Tests
-└─> Build
-└─> Vercel Preview 배포
-└─> E2E Tests
-
-2. PR Merge (main)
-└─> Vercel Production 자동 배포
-└─> Lighthouse CI
-└─> Slack 알림
-
-3. 롤백 (필요시)
-└─> Vercel Dashboard
-└─> 이전 배포로 Promote
-```
-
----
-
-## 8. 보안 아키텍처
-
-### 8.1 보안 레이어
+### 9.1 보안 레이어
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -512,154 +503,119 @@ graph LR
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Layer 1: 네트워크                                          │
-│  ─────────────────────────────────────────────              │
+│  ─────────────────────                                      │
 │  • HTTPS 강제 (TLS 1.3)                                     │
 │  • Cloudflare DDoS 보호                                     │
 │  • HSTS 헤더                                                │
 │                                                             │
-│  Layer 2: 애플리케이션                                       │
-│  ─────────────────────────────────────────────              │
-│  • CSP (Content Security Policy)                            │
-│  • XSS 방지 (React 자동 이스케이프)                          │
-│  • CSRF 보호 (SameSite Cookie)                              │
+│  Layer 2: 인증                                              │
+│  ─────────────────────                                      │
+│  • NextAuth.js v5 (JWT)                                     │
+│  • OAuth 2.0 (Google, Kakao)                               │
+│  • API Key 인증 (B2B)                                       │
 │                                                             │
-│  Layer 3: API                                               │
-│  ─────────────────────────────────────────────              │
-│  • Rate Limiting (100 req/min)                              │
-│  • API 키 서버사이드 관리                                    │
-│  • 입력 검증                                                 │
+│  Layer 3: 인가                                              │
+│  ─────────────────────                                      │
+│  • Middleware 라우트 보호                                    │
+│  • Tier 기반 권한 (B2B)                                     │
+│  • Rate Limiting (Redis)                                    │
 │                                                             │
 │  Layer 4: 데이터                                            │
-│  ─────────────────────────────────────────────              │
+│  ─────────────────────                                      │
 │  • 환경 변수 암호화 (Vercel)                                 │
-│  • 민감 정보 클라이언트 노출 금지                            │
+│  • DB 연결 암호화 (SSL)                                      │
+│  • 민감 정보 서버사이드 관리                                 │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 8.2 보안 헤더
+### 9.2 환경 변수 관리
 
-```typescript
-// next.config.js 보안 헤더 설정
-const securityHeaders = [
-  {
-    key: 'X-DNS-Prefetch-Control',
-    value: 'on',
-  },
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload',
-  },
-  {
-    key: 'X-Frame-Options',
-    value: 'SAMEORIGIN',
-  },
-  {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff',
-  },
-  {
-    key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin',
-  },
-  {
-    key: 'Content-Security-Policy',
-    value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline';",
-  },
-];
-```
-
-### 8.3 API 키 관리
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🔑 API 키 관리                                              │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ❌ 클라이언트 노출 금지:                                    │
-│  • KRA_API_KEY                                              │
-│  • KSPO_API_KEY                                             │
-│                                                             │
-│  ✅ 클라이언트 노출 가능:                                    │
-│  • NEXT_PUBLIC_GA_ID                                        │
-│  • NEXT_PUBLIC_SITE_URL                                     │
-│                                                             │
-│  저장 위치:                                                  │
-│  • 개발: .env.local (git 제외)                              │
-│  • 프로덕션: Vercel Environment Variables                   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+| 변수 | 노출 | 용도 |
+|------|------|------|
+| `KRA_API_KEY` | ❌ 서버만 | 한국마사회 API |
+| `KSPO_API_KEY` | ❌ 서버만 | KSPO API |
+| `DATABASE_URL` | ❌ 서버만 | PostgreSQL |
+| `AUTH_SECRET` | ❌ 서버만 | JWT 서명 |
+| `RESEND_API_KEY` | ❌ 서버만 | 이메일 |
+| `NEXT_PUBLIC_GA_ID` | ✅ 클라이언트 | Analytics |
+| `NEXT_PUBLIC_SITE_URL` | ✅ 클라이언트 | SEO |
 
 ---
 
-## 9. 아키텍처 결정 기록
+## 10. 배포 아키텍처
+
+### 10.1 배포 파이프라인
+
+```mermaid
+graph LR
+    subgraph Dev["개발"]
+        Local["💻 로컬"]
+    end
+
+    subgraph CI["CI/CD"]
+        GitHub["📦 GitHub"]
+        Actions["⚙️ Actions"]
+    end
+
+    subgraph Vercel["Vercel"]
+        Preview["🔍 Preview"]
+        Prod["🚀 Production"]
+    end
+
+    Local -->|"git push"| GitHub
+    GitHub -->|"PR"| Actions
+    Actions -->|"빌드/테스트"| Preview
+    GitHub -->|"merge main"| Prod
+```
+
+### 10.2 환경별 설정
+
+| 환경 | URL | DB | 용도 |
+|------|-----|-----|------|
+| Production | racelab.kr | Supabase Prod | 운영 |
+| Preview | *.vercel.app | Supabase Dev | PR 리뷰 |
+| Local | localhost:3000 | Supabase Dev | 개발 |
+
+---
+
+## 11. 아키텍처 결정 기록
 
 ### ADR-001: Next.js App Router 선택
 
 **상태**: Accepted
-
-**컨텍스트**:
-
-- React 기반 프레임워크 선택 필요
-- SSR, SSG, ISR 지원 필요
-- SEO 최적화 중요
-
-**결정**:
-
-- Next.js 14 App Router 사용
-
-**결과**:
-
-- ✅ Server Components로 성능 향상
-- ✅ ISR로 캐싱 최적화
-- ✅ Vercel 배포 최적화
-- ⚠️ 러닝 커브 존재
+**결정**: Next.js 14 App Router 사용
+**결과**: ✅ Server Components, ISR, Vercel 최적화
 
 ### ADR-002: 서버리스 아키텍처 선택
 
 **상태**: Accepted
+**결정**: Vercel 서버리스 플랫폼
+**결과**: ✅ 자동 스케일링, 비용 효율
 
-**컨텍스트**:
+### ADR-003: PostgreSQL + Drizzle ORM
 
-- 초기 트래픽 불확실
-- 비용 효율 중요
-- 운영 부담 최소화 필요
+**상태**: Accepted (Updated from ADR-003 v1.0)
+**결정**: Supabase PostgreSQL + Drizzle ORM
+**결과**: ✅ 타입 안전성, 마이그레이션 지원
 
-**결정**:
-
-- Vercel 서버리스 플랫폼 사용
-- API Routes로 백엔드 구현
-
-**결과**:
-
-- ✅ 자동 스케일링
-- ✅ 운영 부담 최소화
-- ✅ 비용 효율 (사용량 기반)
-- ⚠️ Cold Start 존재 (Edge로 완화)
-
-### ADR-003: 외부 DB 미사용
+### ADR-004: NextAuth.js v5 인증
 
 **상태**: Accepted
+**결정**: NextAuth.js v5 + DrizzleAdapter + JWT
+**결과**: ✅ OAuth 표준, 세션 관리 단순화
 
-**컨텍스트**:
+### ADR-005: B2B Tier 시스템
 
-- MVP 단계에서 자체 데이터 저장 불필요
-- 모든 데이터는 외부 API에서 제공
-- 비용 및 복잡성 최소화
+**상태**: Accepted
+**결정**: 4단계 Tier (Bronze → QuantLab)
+**결과**: ✅ 수익화 경로, 확장성
 
-**결정**:
+### ADR-006: Redis Rate Limiting
 
-- 별도 데이터베이스 없이 외부 API + 캐싱으로 구현
-- Phase 2에서 필요시 데이터베이스 도입 검토
-
-**결과**:
-
-- ✅ 인프라 단순화
-- ✅ 비용 절감
-- ✅ 운영 부담 감소
-- ⚠️ 히스토리 검색 기능 제한 (Phase 2에서 해결)
+**상태**: In Progress
+**결정**: Upstash Redis로 분산 Rate Limiting
+**이슈**: In-memory fallback 제거 필요
 
 ---
 
@@ -667,31 +623,24 @@ const securityHeaders = [
 
 ### A. 다이어그램 범례
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  📊 다이어그램 범례                                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  👤 사용자/액터                                              │
-│  📄 페이지/컴포넌트                                          │
-│  ⚙️ API/서비스                                               │
-│  💾 저장소/캐시                                              │
-│  🌍 네트워크/인프라                                          │
-│  🏛️ 외부 시스템                                              │
-│                                                             │
-│  ─── 동기 통신                                               │
-│  - - - 비동기 통신                                           │
-│  ═══ 데이터 흐름                                             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+| 기호 | 의미 |
+|------|------|
+| 👤 | 사용자/액터 |
+| 📱 | 웹 애플리케이션 |
+| ⚙️ | API/서비스 |
+| 🗄️ | 데이터베이스 |
+| ⚡ | 캐시 |
+| 🔐 | 인증 |
+| 📧 | 이메일 |
+| 💰 | 수익화 |
 
 ### B. 참고 자료
 
 - [Next.js 공식 문서](https://nextjs.org/docs)
-- [Vercel 아키텍처 가이드](https://vercel.com/docs)
-- [C4 Model](https://c4model.com/)
+- [Drizzle ORM](https://orm.drizzle.team)
+- [NextAuth.js v5](https://authjs.dev)
+- [Vercel 가이드](https://vercel.com/docs)
 
 ---
 
-_이 문서는 시스템 아키텍처 변경 시 업데이트됩니다._
+_최종 업데이트: 2025-12-28_

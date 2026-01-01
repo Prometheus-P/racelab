@@ -36,7 +36,10 @@ describe('GET /api/races/boat', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue(mockBoatRaces);
+    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockBoatRaces,
+    });
   });
 
   it('should return boat race schedules successfully', async () => {

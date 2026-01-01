@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { RunnerVM } from '@/lib/view-models/bookVM';
 import FormLinesCell from './FormLinesCell';
 
@@ -5,7 +6,7 @@ interface RunnerRowExpertProps {
   runner: RunnerVM;
 }
 
-const RunnerRowExpert = ({ runner }: RunnerRowExpertProps) => {
+const RunnerRowExpert = memo(function RunnerRowExpert({ runner }: RunnerRowExpertProps) {
   const formLines = runner.formLines.length > 0 ? runner.formLines : Array(8).fill({ finish: '기록 수집중' });
 
   return (
@@ -22,6 +23,6 @@ const RunnerRowExpert = ({ runner }: RunnerRowExpertProps) => {
       </td>
     </tr>
   );
-};
+});
 
 export default RunnerRowExpert;

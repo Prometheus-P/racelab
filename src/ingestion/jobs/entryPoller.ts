@@ -109,28 +109,32 @@ export async function pollEntries(options: PollEntriesOptions): Promise<Ingestio
       }
 
       if (mappedEntries.length > 0) {
-        await db
-          .insert(entries)
-          .values(mappedEntries)
-          .onConflictDoUpdate({
-            target: [entries.raceId, entries.entryNo],
-            set: {
-              name: entries.name,
-              jockeyName: entries.jockeyName,
-              weight: entries.weight,
-              rating: entries.rating,
-              status: entries.status,
-            },
-          });
+        // Use transaction to ensure entries insert and race status update are atomic
+        // If either operation fails, both are rolled back to prevent data inconsistency
+        await db.transaction(async (tx) => {
+          await tx
+            .insert(entries)
+            .values(mappedEntries)
+            .onConflictDoUpdate({
+              target: [entries.raceId, entries.entryNo],
+              set: {
+                name: entries.name,
+                jockeyName: entries.jockeyName,
+                weight: entries.weight,
+                rating: entries.rating,
+                status: entries.status,
+              },
+            });
+
+          // Update race status to 'upcoming'
+          await tx
+            .update(races)
+            .set({ status: 'upcoming', updatedAt: new Date() })
+            .where(eq(races.id, raceId));
+        });
 
         result.collected += mappedEntries.length;
         console.log(`[EntryPoller] Collected ${mappedEntries.length} entries for ${raceId}`);
-
-        // Update race status to 'upcoming'
-        await db
-          .update(races)
-          .set({ status: 'upcoming', updatedAt: new Date() })
-          .where(eq(races.id, raceId));
       } else {
         result.skipped += 1;
         console.log(`[EntryPoller] No entries found for ${raceId}`);

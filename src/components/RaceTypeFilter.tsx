@@ -1,7 +1,7 @@
 // src/components/RaceTypeFilter.tsx
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { M3Chip } from './ui/M3Chip';
 import { RaceType } from '@/types';
 
@@ -24,17 +24,20 @@ export function RaceTypeFilter({
   className = '',
   'data-testid': testId,
 }: RaceTypeFilterProps) {
-  const handleChipClick = (type: RaceType) => {
-    if (!onChange) return;
+  const handleChipClick = useCallback(
+    (type: RaceType) => {
+      if (!onChange) return;
 
-    if (selectedTypes.includes(type)) {
-      // Remove type
-      onChange(selectedTypes.filter((t) => t !== type));
-    } else {
-      // Add type
-      onChange([...selectedTypes, type]);
-    }
-  };
+      if (selectedTypes.includes(type)) {
+        // Remove type
+        onChange(selectedTypes.filter((t) => t !== type));
+      } else {
+        // Add type
+        onChange([...selectedTypes, type]);
+      }
+    },
+    [onChange, selectedTypes]
+  );
 
   return (
     <div

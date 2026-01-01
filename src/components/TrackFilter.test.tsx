@@ -5,100 +5,101 @@ import userEvent from '@testing-library/user-event';
 import { TrackFilter } from './TrackFilter';
 
 describe('TrackFilter', () => {
-  it('renders track dropdown', () => {
+  it('renders track filter with "전체" button', () => {
     render(<TrackFilter />);
-    expect(screen.getByRole('combobox', { name: /경기장/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /전체/ })).toBeInTheDocument();
   });
 
   it('shows all tracks when no race types selected', () => {
     render(<TrackFilter />);
 
     // Should include tracks from all types
-    expect(screen.getByRole('option', { name: /서울/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /광명/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /미사리/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '서울' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '광명' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '미사리' })).toBeInTheDocument();
   });
 
   it('filters tracks based on selected race types', () => {
     render(<TrackFilter selectedRaceTypes={['horse']} />);
 
     // Should show horse tracks
-    expect(screen.getByRole('option', { name: /서울/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /부산경남/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '서울' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '부산경남' })).toBeInTheDocument();
 
     // Should not show cycle or boat tracks
-    expect(screen.queryByRole('option', { name: /광명/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /미사리/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '광명' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '미사리' })).not.toBeInTheDocument();
   });
 
   it('shows cycle tracks when cycle type selected', () => {
     render(<TrackFilter selectedRaceTypes={['cycle']} />);
 
-    expect(screen.getByRole('option', { name: /광명/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /창원/ })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /서울/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '광명' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '창원' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '서울' })).not.toBeInTheDocument();
   });
 
   it('shows boat tracks when boat type selected', () => {
     render(<TrackFilter selectedRaceTypes={['boat']} />);
 
-    expect(screen.getByRole('option', { name: /미사리/ })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /서울/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '미사리' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '서울' })).not.toBeInTheDocument();
   });
 
   it('shows tracks from multiple types when multiple selected', () => {
     render(<TrackFilter selectedRaceTypes={['horse', 'cycle']} />);
 
     // Should show both horse and cycle tracks
-    expect(screen.getByRole('option', { name: /서울/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /광명/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '서울' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '광명' })).toBeInTheDocument();
 
     // Should not show boat tracks
-    expect(screen.queryByRole('option', { name: /미사리/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '미사리' })).not.toBeInTheDocument();
   });
 
-  it('displays selected track value', () => {
+  it('displays selected track with aria-pressed', () => {
     render(<TrackFilter selectedTrack="서울" />);
-    const select = screen.getByRole('combobox', { name: /경기장/ });
-    expect(select).toHaveValue('서울');
+    const selectedButton = screen.getByRole('button', { name: '서울' });
+    expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('calls onChange when track is selected', async () => {
+  it('calls onChange when track button is clicked', async () => {
     const handleChange = jest.fn();
     const user = userEvent.setup();
 
     render(<TrackFilter onChange={handleChange} />);
 
-    const select = screen.getByRole('combobox', { name: /경기장/ });
-    await user.selectOptions(select, '서울');
+    const seoulButton = screen.getByRole('button', { name: '서울' });
+    await user.click(seoulButton);
 
     expect(handleChange).toHaveBeenCalledWith('서울');
   });
 
-  it('has "전체" option to clear selection', () => {
-    render(<TrackFilter />);
-    expect(screen.getByRole('option', { name: /전체/ })).toBeInTheDocument();
-  });
-
-  it('calls onChange with undefined when "전체" selected', async () => {
+  it('"전체" button clears selection', async () => {
     const handleChange = jest.fn();
     const user = userEvent.setup();
 
     render(<TrackFilter selectedTrack="서울" onChange={handleChange} />);
 
-    const select = screen.getByRole('combobox', { name: /경기장/ });
-    await user.selectOptions(select, '');
+    const allButton = screen.getByRole('button', { name: /전체/ });
+    await user.click(allButton);
 
     expect(handleChange).toHaveBeenCalledWith(undefined);
   });
 
-  it('groups tracks by race type', () => {
+  it('"전체" is pressed when no track selected', () => {
+    render(<TrackFilter />);
+    const allButton = screen.getByRole('button', { name: /전체/ });
+    expect(allButton).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('groups tracks by race type with labels', () => {
     render(<TrackFilter />);
 
-    // Should have optgroups
-    expect(screen.getByRole('group', { name: /경마/ })).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: /경륜/ })).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: /경정/ })).toBeInTheDocument();
+    // Should have group labels
+    expect(screen.getByText('경마')).toBeInTheDocument();
+    expect(screen.getByText('경륜')).toBeInTheDocument();
+    expect(screen.getByText('경정')).toBeInTheDocument();
   });
 
   it('applies custom className', () => {

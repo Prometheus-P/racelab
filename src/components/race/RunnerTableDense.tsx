@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { BookViewMode, RunnerVM } from '@/lib/view-models/bookVM';
 import RunnerRowDense from './RunnerRowDense';
 
@@ -7,7 +8,11 @@ interface RunnerTableDenseProps {
 }
 
 export function RunnerTableDense({ runners, viewMode }: RunnerTableDenseProps) {
-  const sortedRunners = [...runners].sort((a, b) => a.number - b.number);
+  // Memoize sorted array to prevent re-sorting on every render
+  const sortedRunners = useMemo(
+    () => [...runners].sort((a, b) => a.number - b.number),
+    [runners]
+  );
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">

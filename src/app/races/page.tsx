@@ -13,6 +13,13 @@ import { faqSchema, howToSchema } from '../home-components';
 import ErrorBanner from '@/components/ErrorBanner';
 import type { Metadata } from 'next';
 
+// 경주 종목별 경기장 목록
+const TRACKS_BY_TYPE: Record<RaceType, string[]> = {
+  horse: ['서울', '부산경남', '제주'],
+  cycle: ['광명', '창원'],
+  boat: ['미사리'],
+};
+
 export const metadata: Metadata = {
   title: '오늘의 경주 | RaceLab',
   description: '오늘 예정된 경마, 경륜, 경정 경주 일정을 확인하세요.',
@@ -123,30 +130,80 @@ function StatsRow({ data }: { data: TodayRacesData }) {
   );
 }
 
+// 경기장 필터 컴포넌트
+interface TrackFilterProps {
+  type: RaceType;
+  currentTrack: string | null;
+}
+
+function TrackFilter({ type, currentTrack }: TrackFilterProps) {
+  const tracks = TRACKS_BY_TYPE[type];
+
+  return (
+    <div className="mb-4 flex flex-wrap gap-2">
+      <Link
+        href={`/races?tab=${type}`}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+          !currentTrack
+            ? 'bg-primary text-white'
+            : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
+        }`}
+      >
+        전체
+      </Link>
+      {tracks.map((track) => (
+        <Link
+          key={track}
+          href={`/races?tab=${type}&track=${encodeURIComponent(track)}`}
+          className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            currentTrack === track
+              ? 'bg-primary text-white'
+              : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
+          }`}
+        >
+          {track}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 // Simple race list component
-function RaceList({ races, type }: { races: Race[]; type: RaceType }) {
-  if (races.length === 0) {
+function RaceList({ races, type, trackFilter }: { races: Race[]; type: RaceType; trackFilter: string | null }) {
+  // 경기장 필터 적용
+  const filteredRaces = trackFilter
+    ? races.filter((race) => race.track === trackFilter || race.track?.includes(trackFilter))
+    : races;
+
+  if (filteredRaces.length === 0) {
     const typeLabel = type === 'horse' ? '경마' : type === 'cycle' ? '경륜' : '경정';
+    const filterMessage = trackFilter ? ` (${trackFilter})` : '';
     return (
-      <div className="py-8 text-center text-gray-500">오늘 예정된 {typeLabel} 경주가 없습니다</div>
+      <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+        오늘 예정된 {typeLabel}{filterMessage} 경주가 없습니다
+      </div>
     );
   }
 
   return (
-    <ul className="divide-y divide-gray-100">
-      {races.map((race) => (
+    <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+      {filteredRaces.map((race) => (
         <li key={race.id}>
           <Link
             href={`/race/${race.id}`}
-            className="flex items-center justify-between py-3 hover:bg-gray-50"
+            className="flex items-center justify-between py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50"
           >
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {race.track} 제{race.raceNo}경주
               </span>
-              <span className="text-xs text-gray-500">{race.distance}m</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{race.distance}m</span>
             </div>
-            <span className="text-xs text-gray-400">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              race.status === 'finished'
+                ? 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)]'
+                : 'bg-status-info-bg text-status-info-text'
+            }`}>
               {race.status === 'finished' ? '종료' : '예정'}
             </span>
           </Link>
@@ -158,16 +215,17 @@ function RaceList({ races, type }: { races: Race[]; type: RaceType }) {
 
 interface RaceTabsProps {
   currentTab: RaceType;
+  currentTrack: string | null;
   data: TodayRacesData;
 }
 
-function RaceTabs({ currentTab, data }: RaceTabsProps) {
+function RaceTabs({ currentTab, currentTrack, data }: RaceTabsProps) {
   return (
     <section
       data-testid="today-races"
-      className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+      className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-[var(--rl-surface)]"
     >
-      <div role="tablist" aria-label="경주 종목 선택" className="flex border-b border-gray-100">
+      <div role="tablist" aria-label="경주 종목 선택" className="flex border-b border-gray-100 dark:border-gray-700">
         {tabIds.map((tabId) => (
           <TabLink key={tabId} tabId={tabId} isActive={currentTab === tabId} />
         ))}
@@ -179,7 +237,8 @@ function RaceTabs({ currentTab, data }: RaceTabsProps) {
         tabIndex={0}
         className="p-4 focus:outline-none"
       >
-        <RaceList races={data[currentTab]} type={currentTab} />
+        <TrackFilter type={currentTab} currentTrack={currentTrack} />
+        <RaceList races={data[currentTab]} type={currentTab} trackFilter={currentTrack} />
       </div>
     </section>
   );
@@ -205,9 +264,10 @@ function JsonLdScripts() {
 export default async function RacesPage({
   searchParams,
 }: {
-  searchParams: { tab?: string };
+  searchParams: { tab?: string; track?: string };
 }) {
   const currentTab = (searchParams.tab as RaceType) || 'horse';
+  const currentTrack = searchParams.track ? decodeURIComponent(searchParams.track) : null;
 
   // Fetch all race data once at the server component level
   const rcDate = getTodayYYYYMMDD();
@@ -232,7 +292,7 @@ export default async function RacesPage({
         <section aria-label="경주 요약 통계" data-testid="quick-stats">
           <StatsRow data={allRaces} />
         </section>
-        <RaceTabs currentTab={currentTab} data={allRaces} />
+        <RaceTabs currentTab={currentTab} currentTrack={currentTrack} data={allRaces} />
         <AnnouncementBanner />
       </div>
     </>

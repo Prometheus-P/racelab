@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
           {/* About */}
           <div>
             <h3 className="mb-4 text-title-small font-bold text-on-surface">RaceLab</h3>
-            <p className="text-body-small leading-relaxed text-on-surface-variant">
+            <p className="text-body-small leading-relaxed text-zinc-600">
               경마, 경륜, 경정 정보를 한 곳에서 확인하세요. 공공데이터포털의 공식 API를 활용하여
               신뢰할 수 있는 정보를 제공합니다.
             </p>
@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
           {/* Data Sources - E-E-A-T 신뢰성 강화 */}
           <div>
             <h3 className="mb-4 text-title-small font-bold text-on-surface">데이터 출처</h3>
-            <ul className="space-y-3 text-body-small text-on-surface-variant">
+            <ul className="space-y-3 text-body-small text-zinc-600">
               <li className="flex items-start gap-2">
                 <span aria-hidden="true" className="mt-0.5 text-horse">
                   ✓
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/?tab=horse"
-                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-on-surface-variant transition-colors duration-rl-fast hover:text-horse focus:outline-none focus:ring-2 focus:ring-horse focus:ring-offset-2"
+                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-zinc-600 transition-colors duration-rl-fast hover:text-horse focus:outline-none focus:ring-2 focus:ring-horse focus:ring-offset-2"
                 >
                   <span aria-hidden="true">🐎</span> 경마 일정
                 </Link>
@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/?tab=cycle"
-                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-on-surface-variant transition-colors duration-rl-fast hover:text-cycle focus:outline-none focus:ring-2 focus:ring-cycle focus:ring-offset-2"
+                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-zinc-600 transition-colors duration-rl-fast hover:text-cycle focus:outline-none focus:ring-2 focus:ring-cycle focus:ring-offset-2"
                 >
                   <span aria-hidden="true">🚴</span> 경륜 일정
                 </Link>
@@ -79,7 +79,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/?tab=boat"
-                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-on-surface-variant transition-colors duration-rl-fast hover:text-boat focus:outline-none focus:ring-2 focus:ring-boat focus:ring-offset-2"
+                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-zinc-600 transition-colors duration-rl-fast hover:text-boat focus:outline-none focus:ring-2 focus:ring-boat focus:ring-offset-2"
                 >
                   <span aria-hidden="true">🚤</span> 경정 일정
                 </Link>
@@ -87,7 +87,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/results"
-                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-on-surface-variant transition-colors duration-rl-fast hover:text-boat focus:outline-none focus:ring-2 focus:ring-boat focus:ring-offset-2"
+                  className="-ml-1 inline-flex items-center gap-2 rounded px-1 text-zinc-600 transition-colors duration-rl-fast hover:text-boat focus:outline-none focus:ring-2 focus:ring-boat focus:ring-offset-2"
                 >
                   <span aria-hidden="true">📊</span> 경주 결과
                 </Link>
@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
           {/* Info */}
           <div>
             <h3 className="mb-4 text-title-small font-bold text-on-surface">안내</h3>
-            <ul className="space-y-3 text-body-small text-on-surface-variant">
+            <ul className="space-y-3 text-body-small text-zinc-600">
               <li className="flex items-start gap-2">
                 <span aria-hidden="true" className="mt-0.5 text-outline">
                   •
@@ -119,7 +119,7 @@ const Footer: React.FC = () => {
                   도박 문제 상담:{' '}
                   <a
                     href="tel:1336"
-                    className="rounded font-bold text-cycle hover:underline focus:outline-none focus:ring-2 focus:ring-cycle focus:ring-offset-2"
+                    className="rounded font-bold text-cycle-bold hover:underline focus:outline-none focus:ring-2 focus:ring-cycle focus:ring-offset-2"
                   >
                     1336
                   </a>
@@ -129,7 +129,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-neutral-divider pt-8 text-center text-body-small text-on-surface-variant">
+        <div className="mt-10 border-t border-neutral-divider pt-8 text-center text-body-small text-zinc-600">
           <p>© {currentYear} RaceLab. 공공데이터포털 API 활용.</p>
         </div>
       </div>

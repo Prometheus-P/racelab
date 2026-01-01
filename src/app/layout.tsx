@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Script from 'next/script';
-import { Noto_Sans_KR, Exo_2 } from 'next/font/google';
+import { Noto_Sans_KR, Exo_2, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import '@/styles/typography.css';
 import Header from '@/components/Header';
@@ -9,6 +9,8 @@ import Footer from '@/components/Footer';
 import { Analytics } from '@vercel/analytics/react';
 import { HeaderSkeleton } from '@/components/Skeletons';
 import { getSiteUrl } from '@/lib/seo/siteUrl';
+import { SessionProvider } from '@/components/auth';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 // Noto Sans KR - Primary font for Korean text (optimized for 50-60 demographic)
 // next/font/google automatically:
@@ -31,6 +33,15 @@ const exo2 = Exo_2({
   display: 'swap',
   variable: '--font-exo-2',
   preload: false, // Lower priority than main font
+});
+
+// JetBrains Mono - Monospace font for financial data/numbers
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+  preload: false, // Only used for data display
 });
 
 const siteUrl = getSiteUrl();
@@ -105,9 +116,7 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'i5Q0RtQZldOZKbs-upPl2eiP9boxog1a5QDxZd70pv4',
-    other: {
-      'naver-site-verification': 'your-naver-verification-code',
-    },
+    // Naver verification: configure in production when ready
   },
 };
 
@@ -217,12 +226,46 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="ko" className={`${notoSansKR.variable} ${exo2.variable}`}>
+    <html lang="ko" className={`${notoSansKR.variable} ${exo2.variable} ${jetbrainsMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
         {/* RaceLab Design System V1.0 - Soft Coral (#E57373) as primary */}
         <meta name="theme-color" content="#E57373" />
+
+        {/* Theme initialization script - runs before React hydration to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('racelab-theme');
+                  if (stored) {
+                    var parsed = JSON.parse(stored);
+                    var theme = parsed.state && parsed.state.theme;
+                    if (theme === 'dark') {
+                      document.documentElement.classList.add('dark');
+                    } else if (theme === 'light') {
+                      document.documentElement.classList.add('light');
+                    } else if (theme === 'system' || !theme) {
+                      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.documentElement.classList.add('dark');
+                      }
+                    }
+                  } else {
+                    // Default to system preference
+                    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                      document.documentElement.classList.add('dark');
+                    }
+                  }
+                } catch (e) {
+                // Corrupted localStorage - remove and use system default
+                try { localStorage.removeItem('racelab-theme'); } catch (_) {}
+              }
+              })();
+            `,
+          }}
+        />
 
         {/* JSON-LD Structured Data - Enhanced with ImageObject for AI crawlers */}
         <Script
@@ -241,14 +284,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(imageGallerySchema) }}
         />
 
+        {/* Google AdSense */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+            strategy="lazyOnload"
+          />
+        )}
+
         {/* Google Analytics Scripts */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
-            <Script id="google-analytics" strategy="afterInteractive">
+            <Script id="google-analytics" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
@@ -259,20 +312,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         )}
       </head>
-      {/* RaceLab Design System V1.0 - 순백 배경 (#FFFFFF) */}
-      <body className={`flex min-h-screen flex-col bg-white text-on-surface font-sans ${notoSansKR.className}`}>
-        <Suspense fallback={<HeaderSkeleton />}>
-          <Header />
-        </Suspense>
+      {/* RaceLab Design System V1.0 - CSS 변수 기반 테마 */}
+      <body className={`flex min-h-screen flex-col bg-[var(--rl-background)] text-[var(--rl-text-primary)] font-sans ${notoSansKR.className}`}>
+        <ThemeProvider>
+          <SessionProvider>
+            <Suspense fallback={<HeaderSkeleton />}>
+              <Header />
+            </Suspense>
 
-        <main
-          id="main-content"
-          className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
-        >
-          {children}
-        </main>
+            <main
+              id="main-content"
+              className="mx-auto w-full max-w-7xl flex-grow px-4 py-8 sm:px-6 lg:px-8"
+            >
+              {children}
+            </main>
 
-        <Footer />
+            <Footer />
+          </SessionProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

@@ -132,7 +132,9 @@ export function M3TextField({
             onChange={onChange}
             onFocus={onFocus}
             onBlur={onBlur}
-            aria-invalid={hasError}
+            aria-invalid={hasError || undefined}
+            aria-required={required || undefined}
+            aria-errormessage={hasError ? errorId : undefined}
             aria-describedby={descriptionId}
             className={inputClasses}
           />

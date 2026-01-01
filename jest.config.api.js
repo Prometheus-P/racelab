@@ -15,5 +15,6 @@ module.exports = {
     '**/tests/unit/lib/**/*.test.ts',
     '**/tests/unit/app/**/*.test.ts',
     '**/tests/integration/db/**/*.test.ts',
+    '**/tests/integration/strategy/**/*.test.ts',
   ],
 };

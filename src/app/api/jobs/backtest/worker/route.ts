@@ -292,6 +292,8 @@ interface MockEntry {
   pool_total: number;
   pool_win_pct: number;
   oddsTimeline: Array<{ time: Date; odds_win: number }>;
+  // 확장 필드 지원
+  [key: string]: unknown;
 }
 
 /**

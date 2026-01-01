@@ -1,19 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Star, StarOff } from 'lucide-react';
-import {
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
 
 import type { EntrantData, EntrantStats } from '@/types';
 import Badge from '@/components/ui/Badge';
+import { LazyEntrantRadarChart } from '@/components/charts';
 
 interface EntrantCardProps {
   entrant: EntrantData;
@@ -70,15 +62,15 @@ function resolveBadge(entrant: EntrantData): string | null {
 
 export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange }: EntrantCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(Boolean(entrant.favorite));
+  // Uncontrolled fallback state (only used when onFavoriteChange is not provided)
+  const [uncontrolledFavorite, setUncontrolledFavorite] = useState(Boolean(entrant.favorite));
   const headingId = `entrant-${entrant.id}-title`;
+
+  // Use prop directly when controlled, fallback to local state when uncontrolled
+  const isFavorite = onFavoriteChange ? Boolean(entrant.favorite) : uncontrolledFavorite;
 
   const radarData = useMemo(() => toRadarData(entrant.stats), [entrant.stats]);
   const badgeLabel = useMemo(() => resolveBadge(entrant), [entrant]);
-
-  useEffect(() => {
-    setIsFavorite(Boolean(entrant.favorite));
-  }, [entrant.favorite]);
 
   const toggleExpand = () => {
     const next = !expanded;
@@ -88,8 +80,11 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
 
   const toggleFavorite = () => {
     const next = !isFavorite;
-    setIsFavorite(next);
-    onFavoriteChange?.(entrant.id, next);
+    if (onFavoriteChange) {
+      onFavoriteChange(entrant.id, next);
+    } else {
+      setUncontrolledFavorite(next);
+    }
   };
 
   return (
@@ -143,25 +138,7 @@ export default function EntrantCard({ entrant, onExpandChange, onFavoriteChange 
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="h-56 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={radarData} outerRadius="70%">
-              <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="metric" tick={{ fill: '#cbd5f5', fontSize: 12 }} />
-              <PolarRadiusAxis angle={30} tick={{ fill: '#94a3b8', fontSize: 10 }} domain={[0, 100]} />
-              <Radar
-                name="능력치"
-                dataKey="score"
-                stroke="#38bdf8"
-                fill="#38bdf8"
-                fillOpacity={0.35}
-                isAnimationActive={false}
-              />
-              <Tooltip
-                formatter={(value: number) => `${value}/100`}
-                contentStyle={{ background: '#0f172a', border: '1px solid #1e293b' }}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
+          <LazyEntrantRadarChart stats={entrant.stats} />
         </div>
 
         <div className="rounded-xl bg-slate-800/60 p-3">

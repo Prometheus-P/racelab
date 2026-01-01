@@ -72,32 +72,43 @@ describe('RaceService', () => {
       expect(mockFetchHorseRaceSchedules).toHaveBeenCalledTimes(1);
       expect(mockFetchCycleRaceSchedules).toHaveBeenCalledTimes(1);
       expect(mockFetchBoatRaceSchedules).toHaveBeenCalledTimes(1);
-      expect(result).toHaveLength(3);
-      expect(result).toContainEqual(mockHorseRace);
-      expect(result).toContainEqual(mockCycleRace);
-      expect(result).toContainEqual(mockBoatRace);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(3);
+      expect(result.data).toContainEqual(mockHorseRace);
+      expect(result.data).toContainEqual(mockCycleRace);
+      expect(result.data).toContainEqual(mockBoatRace);
     });
 
-    it('should return empty array when all APIs fail', async () => {
+    it('should return failure when all APIs fail', async () => {
       mockFetchHorseRaceSchedules.mockRejectedValueOnce(new Error('API Error'));
       mockFetchCycleRaceSchedules.mockRejectedValueOnce(new Error('API Error'));
       mockFetchBoatRaceSchedules.mockRejectedValueOnce(new Error('API Error'));
 
       const result = await getTodayRaces();
 
-      expect(result).toEqual([]);
+      expect(result.success).toBe(false);
+      expect(result.data).toEqual([]);
+      if (!result.success) {
+        expect(result.error).toBe('All race APIs failed');
+        expect(result.failedTypes).toEqual(['horse', 'cycle', 'boat']);
+      }
     });
 
-    it('should return partial results when some APIs fail', async () => {
+    it('should return partial results with warnings when some APIs fail', async () => {
       mockFetchHorseRaceSchedules.mockResolvedValueOnce([mockHorseRace]);
       mockFetchCycleRaceSchedules.mockRejectedValueOnce(new Error('API Error'));
       mockFetchBoatRaceSchedules.mockResolvedValueOnce([mockBoatRace]);
 
       const result = await getTodayRaces();
 
-      expect(result).toHaveLength(2);
-      expect(result).toContainEqual(mockHorseRace);
-      expect(result).toContainEqual(mockBoatRace);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(2);
+      expect(result.data).toContainEqual(mockHorseRace);
+      expect(result.data).toContainEqual(mockBoatRace);
+      if (result.success) {
+        expect(result.warnings).toHaveLength(1);
+        expect(result.warnings?.[0]).toContain('cycle');
+      }
     });
   });
 
@@ -108,7 +119,8 @@ describe('RaceService', () => {
       const result = await getRacesByDateAndType(mockDate, 'horse');
 
       expect(mockFetchHorseRaceSchedules).toHaveBeenCalledWith(mockDate);
-      expect(result).toEqual([mockHorseRace]);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([mockHorseRace]);
     });
 
     it('should fetch cycle races for specified date', async () => {
@@ -117,7 +129,8 @@ describe('RaceService', () => {
       const result = await getRacesByDateAndType(mockDate, 'cycle');
 
       expect(mockFetchCycleRaceSchedules).toHaveBeenCalledWith(mockDate);
-      expect(result).toEqual([mockCycleRace]);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([mockCycleRace]);
     });
 
     it('should fetch boat races for specified date', async () => {
@@ -126,7 +139,8 @@ describe('RaceService', () => {
       const result = await getRacesByDateAndType(mockDate, 'boat');
 
       expect(mockFetchBoatRaceSchedules).toHaveBeenCalledWith(mockDate);
-      expect(result).toEqual([mockBoatRace]);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([mockBoatRace]);
     });
 
     it('should fetch all race types when type is not specified', async () => {
@@ -136,15 +150,20 @@ describe('RaceService', () => {
 
       const result = await getRacesByDateAndType(mockDate);
 
-      expect(result).toHaveLength(3);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(3);
     });
 
-    it('should return empty array on error', async () => {
+    it('should return failure on error for single type', async () => {
       mockFetchHorseRaceSchedules.mockRejectedValueOnce(new Error('API Error'));
 
       const result = await getRacesByDateAndType(mockDate, 'horse');
 
-      expect(result).toEqual([]);
+      expect(result.success).toBe(false);
+      expect(result.data).toEqual([]);
+      if (!result.success) {
+        expect(result.failedTypes).toEqual(['horse']);
+      }
     });
   });
 

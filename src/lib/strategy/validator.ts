@@ -15,10 +15,24 @@ import {
   type ConditionOperator,
   type TimeReference,
   type BetAction,
+  type ExtendedConditionField,
   FIELD_METADATA,
+  EXTENDED_FIELD_METADATA,
   OPERATOR_METADATA,
   MAX_CONDITIONS,
 } from './types';
+import {
+  type DSLStrategyDefinition,
+  DSL_FIELD_MAPPING,
+  ALLOWED_DSL_FIELDS,
+  MAX_FORMULA_LENGTH,
+} from './dsl/types';
+import {
+  isDSLStrategy,
+  isLegacyStrategy,
+  normalizeStrategy,
+} from './dsl/transformer';
+import { validateFormula } from './dsl/expression';
 
 // =============================================================================
 // Allowed Values (Whitelist)
@@ -198,8 +212,11 @@ export function validateStrategy(input: unknown): ValidationResult {
 
     // Phase 1+ 필드 사용 경고
     for (const condition of strategy.conditions) {
-      const metadata = FIELD_METADATA[condition.field];
-      if (metadata.phase > 0) {
+      // 기본 필드 메타데이터 또는 확장 필드 메타데이터 조회
+      const metadata =
+        FIELD_METADATA[condition.field as ConditionField] ??
+        EXTENDED_FIELD_METADATA[condition.field as ExtendedConditionField];
+      if (metadata && metadata.phase > 0) {
         warnings.push(
           `Field '${condition.field}' is Phase ${metadata.phase} feature and may have limited data`
         );
@@ -429,6 +446,247 @@ export function getFieldsByPhase(maxPhase: 0 | 1 | 2): ConditionField[] {
 }
 
 // =============================================================================
+// DSL Strategy Validation
+// =============================================================================
+
+/**
+ * DSL 필터 필드 스키마 (dot notation 허용)
+ */
+const dslFieldSchema = z.string().refine(
+  (field) => {
+    // dot notation 또는 flat notation 허용
+    return ALLOWED_DSL_FIELDS.includes(field) || ALLOWED_FIELDS.includes(field as ConditionField);
+  },
+  { message: 'Invalid field name' }
+);
+
+/**
+ * DSL 필터 스키마
+ */
+const dslFilterSchema = z
+  .object({
+    field: dslFieldSchema,
+    operator: conditionOperatorSchema,
+    value: conditionValueSchema,
+    timeRef: timeRefSchema.optional(),
+  })
+  .refine(
+    (data) => {
+      const op = data.operator as string;
+      if (op === 'between') {
+        return (
+          Array.isArray(data.value) &&
+          data.value.length === 2 &&
+          typeof data.value[0] === 'number' &&
+          typeof data.value[1] === 'number'
+        );
+      }
+      if (op === 'in') {
+        return Array.isArray(data.value) && data.value.length > 0;
+      }
+      return !Array.isArray(data.value);
+    },
+    { message: 'Invalid value type for operator' }
+  );
+
+/**
+ * DSL 스코어링 스키마
+ */
+const dslScoringSchema = z
+  .object({
+    formula: z.string().max(MAX_FORMULA_LENGTH),
+    threshold: z.number().optional(),
+  })
+  .optional();
+
+/**
+ * DSL Execution 스키마 (Phase 2+ 예약)
+ */
+const dslExecutionSchema = z
+  .object({
+    sandbox: z.enum(['javascript', 'wasm']).optional(),
+    code: z.string().optional(),
+  })
+  .optional();
+
+/**
+ * DSL Stake 스키마
+ */
+const dslStakeSchema = z
+  .object({
+    fixed: z.number().positive().optional(),
+    percentOfBankroll: z.number().min(0).max(100).optional(),
+    useKelly: z.boolean().optional(),
+  })
+  .optional();
+
+/**
+ * DSL Race Filters 스키마
+ */
+const dslRaceFiltersSchema = z
+  .object({
+    raceTypes: z.array(z.enum(ALLOWED_RACE_TYPES)).optional(),
+    tracks: z.array(z.string().min(1)).optional(),
+    grades: z.array(z.string().min(1)).optional(),
+    minEntries: z.number().int().min(2).max(20).optional(),
+  })
+  .optional();
+
+/**
+ * DSL Metadata 스키마
+ */
+const dslMetadataSchema = z
+  .object({
+    author: z.string().max(100).optional(),
+    description: z.string().max(1000).optional(),
+    tags: z.array(z.string().min(1).max(50)).max(10).optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })
+  .optional();
+
+/**
+ * DSL Strategy Body 스키마
+ */
+const dslStrategyBodySchema = z.object({
+  name: z.string().min(1).max(200),
+  version: z.number().int().positive(),
+  filters: z.array(dslFilterSchema).min(1).max(MAX_CONDITIONS),
+  scoring: dslScoringSchema,
+  execution: dslExecutionSchema,
+  action: betActionSchema.optional(),
+  stake: dslStakeSchema,
+  raceFilters: dslRaceFiltersSchema,
+  metadata: dslMetadataSchema,
+});
+
+/**
+ * DSL 전략 정의 스키마
+ */
+const dslStrategyDefinitionSchema = z.object({
+  strategy: dslStrategyBodySchema,
+});
+
+/**
+ * DSL 전략 검증
+ */
+export function validateDSLStrategy(input: unknown): ValidationResult {
+  const result = dslStrategyDefinitionSchema.safeParse(input);
+
+  if (!result.success) {
+    const zodErrors = result.error?.issues ?? [];
+    const errors: StrategyValidationError[] = zodErrors.map((err: z.ZodIssue) => ({
+      path: err.path.join('.'),
+      message: err.message,
+      code: mapZodErrorToCode(err),
+    }));
+    return { valid: false, errors };
+  }
+
+  const warnings: string[] = [];
+  const strategy = result.data.strategy;
+
+  // Scoring formula 검증
+  if (strategy.scoring?.formula) {
+    const formulaResult = validateFormula(strategy.scoring.formula);
+    if (!formulaResult.valid) {
+      const errors: StrategyValidationError[] = formulaResult.errors.map((e) => ({
+        path: 'strategy.scoring.formula',
+        message: e.message,
+        code: e.code as StrategyValidationError['code'],
+      }));
+      return { valid: false, errors };
+    }
+  }
+
+  // Execution 필드 경고 (Phase 2+)
+  if (strategy.execution) {
+    warnings.push("'execution' field is reserved for Phase 2+ and will not be processed");
+  }
+
+  // Phase 1+ 필드 사용 경고
+  for (const filter of strategy.filters) {
+    const flatField = DSL_FIELD_MAPPING[filter.field] ?? filter.field;
+    if (FIELD_METADATA[flatField as ConditionField]?.phase > 0) {
+      warnings.push(
+        `Field '${filter.field}' is Phase ${FIELD_METADATA[flatField as ConditionField].phase} feature and may have limited data`
+      );
+    }
+  }
+
+  return {
+    valid: true,
+    errors: [],
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+/**
+ * 자동 감지 전략 검증
+ * Legacy 또는 DSL 포맷 자동 감지 후 검증
+ */
+export function validateAnyStrategy(input: unknown): ValidationResult {
+  if (isDSLStrategy(input)) {
+    return validateDSLStrategy(input);
+  }
+
+  if (isLegacyStrategy(input)) {
+    return validateStrategy(input);
+  }
+
+  return {
+    valid: false,
+    errors: [
+      {
+        path: '',
+        message: 'Unknown strategy format: must be Legacy (with conditions) or DSL (with strategy wrapper)',
+        code: 'SCHEMA_ERROR',
+      },
+    ],
+  };
+}
+
+/**
+ * DSL 또는 Legacy 전략을 정규화된 Legacy 포맷으로 반환
+ * 검증 실패 시 ValidationResult 반환
+ */
+export function parseAnyStrategy(
+  input: unknown
+): { success: true; data: StrategyDefinition } | { success: false; result: ValidationResult } {
+  const validation = validateAnyStrategy(input);
+
+  if (!validation.valid) {
+    return { success: false, result: validation };
+  }
+
+  try {
+    const normalized = normalizeStrategy(input);
+    return { success: true, data: normalized };
+  } catch (error) {
+    return {
+      success: false,
+      result: {
+        valid: false,
+        errors: [
+          {
+            path: '',
+            message: error instanceof Error ? error.message : 'Unknown normalization error',
+            code: 'SCHEMA_ERROR',
+          },
+        ],
+      },
+    };
+  }
+}
+
+/**
+ * DSL 전략 타입 가드
+ */
+export function isValidDSLStrategy(input: unknown): input is DSLStrategyDefinition {
+  return validateDSLStrategy(input).valid;
+}
+
+// =============================================================================
 // Export Schemas (for external validation)
 // =============================================================================
 
@@ -438,4 +696,7 @@ export {
   backtestRequestSchema,
   conditionFieldSchema,
   conditionOperatorSchema,
+  dslStrategyDefinitionSchema,
+  dslFilterSchema,
+  dslScoringSchema,
 };

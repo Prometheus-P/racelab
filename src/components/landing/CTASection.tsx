@@ -24,7 +24,7 @@ export function CTASection() {
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/dashboard"
-              className="group inline-flex min-h-[48px] items-center gap-2 rounded-full bg-horse px-8 py-3 text-label-large font-semibold text-white shadow-lg transition-all hover:bg-horse-dark hover:shadow-xl"
+              className="group inline-flex min-h-[48px] items-center gap-2 rounded-full bg-horse-bold px-8 py-3 text-label-large font-semibold text-white shadow-lg transition-all hover:bg-green-900 hover:shadow-xl"
             >
               무료로 시작하기
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

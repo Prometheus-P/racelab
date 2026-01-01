@@ -9,6 +9,7 @@
 
 import { NextResponse } from 'next/server';
 import { Client } from '@upstash/qstash';
+import YAML from 'yaml';
 import {
   withB2BAuth,
   createFeatureDeniedResponse,
@@ -21,7 +22,8 @@ import {
   getQueuePosition,
   incrementQuotaUsage,
 } from '@/lib/backtest/jobManager';
-import { validateBacktestRequest } from '@/lib/strategy/validator';
+import { validateBacktestRequest, validateAnyStrategy, parseAnyStrategy } from '@/lib/strategy/validator';
+import { isDSLStrategy } from '@/lib/strategy/dsl/transformer';
 import { hasBacktestAccess } from '@/lib/db/schema/clients';
 import type {
   CreateBacktestJobRequest,
@@ -49,17 +51,27 @@ async function handler(request: B2BRequest) {
     return createFeatureDeniedResponse('Backtest', 'Gold');
   }
 
-  // 2. 요청 본문 파싱
+  // 2. 요청 본문 파싱 (YAML/JSON 듀얼 포맷 지원)
   let body: CreateBacktestJobRequest;
+  const contentType = request.headers.get('content-type') || '';
+  const isYamlRequest = contentType.includes('yaml') || contentType.includes('text/plain');
+
   try {
-    body = await request.json();
+    if (isYamlRequest) {
+      // YAML 파싱
+      const text = await request.text();
+      body = YAML.parse(text) as CreateBacktestJobRequest;
+    } else {
+      // JSON 파싱 (기본)
+      body = await request.json();
+    }
   } catch {
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INVALID_REQUEST',
-          message: 'Invalid JSON in request body',
+          message: `Invalid ${isYamlRequest ? 'YAML' : 'JSON'} in request body`,
         },
         timestamp: new Date().toISOString(),
       },
@@ -67,7 +79,46 @@ async function handler(request: B2BRequest) {
     );
   }
 
-  // 3. 전략 검증
+  // 3. 전략 검증 및 정규화 (DSL/Legacy 듀얼 포맷 지원)
+  // body.request 내부의 strategy가 DSL 또는 Legacy 포맷일 수 있음
+  if (body.request?.strategy && isDSLStrategy({ strategy: body.request.strategy })) {
+    // DSL 포맷인 경우 검증 및 Legacy로 변환
+    const strategyValidation = validateAnyStrategy({ strategy: body.request.strategy });
+    if (!strategyValidation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid DSL strategy',
+            details: strategyValidation.errors,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Legacy 포맷으로 정규화
+    const normalized = parseAnyStrategy({ strategy: body.request.strategy });
+    if (!normalized.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Strategy normalization failed',
+            details: normalized.result.errors,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
+    }
+    body.request.strategy = normalized.data;
+  }
+
+  // Legacy 포맷 백테스트 요청 검증
   const validation = validateBacktestRequest(body.request);
   if (!validation.valid) {
     return NextResponse.json(

@@ -105,7 +105,7 @@ export function ResultFilters({
     <div
       role="search"
       aria-label="결과 필터"
-      className={`rounded-xl bg-surface-container p-4 ${className}`}
+      className={`rounded-xl bg-[var(--rl-surface-container)] p-4 ${className}`}
       data-testid={testId}
     >
       {/* Mobile toggle */}

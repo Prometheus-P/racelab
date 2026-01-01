@@ -10,7 +10,7 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: <Code2 className="h-6 w-6" />,
-    title: '전략 DSL',
+    title: '전략 설정',
     description: '코드 없이 규칙 기반 전략을 정의하세요. 조건, 필터, 베팅 로직을 직관적으로 설정합니다.',
     color: 'text-boat bg-boat-container',
   },
@@ -22,8 +22,8 @@ const features: Feature[] = [
   },
   {
     icon: <BarChart3 className="h-6 w-6" />,
-    title: '고급 메트릭',
-    description: 'ROI, Sharpe Ratio, MDD, Profit Factor 등 14가지 금융 지표로 전략을 분석합니다.',
+    title: '상세 분석',
+    description: '수익률, 승률, 안정성 지수, 최대 손실 등 14가지 지표로 전략을 분석합니다.',
     color: 'text-cycle bg-cycle-container',
   },
   {
@@ -45,7 +45,7 @@ function FeatureCard({ icon, title, description, color }: Feature) {
         {icon}
       </div>
       <h3 className="mb-2 text-title-medium font-semibold text-neutral-text-primary">{title}</h3>
-      <p className="text-body-medium leading-relaxed text-neutral-text-secondary">{description}</p>
+      <p className="text-body-medium leading-relaxed text-zinc-600">{description}</p>
     </div>
   );
 }
@@ -58,7 +58,7 @@ export function FeaturesSection() {
           <h2 className="text-headline-large font-bold text-neutral-text-primary">
             데이터 기반 의사결정
           </h2>
-          <p className="mt-3 text-body-large text-neutral-text-secondary">
+          <p className="mt-3 text-body-large text-zinc-600">
             퀀트 투자의 핵심 기능을 모두 갖춘 플랫폼
           </p>
         </div>

@@ -15,6 +15,8 @@ language: Korean (한국어)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Storybook](https://img.shields.io/badge/Storybook-10.1-FF4785?logo=storybook)](https://prometheus-p.github.io/racelab/)
+[![Chromatic](https://img.shields.io/badge/Chromatic-Visual%20Testing-FC521F?logo=chromatic)](https://www.chromatic.com/library?appId=695109a3632a897c300d1cde)
 [![License: ISC](https://img.shields.io/badge/License-ISC-green.svg)](https://opensource.org/licenses/ISC)
 
 ---
@@ -160,14 +162,16 @@ NEXT_PUBLIC_ADSENSE_ID=ca-pub-XXXXXXXXXX
 
 ### 사용 가능한 스크립트
 
-| 명령어             | 설명                                |
-| ------------------ | ----------------------------------- |
-| `npm run dev`      | 개발 서버 실행 (https://racelab.kr) |
-| `npm run build`    | 프로덕션 빌드                       |
-| `npm start`        | 프로덕션 서버 실행                  |
-| `npm run lint`     | ESLint 검사                         |
-| `npm test`         | Jest 단위 테스트                    |
-| `npm run test:e2e` | Playwright E2E 테스트               |
+| 명령어                  | 설명                                |
+| ----------------------- | ----------------------------------- |
+| `npm run dev`           | 개발 서버 실행 (https://racelab.kr) |
+| `npm run build`         | 프로덕션 빌드                       |
+| `npm start`             | 프로덕션 서버 실행                  |
+| `npm run lint`          | ESLint 검사                         |
+| `npm test`              | Jest 단위 테스트                    |
+| `npm run test:e2e`      | Playwright E2E 테스트               |
+| `npm run storybook`     | Storybook 개발 서버 (localhost:6006)|
+| `npm run build-storybook`| Storybook 정적 빌드                |
 
 ### TDD 개발 사이클
 
@@ -282,6 +286,7 @@ npm start
 
 | 문서                                                                         | 설명                      |
 | ---------------------------------------------------------------------------- | ------------------------- |
+| [Storybook](https://prometheus-p.github.io/racelab/)                         | 디자인 시스템 & 컴포넌트  |
 | [CONTEXT.md](./CONTEXT.md)                                                   | 프로젝트 전체 맥락 (필독) |
 | [ENVIRONMENT.md](./ENVIRONMENT.md)                                           | 환경 설정 상세 가이드     |
 | [plan.md](./plan.md)                                                         | TDD 개발 계획             |

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { RunnerVM } from '@/lib/view-models/bookVM';
 import RunnerRowExpert from './RunnerRowExpert';
 
@@ -6,7 +7,11 @@ interface RunnerTableExpertProps {
 }
 
 const RunnerTableExpert = ({ runners }: RunnerTableExpertProps) => {
-  const sorted = [...runners].sort((a, b) => a.number - b.number);
+  // Memoize sorted array to prevent re-sorting on every render
+  const sorted = useMemo(
+    () => [...runners].sort((a, b) => a.number - b.number),
+    [runners]
+  );
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">

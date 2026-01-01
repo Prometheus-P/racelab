@@ -51,9 +51,8 @@ export function TrackFilter({
     prevRaceTypesRef.current = selectedRaceTypes;
   }, [selectedRaceTypes, selectedTrack, availableTracks, onChange]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    onChange?.(value || undefined);
+  const handleTrackClick = (trackName: string | undefined) => {
+    onChange?.(trackName);
   };
 
   // Determine which race types to show
@@ -63,33 +62,51 @@ export function TrackFilter({
       : (['horse', 'cycle', 'boat'] as RaceType[]);
 
   return (
-    <div className={`flex flex-col gap-1 ${className}`} data-testid={testId}>
-      <label htmlFor="track-select" className="text-label-medium text-on-surface-variant">
-        경기장
-      </label>
-      <select
-        id="track-select"
-        value={selectedTrack || ''}
-        onChange={handleChange}
-        aria-label="경기장 선택"
-        className="rounded-lg border border-outline bg-surface px-3 py-2 text-body-medium text-on-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+    <div className={`flex flex-col gap-2 ${className}`} data-testid={testId}>
+      {/* 전체 버튼 */}
+      <button
+        type="button"
+        onClick={() => handleTrackClick(undefined)}
+        className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+          !selectedTrack
+            ? 'bg-primary text-white'
+            : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
+        }`}
+        aria-pressed={!selectedTrack}
       >
-        <option value="">전체</option>
-        {raceTypesToShow.map((raceType) => {
-          const tracks = tracksByType[raceType];
-          if (!tracks || tracks.length === 0) return null;
+        전체
+      </button>
 
-          return (
-            <optgroup key={raceType} label={RACE_TYPE_NAMES[raceType]}>
+      {/* 종목별 경기장 그룹 */}
+      {raceTypesToShow.map((raceType) => {
+        const tracks = tracksByType[raceType];
+        if (!tracks || tracks.length === 0) return null;
+
+        return (
+          <div key={raceType} className="flex flex-col gap-1.5">
+            <span className="text-label-small text-on-surface-variant">
+              {RACE_TYPE_NAMES[raceType]}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
               {tracks.map((track) => (
-                <option key={`${raceType}-${track.code}`} value={track.name}>
+                <button
+                  key={`${raceType}-${track.code}`}
+                  type="button"
+                  onClick={() => handleTrackClick(track.name)}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                    selectedTrack === track.name
+                      ? 'bg-primary text-white'
+                      : 'bg-[var(--rl-surface-container)] text-[var(--rl-text-secondary)] hover:bg-[var(--rl-surface-container-high)]'
+                  }`}
+                  aria-pressed={selectedTrack === track.name}
+                >
                   {track.name}
-                </option>
+                </button>
               ))}
-            </optgroup>
-          );
-        })}
-      </select>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

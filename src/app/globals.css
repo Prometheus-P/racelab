@@ -3,40 +3,368 @@
 @tailwind utilities;
 
 /* =============================================================================
+   Pretendard Font - 전체 weight 지원
+   ============================================================================= */
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* =============================================================================
+   Welcome Font - 디스플레이/브랜드용
+   ============================================================================= */
+
+@font-face {
+  font-family: 'Welcome';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/OTWelcomeRA.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Welcome';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/OTWelcomeBA.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* =============================================================================
    RaceLab Design System V1.0 - Global Styles
    핵심 원칙: CLARITY (명확성), BALANCE (균형), COMFORT (편안함)
    ============================================================================= */
 
 :root {
-  /* Neutral Colors */
+  /* ==========================================================================
+     Light Theme (Default)
+     ========================================================================== */
+
+  /* Neutral Colors - 배경 및 텍스트 */
   --rl-background: #ffffff;
+  --rl-background-dim: #f4f4f5;
+  --rl-background-elevated: #ffffff;
   --rl-text-primary: #27272a;
   --rl-text-secondary: #71717a;
+  --rl-text-tertiary: #a1a1aa;
   --rl-border: #d4d4d8;
   --rl-divider: #e4e4e7;
   --rl-table-row-alt: #f4f4f5;
 
-  /* Primary Colors - 로고 기반 */
+  /* Surface Colors */
+  --rl-surface: #ffffff;
+  --rl-surface-container: #f4f4f5;
+  --rl-surface-container-low: #fafafa;
+  --rl-surface-container-high: #e4e4e7;
+  --rl-on-surface: #27272a;
+  --rl-on-surface-variant: #71717a;
+
+  /* Primary Colors - 로고 기반 (채도 유지) */
   --rl-horse: #81c784; /* Sage Green - 경마 */
+  --rl-horse-light: #c8e6c9;
+  --rl-horse-dark: #66bb6a;
+  --rl-horse-container: #e8f5e9;
+  --rl-horse-on-container: #2e7d32;
+
   --rl-cycle: #e57373; /* Soft Coral - 경륜 */
+  --rl-cycle-light: #ffcdd2;
+  --rl-cycle-dark: #ef5350;
+  --rl-cycle-container: #ffebee;
+  --rl-cycle-on-container: #c62828;
+
   --rl-boat: #64b5f6; /* Steel Blue - 경정 */
+  --rl-boat-light: #bbdefb;
+  --rl-boat-dark: #42a5f5;
+  --rl-boat-container: #e3f2fd;
+  --rl-boat-on-container: #1565c0;
+
+  /* TradingView 스타일 금융 컬러 (WCAG AA 대비율 충족) */
+  --rl-bullish: #00897b; /* 상승 (4.5:1 대비율) */
+  --rl-bearish: #d32f2f; /* 하락 (5.5:1 대비율) */
+
+  /* Status Colors */
+  --rl-success: #81c784;
+  --rl-success-bg: #e8f5e9;
+  --rl-success-text: #2e7d32;
+  --rl-warning: #ffb74d;
+  --rl-warning-bg: #fff8e1;
+  --rl-warning-text: #f57c00;
+  --rl-error: #e57373;
+  --rl-error-bg: #ffebee;
+  --rl-error-text: #c62828;
+  --rl-info: #64b5f6;
+  --rl-info-bg: #e3f2fd;
+  --rl-info-text: #1565c0;
+
+  /* Elevation (Box Shadow) */
+  --rl-shadow-1: 0 1px 3px 0 rgb(0 0 0 / 0.08);
+  --rl-shadow-2: 0 2px 6px 0 rgb(0 0 0 / 0.1);
+  --rl-shadow-3: 0 4px 12px 0 rgb(0 0 0 / 0.12);
+  --rl-shadow-4: 0 8px 24px 0 rgb(0 0 0 / 0.14);
+
+  /* State Layers */
+  --rl-state-hover: rgb(0 0 0 / 0.08);
+  --rl-state-focus: rgb(0 0 0 / 0.12);
+  --rl-state-pressed: rgb(0 0 0 / 0.12);
+
+  /* Link Colors */
+  --rl-link: #1565c0;
+  --rl-link-hover: #0d47a1;
 
   /* Legacy support */
   --foreground-rgb: 39, 39, 42;
   --background-rgb: 255, 255, 255;
+
+  /* Color Scheme */
+  color-scheme: light;
+}
+
+/* =============================================================================
+   Dark Theme
+   ============================================================================= */
+
+.dark {
+  /* Neutral Colors - 다크 배경 및 텍스트 */
+  --rl-background: #121212;
+  --rl-background-dim: #1e1e1e;
+  --rl-background-elevated: #2d2d2d;
+  --rl-text-primary: #e4e4e7;
+  --rl-text-secondary: #a1a1aa;
+  --rl-text-tertiary: #71717a;
+  --rl-border: #3f3f46;
+  --rl-divider: #27272a;
+  --rl-table-row-alt: #1e1e1e;
+
+  /* Surface Colors - 다크 */
+  --rl-surface: #1e1e1e;
+  --rl-surface-container: #2d2d2d;
+  --rl-surface-container-low: #1a1a1a;
+  --rl-surface-container-high: #3f3f46;
+  --rl-on-surface: #e4e4e7;
+  --rl-on-surface-variant: #a1a1aa;
+
+  /* Primary Colors - 다크모드에서 밝기 조정 */
+  --rl-horse: #a5d6a7; /* Sage Green - 밝게 */
+  --rl-horse-light: #81c784;
+  --rl-horse-dark: #c8e6c9;
+  --rl-horse-container: #1b3a1e;
+  --rl-horse-on-container: #a5d6a7;
+
+  --rl-cycle: #ef9a9a; /* Soft Coral - 밝게 */
+  --rl-cycle-light: #e57373;
+  --rl-cycle-dark: #ffcdd2;
+  --rl-cycle-container: #3d1a1a;
+  --rl-cycle-on-container: #ef9a9a;
+
+  --rl-boat: #90caf9; /* Steel Blue - 밝게 */
+  --rl-boat-light: #64b5f6;
+  --rl-boat-dark: #bbdefb;
+  --rl-boat-container: #1a2f3d;
+  --rl-boat-on-container: #90caf9;
+
+  /* TradingView 스타일 금융 컬러 - 다크모드 */
+  --rl-bullish: #4db6ac; /* 상승 - 밝게 */
+  --rl-bearish: #ef5350; /* 하락 - 밝게 */
+
+  /* Status Colors - 다크모드 */
+  --rl-success: #a5d6a7;
+  --rl-success-bg: #1b3a1e;
+  --rl-success-text: #a5d6a7;
+  --rl-warning: #ffcc80;
+  --rl-warning-bg: #3d2e1a;
+  --rl-warning-text: #ffcc80;
+  --rl-error: #ef9a9a;
+  --rl-error-bg: #3d1a1a;
+  --rl-error-text: #ef9a9a;
+  --rl-info: #90caf9;
+  --rl-info-bg: #1a2f3d;
+  --rl-info-text: #90caf9;
+
+  /* Elevation - 다크모드에서는 밝은 그림자 */
+  --rl-shadow-1: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --rl-shadow-2: 0 2px 6px 0 rgb(0 0 0 / 0.4);
+  --rl-shadow-3: 0 4px 12px 0 rgb(0 0 0 / 0.5);
+  --rl-shadow-4: 0 8px 24px 0 rgb(0 0 0 / 0.6);
+
+  /* State Layers - 다크모드 */
+  --rl-state-hover: rgb(255 255 255 / 0.08);
+  --rl-state-focus: rgb(255 255 255 / 0.12);
+  --rl-state-pressed: rgb(255 255 255 / 0.12);
+
+  /* Link Colors - 다크모드 */
+  --rl-link: #90caf9;
+  --rl-link-hover: #bbdefb;
+
+  /* Legacy support */
+  --foreground-rgb: 228, 228, 231;
+  --background-rgb: 18, 18, 18;
+
+  /* Color Scheme */
+  color-scheme: dark;
+}
+
+/* System preference auto-detection */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* Neutral Colors - 다크 배경 및 텍스트 */
+    --rl-background: #121212;
+    --rl-background-dim: #1e1e1e;
+    --rl-background-elevated: #2d2d2d;
+    --rl-text-primary: #e4e4e7;
+    --rl-text-secondary: #a1a1aa;
+    --rl-text-tertiary: #71717a;
+    --rl-border: #3f3f46;
+    --rl-divider: #27272a;
+    --rl-table-row-alt: #1e1e1e;
+
+    /* Surface Colors - 다크 */
+    --rl-surface: #1e1e1e;
+    --rl-surface-container: #2d2d2d;
+    --rl-surface-container-low: #1a1a1a;
+    --rl-surface-container-high: #3f3f46;
+    --rl-on-surface: #e4e4e7;
+    --rl-on-surface-variant: #a1a1aa;
+
+    /* Primary Colors - 다크모드에서 밝기 조정 */
+    --rl-horse: #a5d6a7;
+    --rl-horse-light: #81c784;
+    --rl-horse-dark: #c8e6c9;
+    --rl-horse-container: #1b3a1e;
+    --rl-horse-on-container: #a5d6a7;
+
+    --rl-cycle: #ef9a9a;
+    --rl-cycle-light: #e57373;
+    --rl-cycle-dark: #ffcdd2;
+    --rl-cycle-container: #3d1a1a;
+    --rl-cycle-on-container: #ef9a9a;
+
+    --rl-boat: #90caf9;
+    --rl-boat-light: #64b5f6;
+    --rl-boat-dark: #bbdefb;
+    --rl-boat-container: #1a2f3d;
+    --rl-boat-on-container: #90caf9;
+
+    /* TradingView 스타일 금융 컬러 - 다크모드 */
+    --rl-bullish: #4db6ac;
+    --rl-bearish: #ef5350;
+
+    /* Status Colors - 다크모드 */
+    --rl-success: #a5d6a7;
+    --rl-success-bg: #1b3a1e;
+    --rl-success-text: #a5d6a7;
+    --rl-warning: #ffcc80;
+    --rl-warning-bg: #3d2e1a;
+    --rl-warning-text: #ffcc80;
+    --rl-error: #ef9a9a;
+    --rl-error-bg: #3d1a1a;
+    --rl-error-text: #ef9a9a;
+    --rl-info: #90caf9;
+    --rl-info-bg: #1a2f3d;
+    --rl-info-text: #90caf9;
+
+    /* Elevation - 다크모드 */
+    --rl-shadow-1: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --rl-shadow-2: 0 2px 6px 0 rgb(0 0 0 / 0.4);
+    --rl-shadow-3: 0 4px 12px 0 rgb(0 0 0 / 0.5);
+    --rl-shadow-4: 0 8px 24px 0 rgb(0 0 0 / 0.6);
+
+    /* State Layers - 다크모드 */
+    --rl-state-hover: rgb(255 255 255 / 0.08);
+    --rl-state-focus: rgb(255 255 255 / 0.12);
+    --rl-state-pressed: rgb(255 255 255 / 0.12);
+
+    /* Link Colors - 다크모드 */
+    --rl-link: #90caf9;
+    --rl-link-hover: #bbdefb;
+
+    /* Legacy support */
+    --foreground-rgb: 228, 228, 231;
+    --background-rgb: 18, 18, 18;
+
+    /* Color Scheme */
+    color-scheme: dark;
+  }
+}
+
+/* Monospace font for financial data */
+.font-mono {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
 body {
   color: var(--rl-text-primary);
   background: var(--rl-background);
   font-family:
-    'Noto Sans KR',
+    'Pretendard',
     -apple-system,
     BlinkMacSystemFont,
     system-ui,
     sans-serif;
   font-size: 16px;
   line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Modal scroll lock - prevents layout thrashing vs inline styles */
+body.modal-open {
+  overflow: hidden;
 }
 
 /* =============================================================================
@@ -44,21 +372,21 @@ body {
    ============================================================================= */
 
 .theme-horse {
-  --theme-color: #81c784;
-  --theme-container: #e8f5e9;
-  --theme-on-container: #2e7d32;
+  --theme-color: var(--rl-horse);
+  --theme-container: var(--rl-horse-container);
+  --theme-on-container: var(--rl-horse-on-container);
 }
 
 .theme-cycle {
-  --theme-color: #e57373;
-  --theme-container: #ffebee;
-  --theme-on-container: #c62828;
+  --theme-color: var(--rl-cycle);
+  --theme-container: var(--rl-cycle-container);
+  --theme-on-container: var(--rl-cycle-on-container);
 }
 
 .theme-boat {
-  --theme-color: #64b5f6;
-  --theme-container: #e3f2fd;
-  --theme-on-container: #1565c0;
+  --theme-color: var(--rl-boat);
+  --theme-container: var(--rl-boat-container);
+  --theme-on-container: var(--rl-boat-on-container);
 }
 
 /* =============================================================================
@@ -73,11 +401,11 @@ body {
 }
 
 .odds-up {
-  color: #e57373;
+  color: var(--rl-bearish);
 }
 
 .odds-down {
-  color: #64b5f6;
+  color: var(--rl-bullish);
 }
 
 /* =============================================================================
@@ -85,8 +413,10 @@ body {
    ============================================================================= */
 
 .card {
-  @apply rounded-rl-lg border border-neutral-border bg-white p-6;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08);
+  @apply rounded-rl-lg border p-6;
+  background: var(--rl-surface);
+  border-color: var(--rl-border);
+  box-shadow: var(--rl-shadow-1);
 }
 
 .card-hover {
@@ -94,7 +424,7 @@ body {
 }
 
 .card-hover:hover {
-  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.12);
+  box-shadow: var(--rl-shadow-3);
 }
 
 /* =============================================================================
@@ -106,18 +436,18 @@ body {
 }
 
 .badge-horse {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: var(--rl-horse-container);
+  color: var(--rl-horse-on-container);
 }
 
 .badge-cycle {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: var(--rl-cycle-container);
+  color: var(--rl-cycle-on-container);
 }
 
 .badge-boat {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: var(--rl-boat-container);
+  color: var(--rl-boat-on-container);
 }
 
 /* =============================================================================
@@ -129,33 +459,33 @@ body {
 }
 
 .status-live {
-  background-color: #fff8e1;
-  color: #f57c00;
-  border: 1px solid #ffb74d;
+  background-color: var(--rl-warning-bg);
+  color: var(--rl-warning-text);
+  border: 1px solid var(--rl-warning);
 }
 
 .status-live::before {
   content: '';
   @apply h-2 w-2 animate-pulse rounded-full;
-  background-color: #ffb74d;
+  background-color: var(--rl-warning);
 }
 
 .status-upcoming {
-  background-color: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #64b5f6;
+  background-color: var(--rl-info-bg);
+  color: var(--rl-info-text);
+  border: 1px solid var(--rl-info);
 }
 
 .status-completed {
-  background-color: #f4f4f5;
-  color: #71717a;
-  border: 1px solid #d4d4d8;
+  background-color: var(--rl-surface-container);
+  color: var(--rl-text-secondary);
+  border: 1px solid var(--rl-border);
 }
 
 .status-cancelled {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #e57373;
+  background-color: var(--rl-error-bg);
+  color: var(--rl-error-text);
+  border: 1px solid var(--rl-error);
 }
 
 /* =============================================================================
@@ -202,12 +532,12 @@ body {
 }
 
 .table-race thead {
-  background-color: #f4f4f5;
+  background-color: var(--rl-surface-container);
 }
 
 .table-race th {
   @apply px-4 py-3 text-left font-semibold;
-  color: #27272a;
+  color: var(--rl-text-primary);
 }
 
 .table-race th.numeric {
@@ -220,16 +550,16 @@ body {
 
 /* Zebra Stripes */
 .table-race tbody tr:nth-child(even) {
-  background-color: #f4f4f5;
+  background-color: var(--rl-table-row-alt);
 }
 
 .table-race tbody tr:nth-child(odd) {
-  background-color: #ffffff;
+  background-color: var(--rl-surface);
 }
 
 .table-race td {
   @apply px-4 py-3;
-  border-bottom: 1px solid #e4e4e7;
+  border-bottom: 1px solid var(--rl-divider);
 }
 
 /* 숫자 데이터 우측 정렬 */
@@ -245,8 +575,8 @@ body {
 
 .spinner {
   @apply h-6 w-6 animate-spin rounded-full;
-  border: 3px solid #e4e4e7;
-  border-top-color: #e57373;
+  border: 3px solid var(--rl-divider);
+  border-top-color: var(--rl-cycle);
 }
 
 /* =============================================================================
@@ -270,17 +600,17 @@ body {
 
 /* Hover state layer (8% opacity) */
 .state-layer-hover:hover {
-  background-color: rgb(0 0 0 / 0.08);
+  background-color: var(--rl-state-hover);
 }
 
 /* Focus state layer (12% opacity) */
 .state-layer-focus:focus {
-  background-color: rgb(0 0 0 / 0.12);
+  background-color: var(--rl-state-focus);
 }
 
 /* Pressed state layer (12% opacity) */
 .state-layer-pressed:active {
-  background-color: rgb(0 0 0 / 0.12);
+  background-color: var(--rl-state-pressed);
 }
 
 /* =============================================================================
@@ -331,18 +661,18 @@ body {
    ============================================================================= */
 
 a {
-  color: #1565c0;
+  color: var(--rl-link);
   text-decoration: none;
   transition: color 150ms ease;
 }
 
 a:hover {
-  color: #0d47a1;
+  color: var(--rl-link-hover);
   text-decoration: underline;
 }
 
 a:focus-visible {
-  outline: 2px solid #64b5f6;
+  outline: 2px solid var(--rl-boat);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -350,4 +680,54 @@ a:focus-visible {
 /* Navigation links - no underline */
 nav a:hover {
   text-decoration: none;
+}
+
+/* =============================================================================
+   DARK MODE OVERRIDES - bg-white 및 하드코딩된 색상 대응
+   ============================================================================= */
+
+/* bg-white를 다크모드에서 surface 색상으로 변환 */
+.dark .bg-white {
+  background-color: var(--rl-surface) !important;
+}
+
+/* text-black을 다크모드에서 적절한 텍스트 색상으로 변환 */
+.dark .text-black {
+  color: var(--rl-text-primary) !important;
+}
+
+/* border-gray-xxx를 다크모드에서 적절한 border 색상으로 변환 */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--rl-border) !important;
+}
+
+/* bg-gray-xxx를 다크모드에서 적절한 배경 색상으로 변환 */
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--rl-surface-container) !important;
+}
+
+.dark .bg-gray-200,
+.dark .bg-gray-300 {
+  background-color: var(--rl-surface-container-high) !important;
+}
+
+/* text-gray-xxx를 다크모드에서 적절한 텍스트 색상으로 변환 */
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--rl-text-secondary) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900 {
+  color: var(--rl-text-primary) !important;
+}
+
+/* divide-gray-xxx를 다크모드에서 적절한 divider 색상으로 변환 */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--rl-divider) !important;
 }

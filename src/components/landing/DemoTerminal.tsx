@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, RotateCcw, Terminal } from 'lucide-react';
 import { TerminalLogLine } from './TerminalLogLine';
 import { TerminalMetrics } from './TerminalMetrics';
@@ -12,39 +12,56 @@ export function DemoTerminal() {
   const [phase, setPhase] = useState<TerminalPhase>('idle');
   const [currentLogIndex, setCurrentLogIndex] = useState(-1);
   const [showMetrics, setShowMetrics] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isCancelledRef = useRef(false);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isCancelledRef.current = true;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const runSimulation = useCallback(() => {
     setPhase('running');
     setCurrentLogIndex(-1);
     setShowMetrics(false);
+    isCancelledRef.current = false;
 
-    let index = 0;
-    let accumulatedDelay = 0;
+    // Sequential timeout chain (one timer at a time, not O(n))
+    const showLogAtIndex = (index: number) => {
+      if (isCancelledRef.current) return;
 
-    const showNextLog = () => {
       if (index < DEMO_LOGS.length) {
-        accumulatedDelay += DEMO_LOGS[index].delay;
-        const currentIndex = index;
-
-        setTimeout(() => {
-          setCurrentLogIndex(currentIndex);
-        }, accumulatedDelay);
-
-        index++;
-        showNextLog();
+        setCurrentLogIndex(index);
+        timeoutRef.current = setTimeout(() => {
+          showLogAtIndex(index + 1);
+        }, DEMO_LOGS[index].delay);
       } else {
         // Show metrics after all logs
-        setTimeout(() => {
-          setShowMetrics(true);
-          setPhase('complete');
-        }, accumulatedDelay + 500);
+        timeoutRef.current = setTimeout(() => {
+          if (!isCancelledRef.current) {
+            setShowMetrics(true);
+            setPhase('complete');
+          }
+        }, 500);
       }
     };
 
-    showNextLog();
+    // Start with first log after initial delay
+    timeoutRef.current = setTimeout(() => {
+      showLogAtIndex(0);
+    }, DEMO_LOGS[0]?.delay || 100);
   }, []);
 
   const reset = useCallback(() => {
+    isCancelledRef.current = true;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     setPhase('idle');
     setCurrentLogIndex(-1);
     setShowMetrics(false);
@@ -79,7 +96,7 @@ export function DemoTerminal() {
             <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
             <div className="h-3 w-3 rounded-full bg-green-500/60" />
           </div>
-          <div className="flex items-center gap-2 text-label-small text-neutral-500">
+          <div className="flex items-center gap-2 text-label-small text-neutral-400">
             <Terminal className="h-3.5 w-3.5" />
             <span>racelab-cli -- backtest</span>
           </div>

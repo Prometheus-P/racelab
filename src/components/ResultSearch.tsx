@@ -26,14 +26,14 @@ export function ResultSearch({
     setInputValue(value);
   }, [value]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeout when debounceMs changes or on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, [debounceMs]);
 
   const debouncedSearch = useCallback(
     (query: string) => {

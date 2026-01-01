@@ -2,17 +2,33 @@
  * Strategy DSL Type Definitions
  *
  * JSON 기반 베팅 전략 정의를 위한 타입 시스템
- * 보안을 위해 eval() 없이 whitelist 기반 파싱만 허용
+ * 보안을 위해 whitelist 기반 파싱만 허용
  */
+
+import type { ExtendedConditionField as ExtendedField } from './field-metadata';
+
+// Extended field metadata 재export
+export {
+  type FieldCategory,
+  type ExtendedConditionField,
+  type ExtendedFieldMetadata,
+  FIELD_CATEGORIES,
+  EXTENDED_FIELD_METADATA,
+  getFieldsByCategory,
+  getFieldsByPhase,
+  getComputedFields,
+  toQueryBuilderFields,
+  TOTAL_FIELD_COUNT,
+} from './field-metadata';
 
 // =============================================================================
 // Condition Fields - 전략 조건에 사용 가능한 필드
 // =============================================================================
 
 /**
- * 조건 평가에 사용할 수 있는 필드 목록
- * Phase 0: 배당률 관련 기본 필드
- * Phase 2+: 기수/조교사 통계 확장 예정
+ * 조건 평가에 사용할 수 있는 필드 목록 (기본 10개)
+ * @deprecated Use ExtendedConditionField from field-metadata.ts for 50+ fields
+ * 하위 호환성을 위해 유지
  */
 export type ConditionField =
   // 배당률 관련 (Phase 0)
@@ -34,6 +50,7 @@ export type ConditionField =
 
 /**
  * 필드별 메타데이터 - 검증 및 UI 표시용
+ * @deprecated Use ExtendedFieldMetadata from field-metadata.ts
  */
 export interface FieldMetadata {
   field: ConditionField;
@@ -45,6 +62,9 @@ export interface FieldMetadata {
   phase: 0 | 1 | 2; // 구현 단계
 }
 
+/**
+ * @deprecated Use EXTENDED_FIELD_METADATA from field-metadata.ts for 50+ fields
+ */
 export const FIELD_METADATA: Record<ConditionField, FieldMetadata> = {
   odds_win: {
     field: 'odds_win',
@@ -215,8 +235,8 @@ export type TimeReference =
  * 단일 조건 정의
  */
 export interface StrategyCondition {
-  /** 평가할 필드 */
-  field: ConditionField;
+  /** 평가할 필드 (확장 필드 포함) */
+  field: ConditionField | ExtendedField;
 
   /** 비교 연산자 */
   operator: ConditionOperator;

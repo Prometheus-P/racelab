@@ -45,23 +45,37 @@ function normalizeDate(dateParam: string): string | null {
   return dateParam;
 }
 
-async function fetchRacesForDate(rcDate: string): Promise<Race[]> {
-  const safeFetch = async (fn: (date: string) => Promise<Race[]>) => {
+interface FetchResult {
+  races: Race[];
+  failedTypes: ('horse' | 'cycle' | 'boat')[];
+}
+
+async function fetchRacesForDate(rcDate: string): Promise<FetchResult> {
+  const failedTypes: ('horse' | 'cycle' | 'boat')[] = [];
+
+  const safeFetch = async (
+    fn: (date: string) => Promise<Race[]>,
+    type: 'horse' | 'cycle' | 'boat'
+  ): Promise<Race[]> => {
     try {
       return await fn(rcDate);
     } catch (error) {
-      console.error('북 모드 데이터 수집 실패', error);
+      console.error(`북 모드 ${type} 데이터 수집 실패`, error);
+      failedTypes.push(type);
       return [];
     }
   };
 
   const [horse, cycle, boat] = await Promise.all([
-    safeFetch(fetchHorseRaceSchedules),
-    safeFetch(fetchCycleRaceSchedules),
-    safeFetch(fetchBoatRaceSchedules),
+    safeFetch(fetchHorseRaceSchedules, 'horse'),
+    safeFetch(fetchCycleRaceSchedules, 'cycle'),
+    safeFetch(fetchBoatRaceSchedules, 'boat'),
   ]);
 
-  return [...horse, ...cycle, ...boat];
+  return {
+    races: [...horse, ...cycle, ...boat],
+    failedTypes,
+  };
 }
 
 export default async function BookPage({ params, searchParams }: BookPageProps) {
@@ -73,11 +87,12 @@ export default async function BookPage({ params, searchParams }: BookPageProps) 
   }
 
   const rcDate = normalizedDate.replace(/-/g, '');
-  const races = await fetchRacesForDate(rcDate);
+  const { races, failedTypes } = await fetchRacesForDate(rcDate);
   const viewMode: BookViewMode = searchParams.view === 'expert' ? 'expert' : 'compact';
 
   const viewModel = buildBookViewModel({ date: normalizedDate, races });
   const hasData = viewModel.hasData;
+  const hasPartialFailure = failedTypes.length > 0 && failedTypes.length < 3;
   const venuesToRender: VenueVM[] =
     viewModel.venues.length > 0
       ? viewModel.venues
@@ -130,6 +145,15 @@ export default async function BookPage({ params, searchParams }: BookPageProps) 
         <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           <div className="font-semibold">오늘 데이터 수집중</div>
           <div className="text-xs">최근 스냅샷: {viewModel.snapshotAt ?? viewModel.updatedAt}</div>
+        </div>
+      )}
+
+      {hasPartialFailure && (
+        <div className="rounded-xl border border-dashed border-orange-200 bg-orange-50 p-4 text-sm text-orange-800">
+          <div className="font-semibold">일부 데이터 로드 실패</div>
+          <div className="text-xs">
+            {failedTypes.map((t) => (t === 'horse' ? '경마' : t === 'cycle' ? '경륜' : '경정')).join(', ')} 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+          </div>
         </div>
       )}
 

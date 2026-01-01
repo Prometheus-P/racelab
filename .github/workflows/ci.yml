@@ -116,9 +116,9 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # Use secrets for sensitive API keys
           KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
           KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
+          NEXT_PUBLIC_SITE_URL: https://racelab.kr
 
       - name: Run E2E tests
         run: npm run test:e2e
@@ -158,9 +158,9 @@ jobs:
       - name: Build application
         run: npm run build
         env:
-          # Use secrets for sensitive API keys
           KRA_API_KEY: ${{ secrets.KRA_API_KEY }}
           KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
+          NEXT_PUBLIC_SITE_URL: https://racelab.kr
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

@@ -72,13 +72,14 @@ export function M3SearchBar({
     [currentValue, onSearch]
   );
 
+  // Clear pending debounce when debounceMs changes or on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
     };
-  }, []);
+  }, [debounceMs]);
 
   const baseClasses = [
     'flex',

@@ -167,9 +167,11 @@ claude_desktop_config.json
 .#*
 
 # =====================
-# Storybook (if added later)
+# Storybook & Chromatic
 # =====================
 storybook-static/
+chromatic-*.json
+build-storybook.log
 
 # =====================
 # PWA (if added later)
@@ -205,3 +207,50 @@ gha-creds-*.json
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
+
+# =====================
+# Proprietary & Confidential
+# =====================
+# Internal documentation
+docs/internal/
+docs/confidential/
+*.confidential.*
+
+# Business logic exports
+exports/
+data-exports/
+
+# Analytics & Reports (sensitive) - root level only, not src/
+/analytics/
+/reports/
+*.xlsx
+*.csv
+!public/**/*.csv
+
+# =====================
+# Production Configs
+# =====================
+*.production.json
+*.prod.json
+production.env
+prod.env
+
+*storybook.log
+
+# =====================
+# Drizzle
+# =====================
+drizzle-studio/
+.drizzle/
+
+# =====================
+# Bundle Analyzer
+# =====================
+.next/analyze/
+analyze/
+
+# =====================
+# Redis & Bull Queue
+# =====================
+dump.rdb
+*.rdb

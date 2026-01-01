@@ -38,3 +38,13 @@ export type { M3SnackbarProps, SnackbarSeverity, SnackbarPosition } from './M3Sn
 
 // Badge component (shadcn-inspired)
 export { default as Badge } from './Badge';
+
+// Accessibility components
+export { LiveRegion, AlertLive, StatusLive } from './LiveRegion';
+export type { LiveRegionProps } from './LiveRegion';
+
+export { VisuallyHidden, FocusVisible } from './VisuallyHidden';
+export type { VisuallyHiddenProps } from './VisuallyHidden';
+
+export { FormGroup, RadioGroup } from './FormGroup';
+export type { FormGroupProps } from './FormGroup';

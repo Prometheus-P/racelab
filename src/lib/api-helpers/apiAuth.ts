@@ -26,8 +26,21 @@ const LEGACY_API_KEYS = process.env.B2B_API_KEYS?.split(',') || [];
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.API_RATE_LIMIT || '100', 10);
 
-// In-memory rate limit store (fallback for legacy auth)
+// Explicit auth skip flag - MUST be explicitly set, never auto-enabled
+// WARNING: Only use in local development, never in staging/production
+const SKIP_AUTH = process.env.SKIP_AUTH === 'true';
+
+// In-memory rate limit store (DEVELOPMENT ONLY for legacy auth)
+// WARNING: Not safe for production - use Redis-based B2B auth instead
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Check if we're in production
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Log warning if SKIP_AUTH is enabled
+if (SKIP_AUTH) {
+  console.warn('[apiAuth] ⚠️ SKIP_AUTH is enabled - authentication is bypassed. Never use in production!');
+}
 
 export interface ApiAuthResult {
   authenticated: boolean;
@@ -81,17 +94,30 @@ function extractApiKey(request: NextRequest): string | null {
  * Validate API key against allowed keys (legacy support)
  */
 function validateApiKey(apiKey: string): boolean {
-  // In development, allow any non-empty key or skip auth entirely
-  if (process.env.NODE_ENV === 'development' && !LEGACY_API_KEYS.length) {
+  // Only skip auth if explicitly enabled via SKIP_AUTH env var
+  if (SKIP_AUTH) {
     return true;
   }
   return LEGACY_API_KEYS.includes(apiKey);
 }
 
 /**
- * Check rate limit for the given API key
+ * Check rate limit for the given API key (LEGACY - uses in-memory store)
+ *
+ * WARNING: Not safe for production - use withB2BAuth with Redis instead
+ *
+ * In production, this function REJECTS ALL REQUESTS to enforce Redis migration.
+ * Legacy in-memory rate limiting is only available for local development.
  */
 function checkRateLimit(apiKey: string): { allowed: boolean; remaining: number; resetIn: number } {
+  // CRITICAL: In production, reject requests using legacy rate limiting
+  // This forces migration to Redis-based B2B auth for distributed rate limiting
+  if (isProduction) {
+    console.error('[apiAuth] CRITICAL: Legacy in-memory rate limiting blocked in production. Use withB2BAuth with Redis.');
+    return { allowed: false, remaining: 0, resetIn: 60000 };
+  }
+
+  // Development only: in-memory rate limiting
   const now = Date.now();
   const record = rateLimitStore.get(apiKey);
 
@@ -232,8 +258,8 @@ export function withOptionalApiAuth(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
-    // Skip auth in development if no API keys configured
-    if (process.env.NODE_ENV === 'development' && !LEGACY_API_KEYS.length) {
+    // Only skip auth if explicitly enabled via SKIP_AUTH env var
+    if (SKIP_AUTH) {
       return handler(request);
     }
 
@@ -261,8 +287,8 @@ export function withApiAuthParams<T = Record<string, string>>(
   handler: (request: NextRequest, context: RouteContext<T>) => Promise<NextResponse>
 ): (request: NextRequest, context: RouteContext<T>) => Promise<NextResponse> {
   return async (request: NextRequest, context: RouteContext<T>) => {
-    // Skip auth in development if no API keys configured
-    if (process.env.NODE_ENV === 'development' && !LEGACY_API_KEYS.length) {
+    // Only skip auth if explicitly enabled via SKIP_AUTH env var
+    if (SKIP_AUTH) {
       return handler(request, context);
     }
 
