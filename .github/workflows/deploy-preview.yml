@@ -135,7 +135,7 @@ jobs:
           KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: preview-e2e-report

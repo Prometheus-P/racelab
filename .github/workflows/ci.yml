@@ -128,7 +128,7 @@ jobs:
           KSPO_API_KEY: ${{ secrets.KSPO_API_KEY }}
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-report
@@ -163,7 +163,7 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://racelab.kr
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-output
           path: .next/
