@@ -129,6 +129,80 @@ External APIs (KRA, KSPO, data.go.kr)
 
 **Meet Codes**: 1=서울, 2=제주, 3=부산/부경
 
+## Prediction Engine (src/lib/predictions/)
+
+경마 예측 시스템. 팩터 기반 스코어링 → Softmax 확률 변환 → 추천 생성.
+
+```
+Entry Data → Scorer → Raw Scores → Softmax → Win Probabilities → Predictions
+               ↑
+         ModelWeights (constants.ts)
+```
+
+### 핵심 모듈
+
+| 파일 | 역할 |
+|------|------|
+| `core/predictor.ts` | `PredictionEngine` 메인 클래스 |
+| `core/scorer.ts` | 팩터별 점수 계산 (8개 내부 + 5개 외부 팩터) |
+| `core/probability.ts` | Softmax, Kelly Criterion, 가치 분석 |
+| `core/normalizer.ts` | Min-Max / Z-Score 정규화 |
+| `constants.ts` | 모델 가중치, 임계값 상수 |
+| `adapters/kraAdapter.ts` | KRA API 응답 → 예측 입력 변환 |
+
+### 모델 가중치 (DEFAULT_MODEL_WEIGHTS)
+
+- **External (40%)**: 주로상태(12%), 게이트(8%), 거리적합도(10%), 필드크기(5%), 표면(5%)
+- **Internal (60%)**: 레이팅(15%), 최근폼(10%), 부담중량(8%), 거리선호도(7%), 기수(8%), 조교사(5%), 콤보(7%)
+
+### 사용 예시
+
+```typescript
+import { predictRace, PredictionEngine } from '@/lib/predictions';
+
+// 간편 예측
+const result = predictRace({ race, entries });
+
+// 커스텀 가중치
+const engine = new PredictionEngine(customWeights);
+const result = engine.predictRace({ race, entries });
+```
+
+## Ingestion System (src/ingestion/)
+
+데이터 수집 파이프라인. Vercel Cron으로 스케줄링.
+
+```
+External APIs (KRA/KSPO)
+        ↓
+   clients/*.ts (HTTP 요청)
+        ↓
+   mappers/*.ts (Raw → Domain 변환)
+        ↓
+   jobs/*.ts (Poller 로직)
+        ↓
+   Database (Drizzle ORM)
+```
+
+### 구조
+
+| 디렉토리 | 역할 |
+|----------|------|
+| `clients/` | KRA/KSPO API 클라이언트 |
+| `mappers/` | API 응답 → DB 스키마 변환 |
+| `jobs/` | Poller 작업 (schedule, entry, odds, result) |
+| `services/` | Slack 알림, 상태 관리 |
+| `utils/` | 재시도, 쿼터 관리, 메트릭 |
+
+### Poller 종류
+
+| Job | 설명 | 스케줄 |
+|-----|------|--------|
+| `schedulePoller` | 경주 일정 수집 | 매일 06:00 |
+| `entryPoller` | 출주마 정보 수집 | 경주 시작 전 |
+| `oddsPoller` | 실시간 배당률 | 경주 중 (5분 간격) |
+| `resultPoller` | 경주 결과 | 경주 종료 후 |
+
 ## Team Conventions
 
 ### Git Workflow
