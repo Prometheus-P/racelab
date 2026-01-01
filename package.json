@@ -82,7 +82,7 @@
     "babel-jest": "^30.2.0",
     "chromatic": "^13.3.4",
     "drizzle-kit": "^0.31.8",
-    "eslint": "^8.57.1",
+    "eslint": "^9.39.2",
     "eslint-config-next": "^15.1.0",
     "eslint-plugin-storybook": "^10.1.11",
     "jest": "^30.2.0",
