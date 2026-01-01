@@ -1,0 +1,59 @@
+# CodeQL Custom Configuration
+# Next.js/React 애플리케이션 보안 스캔 설정
+
+name: "RaceLab Security Analysis"
+
+# 쿼리 팩 설정
+queries:
+  # 기본 보안 쿼리
+  - uses: security-extended
+  - uses: security-and-quality
+
+  # JavaScript/TypeScript 추가 쿼리
+  - uses: security-experimental
+
+# 경로 필터
+paths:
+  - src
+  - app
+  - pages
+  - lib
+  - components
+
+paths-ignore:
+  # 테스트 파일 제외
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/tests/**"
+  - "**/e2e/**"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+
+  # 빌드 결과물 제외
+  - ".next/**"
+  - "out/**"
+  - "dist/**"
+  - "build/**"
+  - "node_modules/**"
+
+  # 설정 파일 제외
+  - "*.config.js"
+  - "*.config.ts"
+  - "*.config.mjs"
+
+  # Storybook 제외
+  - ".storybook/**"
+  - "**/*.stories.tsx"
+  - "**/*.stories.ts"
+
+# 쿼리 필터 (특정 규칙 조정)
+query-filters:
+  # 낮은 심각도 경고 제외
+  - exclude:
+      problem.severity: recommendation
+
+  # 특정 규칙 제외 (필요시)
+  # - exclude:
+  #     id: js/unused-local-variable

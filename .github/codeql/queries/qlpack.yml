@@ -1,0 +1,6 @@
+name: racelab/security-queries
+version: 1.0.0
+description: Custom security queries for RaceLab Next.js application
+dependencies:
+  codeql/javascript-all: "*"
+defaultSuiteFile: suite.qls

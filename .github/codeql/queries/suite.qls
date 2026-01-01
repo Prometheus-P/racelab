@@ -1,0 +1,7 @@
+# Custom query suite for RaceLab
+- description: RaceLab Security Queries
+- queries: .
+- include:
+    kind:
+      - problem
+      - path-problem
