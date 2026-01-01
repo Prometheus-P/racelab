@@ -100,16 +100,19 @@ test.describe('Landing Page - Sections', () => {
 });
 
 test.describe('Landing Page - User Flows', () => {
-  test('should navigate to dashboard when clicking CTA', async ({ page }) => {
+  test('should navigate to login with dashboard callback when clicking CTA', async ({ page }) => {
     const homePage = new HomePage(page);
     await homePage.goto();
 
     // Click hero CTA button
     await homePage.clickHeroCTA();
 
-    // Should navigate to dashboard
-    await page.waitForURL(/\/dashboard/);
-    expect(page.url()).toContain('/dashboard');
+    // Should redirect to login (auth required for dashboard)
+    await page.waitForURL(/\/login/);
+    expect(page.url()).toContain('/login');
+    // Callback URL should point to dashboard
+    expect(page.url()).toContain('callbackUrl');
+    expect(page.url()).toContain('dashboard');
   });
 
   test('should scroll to demo section via anchor link', async ({ page }) => {

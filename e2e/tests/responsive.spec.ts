@@ -60,8 +60,10 @@ test.describe('Responsive Design - Tablet', () => {
 
     // Click CTA and check navigation
     await homePage.clickHeroCTA();
-    await page.waitForURL(/\/dashboard/);
-    expect(page.url()).toContain('/dashboard');
+    // Should redirect to login (auth required for dashboard)
+    await page.waitForURL(/\/login/);
+    expect(page.url()).toContain('/login');
+    expect(page.url()).toContain('dashboard'); // callback URL
   });
 
   test('should display features section on tablet', async ({ page }) => {
