@@ -145,7 +145,7 @@ describe('GET /api/v1/kra/jockeys', () => {
       mockSearchJockeysByName.mockResolvedValue(manyJockeys);
 
       const response = await GET(
-        createRequest('http://localhost/api/v1/kra/jockeys?search=홍&limit=5')
+        createRequest('http://localhost/api/v1/kra/jockeys?search=홍길&limit=5')
       );
       const data = await response.json();
 
