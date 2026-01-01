@@ -121,3 +121,15 @@ export {
   fetchHorseListSafe,
   fetchHorseDetail,
 } from './horse';
+
+// Entry API
+export {
+  fetchEntryHorses,
+  fetchEntryHorsesSafe,
+  fetchEntriesByRace,
+  fetchEntriesForRace,
+  groupEntriesByRace,
+  hasTodayRaces,
+  getRaceCount,
+  getFieldSizes,
+} from './entry';

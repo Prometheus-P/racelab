@@ -11,6 +11,21 @@ type MockFn = jest.Mock<any>;
 // Mock the database
 jest.mock('@/lib/db/client', () => ({
   db: {
+    transaction: jest.fn(async (callback: (tx: unknown) => Promise<void>) => {
+      const tx = {
+        insert: jest.fn(() => ({
+          values: jest.fn(() => ({
+            onConflictDoUpdate: jest.fn(() => Promise.resolve()),
+          })),
+        })),
+        update: jest.fn(() => ({
+          set: jest.fn(() => ({
+            where: jest.fn(() => Promise.resolve()),
+          })),
+        })),
+      };
+      return callback(tx);
+    }),
     insert: jest.fn(() => ({
       values: jest.fn(() => ({
         onConflictDoUpdate: jest.fn(() => Promise.resolve()),

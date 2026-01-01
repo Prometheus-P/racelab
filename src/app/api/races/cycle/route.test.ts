@@ -37,7 +37,10 @@ describe('GET /api/races/cycle', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue(mockCycleRaces);
+    (raceService.getRacesByDateAndType as jest.Mock).mockResolvedValue({
+      success: true,
+      data: mockCycleRaces,
+    });
   });
 
   it('should return cycle race schedules successfully', async () => {

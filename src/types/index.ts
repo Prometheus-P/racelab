@@ -13,6 +13,12 @@ export * from './result';
 export * from './oddsSnapshot';
 export * from './entrant';
 
+// Prediction System Types (경마 예측 시스템)
+export * from './prediction';
+export * from './track-condition';
+export * from './combo';
+export * from './equipment';
+
 export type DividendType = 'win' | 'place' | 'quinella';
 
 export interface Dividend {

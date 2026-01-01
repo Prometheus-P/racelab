@@ -6,7 +6,7 @@
  * 백테스트 결과 및 전략을 다양한 포맷으로 내보내기
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Download, FileSpreadsheet, FileJson, FileText, X, Upload } from 'lucide-react';
 import type { BacktestResult, StrategyDefinition } from '@/lib/strategy/types';
 import {
@@ -58,6 +58,16 @@ export function ExportDialog({
   const [isExporting, setIsExporting] = useState(false);
   const [importResult, setImportResult] = useState<StrategyImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 내보내기 처리
   const handleExport = useCallback(async () => {
@@ -88,7 +98,7 @@ export function ExportDialog({
       }
 
       // 성공 후 닫기
-      setTimeout(() => {
+      closeTimeoutRef.current = setTimeout(() => {
         onClose();
       }, 500);
     } catch (error) {
@@ -109,7 +119,7 @@ export function ExportDialog({
 
       if (result.success && result.strategy && onImportStrategy) {
         onImportStrategy(result.strategy);
-        setTimeout(() => {
+        closeTimeoutRef.current = setTimeout(() => {
           onClose();
         }, 1500);
       }

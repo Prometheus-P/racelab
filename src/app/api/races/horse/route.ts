@@ -18,11 +18,22 @@ async function handler(request: NextRequest): Promise<NextResponse<ApiResponse<R
     const date = dateParam && /^\d{8}$/.test(dateParam) ? dateParam : getTodayYYYYMMDD();
 
     // Call service
-    const races = await getRacesByDateAndType(date, 'horse');
+    const result = await getRacesByDateAndType(date, 'horse');
+
+    if (!result.success) {
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'SERVICE_ERROR',
+          message: result.error,
+        },
+        timestamp: new Date().toISOString(),
+      }, { status: 502 });
+    }
 
     return NextResponse.json({
       success: true,
-      data: races,
+      data: result.data,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

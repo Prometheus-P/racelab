@@ -108,7 +108,23 @@ export type ExtendedConditionField =
   | 'speed_rating' // 속도 레이팅
   | 'best_speed_rating' // 최고 속도 레이팅
   | 'early_pace_score' // 초반 페이스 점수
-  | 'late_pace_score'; // 후반 페이스 점수
+  | 'late_pace_score' // 후반 페이스 점수
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 예측 모델 전용 (12개) - Phase 2
+  // ─────────────────────────────────────────────────────────────────────────
+  | 'track_moisture' // 함수율 (%)
+  | 'track_speed_impact' // 주로 속도 영향 계수
+  | 'equipment_blinkers' // 차안대 착용 여부
+  | 'equipment_first_time' // 장구 최초 착용 여부
+  | 'combo_synergy_score' // 기수-조교사 시너지 점수
+  | 'combo_win_rate' // 기수-조교사 콤보 승률
+  | 'burden_ratio' // 부담비율 (부담중량/마체중)
+  | 'burden_vs_optimal' // 최적 부담중량 대비 차이
+  | 'sire_dirt_rate' // 부마 더트 승률
+  | 'sire_distance_apt' // 부마 거리 적성
+  | 'bloodline_apt_score' // 혈통 적성 종합 점수
+  | 'gate_advantage'; // 게이트 유불리 점수
 
 // =============================================================================
 // Extended Field Metadata
@@ -717,6 +733,135 @@ export const EXTENDED_FIELD_METADATA: Record<ExtendedConditionField, ExtendedFie
     max: 100,
     phase: 2,
     category: 'performance',
+    computed: true,
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 예측 모델 전용 (12개)
+  // ═══════════════════════════════════════════════════════════════════════════
+  track_moisture: {
+    field: 'track_moisture',
+    label: '함수율',
+    description: '주로의 수분 함유량 (%), 높을수록 빠른 주로',
+    unit: '%',
+    min: 0,
+    max: 100,
+    phase: 2,
+    category: 'race',
+    computed: false,
+  },
+  track_speed_impact: {
+    field: 'track_speed_impact',
+    label: '주로 속도영향',
+    description: '주로상태에 따른 속도 영향 계수 (1.0=기준)',
+    min: 0.9,
+    max: 1.2,
+    phase: 2,
+    category: 'race',
+    computed: true,
+  },
+  equipment_blinkers: {
+    field: 'equipment_blinkers',
+    label: '차안대 착용',
+    description: '차안대(블링커) 착용 여부 (1=착용, 0=미착용)',
+    min: 0,
+    max: 1,
+    phase: 2,
+    category: 'horse',
+    computed: false,
+  },
+  equipment_first_time: {
+    field: 'equipment_first_time',
+    label: '장구 최초착용',
+    description: '이번 경주가 장구 최초 착용인지 여부 (1=최초, 0=아님)',
+    min: 0,
+    max: 1,
+    phase: 2,
+    category: 'horse',
+    computed: false,
+  },
+  combo_synergy_score: {
+    field: 'combo_synergy_score',
+    label: '기수-조교사 시너지',
+    description: '기수-조교사 조합의 시너지 점수 (0-100)',
+    min: 0,
+    max: 100,
+    phase: 2,
+    category: 'trainer',
+    computed: true,
+  },
+  combo_win_rate: {
+    field: 'combo_win_rate',
+    label: '콤보 승률',
+    description: '해당 기수-조교사 조합의 승률 (%)',
+    unit: '%',
+    min: 0,
+    max: 100,
+    phase: 2,
+    category: 'trainer',
+    computed: true,
+  },
+  burden_ratio: {
+    field: 'burden_ratio',
+    label: '부담비율',
+    description: '부담중량/마체중 비율 (%)',
+    unit: '%',
+    min: 8,
+    max: 15,
+    phase: 2,
+    category: 'horse',
+    computed: true,
+  },
+  burden_vs_optimal: {
+    field: 'burden_vs_optimal',
+    label: '최적부담 대비',
+    description: '최적 부담중량 대비 차이 (kg)',
+    unit: 'kg',
+    min: -10,
+    max: 10,
+    phase: 2,
+    category: 'horse',
+    computed: true,
+  },
+  sire_dirt_rate: {
+    field: 'sire_dirt_rate',
+    label: '부마 더트승률',
+    description: '부마(씨수마) 자마들의 더트 주로 승률 (%)',
+    unit: '%',
+    min: 0,
+    max: 100,
+    phase: 2,
+    category: 'performance',
+    computed: true,
+  },
+  sire_distance_apt: {
+    field: 'sire_distance_apt',
+    label: '부마 거리적성',
+    description: '부마 기반 해당 거리 적성 점수 (1-5)',
+    min: 1,
+    max: 5,
+    phase: 2,
+    category: 'performance',
+    computed: true,
+  },
+  bloodline_apt_score: {
+    field: 'bloodline_apt_score',
+    label: '혈통 적성',
+    description: '혈통 기반 종합 적성 점수 (0-100)',
+    min: 0,
+    max: 100,
+    phase: 2,
+    category: 'performance',
+    computed: true,
+  },
+  gate_advantage: {
+    field: 'gate_advantage',
+    label: '게이트 유불리',
+    description: '게이트 위치에 따른 유불리 점수 (-10 ~ +10)',
+    min: -10,
+    max: 10,
+    phase: 2,
+    category: 'race',
     computed: true,
   },
 };

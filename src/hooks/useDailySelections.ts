@@ -124,18 +124,24 @@ export function usePresetStrategies() {
     }>
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchStrategies = async () => {
       try {
+        setError(null);
         const response = await fetch('/api/v1/daily-selections', { method: 'OPTIONS' });
         const data = await response.json();
 
         if (data.success) {
           setStrategies(data.data.presetStrategies || []);
+        } else {
+          throw new Error(data.error?.message || 'Failed to fetch preset strategies');
         }
       } catch (err) {
-        console.error('Failed to fetch preset strategies:', err);
+        const fetchError = err instanceof Error ? err : new Error('Unknown error');
+        setError(fetchError);
+        console.error('Failed to fetch preset strategies:', fetchError);
       } finally {
         setIsLoading(false);
       }
@@ -144,5 +150,5 @@ export function usePresetStrategies() {
     fetchStrategies();
   }, []);
 
-  return { strategies, isLoading };
+  return { strategies, isLoading, error };
 }

@@ -114,7 +114,7 @@ describe('GET /api/v1/kra/jockeys', () => {
     it('should pass date parameter', async () => {
       mockFetchJockeyRanking.mockResolvedValue(mockJockeys);
 
-      const response = await GET(
+      await GET(
         createRequest('http://localhost/api/v1/kra/jockeys?date=2024-12-25')
       );
 
@@ -145,7 +145,7 @@ describe('GET /api/v1/kra/jockeys', () => {
       mockSearchJockeysByName.mockResolvedValue(manyJockeys);
 
       const response = await GET(
-        createRequest('http://localhost/api/v1/kra/jockeys?search=홍&limit=5')
+        createRequest('http://localhost/api/v1/kra/jockeys?search=홍길&limit=5')
       );
       const data = await response.json();
 

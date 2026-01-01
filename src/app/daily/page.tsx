@@ -18,12 +18,15 @@ export default function DailyPage() {
   );
   const [showStrategySelector, setShowStrategySelector] = useState(false);
 
-  const { strategies: _strategies } = usePresetStrategies();
-  const { result, isLoading, error, refresh, lastUpdated } = useDailySelections({
+  const { strategies: _strategies, error: presetError } = usePresetStrategies();
+  const { result, isLoading, error: selectionsError, refresh, lastUpdated } = useDailySelections({
     strategyId: selectedStrategyId,
     usePreset: true,
     autoRefresh: true,
   });
+
+  // Combine errors for display
+  const error = selectionsError || presetError;
 
   // 더미 성과 데이터
   const today = new Date().toISOString().split('T')[0];

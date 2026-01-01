@@ -116,9 +116,7 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'i5Q0RtQZldOZKbs-upPl2eiP9boxog1a5QDxZd70pv4',
-    other: {
-      'naver-site-verification': 'your-naver-verification-code',
-    },
+    // Naver verification: configure in production when ready
   },
 };
 
@@ -260,7 +258,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       document.documentElement.classList.add('dark');
                     }
                   }
-                } catch (e) {}
+                } catch (e) {
+                // Corrupted localStorage - remove and use system default
+                try { localStorage.removeItem('racelab-theme'); } catch (_) {}
+              }
               })();
             `,
           }}

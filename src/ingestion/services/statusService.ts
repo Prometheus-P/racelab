@@ -231,8 +231,10 @@ export async function getHealthCheck(): Promise<HealthCheck> {
     if (failureStatus.maxRetriesExceeded > 0) {
       issues.push(`Failures exceeded max retries: ${failureStatus.maxRetriesExceeded}`);
     }
-  } catch {
-    // Ignore if can't check failures
+  } catch (error) {
+    // Log failure check error - don't mark unhealthy but note the issue
+    console.error('[statusService] Failed to check failure status:', error);
+    issues.push('Unable to check failure queue');
   }
 
   let status: HealthCheck['status'] = 'healthy';

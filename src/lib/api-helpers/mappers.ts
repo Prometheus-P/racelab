@@ -1420,6 +1420,46 @@ export function mapKRA299ToRaces(items: KRA299ResultItem[]): Race[] {
   return Array.from(raceMap.values()).sort((a, b) => a.raceNo - b.raceNo);
 }
 
+/**
+ * Map API299 경주결과종합 items to RaceResult objects for a specific race
+ * @param items API299 raw items
+ * @param meetCode Target meet code (1=서울, 2=제주, 3=부경)
+ * @param raceNo Target race number
+ */
+export function mapKRA299ToResults(
+  items: KRA299ResultItem[],
+  meetCode: string,
+  raceNo: number
+): { rank: number; no: number; name: string; jockey?: string; odds?: number }[] {
+  // Convert meetCode to name for matching
+  const meetNames: Record<string, string> = {
+    '1': '서울',
+    '2': '제주',
+    '3': '부산',
+  };
+  const targetMeetName = meetNames[meetCode];
+
+  // Filter items for the target race
+  const raceItems = items.filter((item) => {
+    const itemMeet = item.meet;
+    const itemRaceNo = item.rcNo;
+    return itemMeet === targetMeetName && itemRaceNo === raceNo;
+  });
+
+  // Map to RaceResult format and sort by rank
+  const results = raceItems
+    .filter((item) => item.ord && item.ord > 0) // Only include items with valid rank
+    .map((item) => ({
+      rank: item.ord!,
+      no: item.chulNo || 0,
+      name: item.hrName || '',
+      jockey: item.jkName,
+    }))
+    .sort((a, b) => a.rank - b.rank);
+
+  return results;
+}
+
 // Helper function to parse odds value from string
 function parseOddsValue(value: string | null | undefined): number | null {
   if (value === null || value === undefined || value === '') {

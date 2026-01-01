@@ -2,6 +2,10 @@
 'use client';
 
 import React, { useEffect, useId, useCallback } from 'react';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+
+// Global dialog stack for handling multiple dialogs (Escape key priority)
+const dialogStack: string[] = [];
 
 export type M3DialogMaxWidth = 'xs' | 'sm' | 'md' | 'lg';
 
@@ -54,30 +58,53 @@ export function M3Dialog({
   'data-testid': testId,
 }: M3DialogProps) {
   const titleId = useId();
+  const dialogId = useId();
 
-  // Handle escape key
+  // Focus trap: Tab/Shift+Tab cycles within dialog (WCAG 2.4.3)
+  const focusTrapRef = useFocusTrap<HTMLDivElement>({
+    enabled: open,
+    autoFocus: true,
+    restoreFocus: true,
+  });
+
+  // Handle escape key - only topmost dialog responds
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !disableEscapeClose) {
-        onClose();
+        // Only handle if this dialog is the topmost in the stack
+        const topDialogId = dialogStack[dialogStack.length - 1];
+        if (topDialogId === dialogId) {
+          event.stopImmediatePropagation();
+          onClose();
+        }
       }
     },
-    [onClose, disableEscapeClose]
+    [onClose, disableEscapeClose, dialogId]
   );
 
-  // Add/remove event listener for escape key
+  // Manage dialog stack and event listener
   useEffect(() => {
     if (open) {
+      // Add to stack when opening
+      dialogStack.push(dialogId);
       document.addEventListener('keydown', handleKeyDown);
-      // Prevent body scroll when dialog is open
-      document.body.style.overflow = 'hidden';
+      // Prevent body scroll when dialog is open (CSS class avoids layout thrashing)
+      document.body.classList.add('modal-open');
     }
 
     return () => {
+      // Remove from stack when closing
+      const index = dialogStack.indexOf(dialogId);
+      if (index > -1) {
+        dialogStack.splice(index, 1);
+      }
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      // Only remove modal-open if no more dialogs are open
+      if (dialogStack.length === 0) {
+        document.body.classList.remove('modal-open');
+      }
     };
-  }, [open, handleKeyDown]);
+  }, [open, handleKeyDown, dialogId]);
 
   // Handle backdrop click
   const handleBackdropClick = () => {
@@ -133,6 +160,7 @@ export function M3Dialog({
 
       {/* Dialog Panel */}
       <div
+        ref={focusTrapRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
@@ -140,6 +168,7 @@ export function M3Dialog({
         className={panelClasses}
         onClick={handlePanelClick}
         data-testid={testId}
+        tabIndex={-1}
       >
         {/* Title */}
         {title && (
