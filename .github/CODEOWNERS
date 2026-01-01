@@ -1,0 +1,27 @@
+# CODEOWNERS - Automatic reviewer assignment
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files
+* @Prometheus-P
+
+# Core application
+/src/app/ @Prometheus-P
+/src/components/ @Prometheus-P
+/src/lib/ @Prometheus-P
+
+# API & Backend
+/src/app/api/ @Prometheus-P
+/src/ingestion/ @Prometheus-P
+/src/lib/api/ @Prometheus-P
+
+# Prediction Engine
+/src/lib/predictions/ @Prometheus-P
+
+# Infrastructure & DevOps
+/.github/ @Prometheus-P
+/drizzle/ @Prometheus-P
+*.config.* @Prometheus-P
+
+# Documentation
+*.md @Prometheus-P
+/docs/ @Prometheus-P
