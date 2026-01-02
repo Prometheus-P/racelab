@@ -231,3 +231,138 @@ export function matchCacheKeyPattern(pattern: string, key: string): boolean {
 
   return new RegExp(`^${regexPattern}$`).test(key);
 }
+
+// ====================================================
+// Cache Metrics (#165)
+// ====================================================
+
+/**
+ * 캐시 메트릭 저장소
+ */
+interface CacheMetrics {
+  hits: number;
+  misses: number;
+  errors: number;
+  lastReset: number;
+}
+
+interface NamespacedMetrics {
+  [namespace: string]: CacheMetrics;
+}
+
+const cacheMetrics: NamespacedMetrics = {};
+
+/**
+ * 기본 메트릭 객체 생성
+ */
+function getOrCreateMetrics(namespace: string): CacheMetrics {
+  if (!cacheMetrics[namespace]) {
+    cacheMetrics[namespace] = {
+      hits: 0,
+      misses: 0,
+      errors: 0,
+      lastReset: Date.now(),
+    };
+  }
+  return cacheMetrics[namespace];
+}
+
+/**
+ * 캐시 히트 기록
+ */
+export function recordCacheHit(namespace: string): void {
+  getOrCreateMetrics(namespace).hits++;
+}
+
+/**
+ * 캐시 미스 기록
+ */
+export function recordCacheMiss(namespace: string): void {
+  getOrCreateMetrics(namespace).misses++;
+}
+
+/**
+ * 캐시 에러 기록
+ */
+export function recordCacheError(namespace: string): void {
+  getOrCreateMetrics(namespace).errors++;
+}
+
+/**
+ * 캐시 히트율 계산
+ */
+export function getCacheHitRate(namespace: string): number {
+  const metrics = cacheMetrics[namespace];
+  if (!metrics) return 0;
+
+  const total = metrics.hits + metrics.misses;
+  if (total === 0) return 0;
+
+  return metrics.hits / total;
+}
+
+/**
+ * 네임스페이스별 캐시 메트릭 조회
+ */
+export function getCacheMetrics(namespace: string): CacheMetrics | null {
+  return cacheMetrics[namespace] || null;
+}
+
+/**
+ * 전체 캐시 메트릭 조회
+ */
+export function getAllCacheMetrics(): {
+  namespaces: NamespacedMetrics;
+  summary: {
+    totalHits: number;
+    totalMisses: number;
+    totalErrors: number;
+    overallHitRate: number;
+  };
+} {
+  let totalHits = 0;
+  let totalMisses = 0;
+  let totalErrors = 0;
+
+  for (const metrics of Object.values(cacheMetrics)) {
+    totalHits += metrics.hits;
+    totalMisses += metrics.misses;
+    totalErrors += metrics.errors;
+  }
+
+  const total = totalHits + totalMisses;
+  const overallHitRate = total > 0 ? totalHits / total : 0;
+
+  return {
+    namespaces: { ...cacheMetrics },
+    summary: {
+      totalHits,
+      totalMisses,
+      totalErrors,
+      overallHitRate,
+    },
+  };
+}
+
+/**
+ * 특정 네임스페이스 메트릭 리셋
+ */
+export function resetCacheMetrics(namespace: string): void {
+  if (cacheMetrics[namespace]) {
+    cacheMetrics[namespace] = {
+      hits: 0,
+      misses: 0,
+      errors: 0,
+      lastReset: Date.now(),
+    };
+  }
+}
+
+/**
+ * 모든 캐시 메트릭 리셋
+ */
+export function resetAllCacheMetrics(): void {
+  for (const namespace of Object.keys(cacheMetrics)) {
+    resetCacheMetrics(namespace);
+  }
+}

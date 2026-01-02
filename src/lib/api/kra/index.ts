@@ -38,6 +38,8 @@ export {
   type KraHorseTotalInfoItem,
   type KraEntryHorseItem,
   type KraOddsItem,
+  type KraRaceInfoItem,
+  type KraRaceResultAIItem,
   // 내부 모델
   type Jockey,
   type Trainer,
@@ -45,6 +47,10 @@ export {
   type HorseRaceRecord,
   type RaceEntry,
   type RaceOdds,
+  type RaceInfo,
+  type RaceSchedule,
+  type RaceResultAI,
+  type RaceResultAISummary,
   // 상수
   MEET_NAMES,
   SEX_NAMES,
@@ -86,6 +92,18 @@ export {
   // 출마표
   mapEntryHorse,
   mapEntryHorseList,
+  // 배당률
+  mapOddsItems,
+  filterOddsByRace,
+  // 경주정보
+  mapRaceInfo,
+  mapRaceInfoList,
+  groupRacesByDateAndMeet,
+  filterRaceByNo,
+  // AI학습용 경주결과
+  mapRaceResultAI,
+  mapRaceResultAIList,
+  groupRaceResultsByRace,
 } from './mappers';
 
 // Jockey API
@@ -133,3 +151,46 @@ export {
   getRaceCount,
   getFieldSizes,
 } from './entry';
+
+// Odds API
+export {
+  fetchOdds,
+  fetchAllOdds,
+  fetchRaceOdds,
+  fetchOddsSafe,
+  extractWinOdds,
+  extractPlaceOdds,
+  getOddsFavoriteOrder,
+  getHorseOdds,
+} from './odds';
+
+// Race Info API
+export {
+  fetchRaceInfo,
+  fetchAllRaceInfo,
+  fetchRaceSchedule,
+  fetchRace,
+  fetchRaceInfoSafe,
+  hasRacesToday,
+  getTotalRaceCount,
+  filterRacesByGrade,
+  filterRacesByDistance,
+  sortRacesByStartTime,
+} from './race';
+
+// Race Result AI API
+export {
+  fetchRaceResultAI,
+  fetchAllRaceResultAI,
+  fetchRaceResultAISummary,
+  fetchRaceResult,
+  fetchRaceResultAISafe,
+  fetchHorseRaceResultAI,
+  hasRaceResults,
+  getTotalResultCount,
+  filterResultsByPosition,
+  filterWinners,
+  filterPlacers,
+  sortResultsByPosition,
+  sortResultsByTime,
+} from './race-result';

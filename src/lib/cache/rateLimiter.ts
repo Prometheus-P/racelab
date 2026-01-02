@@ -15,7 +15,13 @@ import {
   recordFailure,
   getCircuitInfo,
 } from './circuitBreaker';
+import {
+  recordCacheHit,
+  recordCacheMiss,
+} from './cacheUtils';
 import { safeError, safeWarn, safeInfo } from '@/lib/utils/safeLogger';
+
+const CLIENT_CACHE_NAMESPACE = 'client-info';
 
 /** Redis circuit breaker 이름 */
 const REDIS_CIRCUIT = 'redis-rate-limiter';
@@ -47,9 +53,27 @@ const isProduction = process.env.NODE_ENV === 'production';
 const WINDOW_SECONDS = 60;
 
 /**
- * Client info cache TTL in seconds
+ * Client info cache TTL configuration
+ * Can be overridden via environment variable CACHE_TTL_SECONDS
  */
-const CLIENT_CACHE_TTL = 300; // 5 minutes
+const DEFAULT_CACHE_TTL = 300; // 5 minutes default
+const CLIENT_CACHE_TTL = parseInt(process.env.CACHE_TTL_SECONDS || '', 10) || DEFAULT_CACHE_TTL;
+
+/**
+ * Dynamic TTL based on data freshness requirements
+ */
+export const CacheTTL = {
+  /** Live race data - very short TTL */
+  LIVE: 30,
+  /** Upcoming race data - short TTL */
+  UPCOMING: 60,
+  /** Default TTL */
+  DEFAULT: CLIENT_CACHE_TTL,
+  /** Finished race data - longer TTL */
+  FINISHED: 3600,
+  /** Static data - very long TTL */
+  STATIC: 86400,
+} as const;
 
 /**
  * Lua script for atomic sliding window rate limiting
@@ -259,14 +283,23 @@ export async function getCachedClientInfo(
   clientId: string
 ): Promise<{ tier: ClientTier; dbId: number; status: string } | null> {
   const redis = await getRedisClient();
-  if (!redis) return null;
+  if (!redis) {
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
+    return null;
+  }
 
   try {
     const key = `client:info:${clientId}`;
     const data = await redis.get(key);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      recordCacheHit(CLIENT_CACHE_NAMESPACE);
+      return JSON.parse(data);
+    }
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
+    return null;
   } catch (error) {
     safeError('[RateLimiter] Failed to get cached client info:', error);
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
     return null;
   }
 }
@@ -360,4 +393,137 @@ export async function getRateLimitStatus(clientId: string, tier: ClientTier): Pr
       resetIn: WINDOW_SECONDS,
     };
   }
+}
+
+// ====================================================
+// IP-based Rate Limiting (DDoS Protection)
+// ====================================================
+
+/**
+ * IP rate limiting configuration
+ * Can be overridden via environment variables
+ */
+const IP_RATE_LIMIT_CONFIG = {
+  /** Requests per minute per IP (default: 120) */
+  requestsPerMinute: parseInt(process.env.IP_RATE_LIMIT_RPM || '120', 10),
+  /** Window size in seconds */
+  windowSeconds: 60,
+};
+
+/**
+ * Extract client IP from request headers
+ * Handles common proxy/CDN headers
+ */
+export function extractClientIp(request: Request): string {
+  const headers = request.headers;
+
+  // Cloudflare
+  const cfConnectingIp = headers.get('cf-connecting-ip');
+  if (cfConnectingIp) return cfConnectingIp;
+
+  // Vercel (uses x-forwarded-for)
+  const forwardedFor = headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    // Take the first IP (original client)
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  // Standard proxy header
+  const realIp = headers.get('x-real-ip');
+  if (realIp) return realIp;
+
+  // Fallback - unknown IP
+  return 'unknown';
+}
+
+/**
+ * Check IP-based rate limit using Redis
+ *
+ * @param ip - Client IP address
+ * @returns Rate limit result
+ */
+export async function checkIpRateLimit(ip: string): Promise<RateLimitResult> {
+  const { requestsPerMinute, windowSeconds } = IP_RATE_LIMIT_CONFIG;
+
+  // Skip for unknown IPs (allow through)
+  if (ip === 'unknown') {
+    return {
+      allowed: true,
+      remaining: requestsPerMinute,
+      limit: requestsPerMinute,
+      resetIn: windowSeconds,
+    };
+  }
+
+  // Circuit breaker check
+  if (!isCircuitAllowed(REDIS_CIRCUIT)) {
+    safeWarn('[IpRateLimiter] Circuit OPEN - allowing request');
+    return {
+      allowed: true,
+      remaining: requestsPerMinute,
+      limit: requestsPerMinute,
+      resetIn: windowSeconds,
+    };
+  }
+
+  const redis = await getRedisClient();
+
+  // Redis unavailable - graceful degradation
+  if (!redis) {
+    if (isProduction) {
+      recordFailure(REDIS_CIRCUIT);
+      safeWarn('[IpRateLimiter] Redis unavailable - graceful degradation');
+    }
+    return {
+      allowed: true,
+      remaining: requestsPerMinute,
+      limit: requestsPerMinute,
+      resetIn: windowSeconds,
+    };
+  }
+
+  try {
+    const key = `ip-ratelimit:v1:${ip}`;
+    const now = Math.floor(Date.now() / 1000);
+
+    const result = (await redis.eval(
+      RATE_LIMIT_SCRIPT,
+      1,
+      key,
+      windowSeconds,
+      requestsPerMinute,
+      now
+    )) as [number, number, number];
+
+    recordSuccess(REDIS_CIRCUIT);
+
+    return {
+      allowed: result[0] === 1,
+      remaining: result[1],
+      limit: requestsPerMinute,
+      resetIn: result[2],
+    };
+  } catch (error) {
+    recordFailure(REDIS_CIRCUIT);
+    safeError('[IpRateLimiter] Redis error:', error);
+
+    // Graceful degradation
+    return {
+      allowed: true,
+      remaining: requestsPerMinute,
+      limit: requestsPerMinute,
+      resetIn: windowSeconds,
+    };
+  }
+}
+
+/**
+ * Create IP rate limit headers for response
+ */
+export function createIpRateLimitHeaders(result: RateLimitResult): Record<string, string> {
+  return {
+    'X-RateLimit-Limit': String(result.limit),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(Date.now() / 1000) + result.resetIn),
+  };
 }

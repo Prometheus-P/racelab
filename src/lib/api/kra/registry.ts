@@ -35,6 +35,14 @@ export const KRA_API_REGISTRY = {
     description: '경주결과종합 - 경주일자별 전체 경주 결과',
   },
 
+  /** API156: AI기반연구용 경주결과상세 */
+  RACE_RESULT_AI: {
+    endpoint: '/API156/raceResultAI',
+    dateParam: 'rc_date',
+    description: 'AI학습용 경주결과 - 상세 경주데이터 (ML 학습용)',
+    optionalParams: ['meet', 'rcNo', 'hr_no'],
+  },
+
   /** API187: 경마경주정보 - 연간 경주계획 */
   RACE_INFO: {
     endpoint: '/API187/HorseRaceInfo',

@@ -158,7 +158,22 @@ export function parseDateParam(date: string): string {
 }
 
 /**
- * 모든 경마장에서 데이터 수집
+ * 요청 간 딜레이 (ms) - 할당량 보호를 위한 기본값
+ */
+const REQUEST_DELAY_MS = parseInt(process.env.KRA_REQUEST_DELAY_MS || '200', 10);
+
+/**
+ * 딜레이 유틸리티
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * 모든 경마장에서 데이터 수집 (순차 요청)
+ *
+ * 할당량 보호를 위해 병렬 요청 대신 순차 요청 사용
+ * 각 요청 사이에 딜레이 적용 (기본 200ms, KRA_REQUEST_DELAY_MS로 조정 가능)
  *
  * @param apiKey 레지스트리에 정의된 API 키
  * @param dateValue 날짜 값
@@ -171,16 +186,25 @@ export async function kraApiAllMeets<T = unknown>(
   options: Omit<KraApiOptions, 'meet'> = {}
 ): Promise<T[]> {
   const meets = ['1', '2', '3']; // 서울, 제주, 부경
-
-  const results = await Promise.allSettled(
-    meets.map((meet) => kraApiSafe<T>(apiKey, dateValue, { ...options, meet }))
-  );
-
   const allItems: T[] = [];
 
-  for (const result of results) {
-    if (result.status === 'fulfilled' && result.value.data) {
-      allItems.push(...result.value.data);
+  // 순차 요청으로 할당량 소진 방지
+  for (let i = 0; i < meets.length; i++) {
+    const meet = meets[i];
+
+    // 첫 번째 요청 이후 딜레이 적용
+    if (i > 0 && REQUEST_DELAY_MS > 0) {
+      await delay(REQUEST_DELAY_MS);
+    }
+
+    try {
+      const result = await kraApiSafe<T>(apiKey, dateValue, { ...options, meet });
+      if (result.data) {
+        allItems.push(...result.data);
+      }
+    } catch {
+      // 개별 경마장 실패는 무시하고 계속 진행
+      continue;
     }
   }
 

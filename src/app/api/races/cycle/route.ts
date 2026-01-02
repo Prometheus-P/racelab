@@ -5,6 +5,7 @@ import { ApiResponse } from '@/lib/utils/apiResponse';
 import { Race } from '@/types';
 import { getTodayYYYYMMDD } from '@/lib/utils/date';
 import { withOptionalApiAuth } from '@/lib/api-helpers/apiAuth';
+import { ErrorCode, getStatusForErrorCode, mapErrorToCode } from '@/lib/api-helpers/errorCodes';
 
 // Route handlers that read request.url must opt out of static rendering
 export const dynamic = 'force-dynamic';
@@ -21,14 +22,15 @@ async function handler(request: NextRequest): Promise<NextResponse<ApiResponse<R
     const result = await getRacesByDateAndType(date, 'cycle');
 
     if (!result.success) {
+      const errorCode = ErrorCode.EXTERNAL_API_ERROR;
       return NextResponse.json({
         success: false,
         error: {
-          code: 'SERVICE_ERROR',
+          code: errorCode,
           message: result.error,
         },
         timestamp: new Date().toISOString(),
-      }, { status: 502 });
+      }, { status: getStatusForErrorCode(errorCode) });
     }
 
     return NextResponse.json({
@@ -37,15 +39,15 @@ async function handler(request: NextRequest): Promise<NextResponse<ApiResponse<R
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error fetching cycle races:', error);
+    const errorCode = mapErrorToCode(error);
     return NextResponse.json({
       success: false,
       error: {
-        code: 'SERVER_ERROR',
+        code: errorCode,
         message: error instanceof Error ? error.message : 'Failed to fetch cycle races',
       },
       timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    }, { status: getStatusForErrorCode(errorCode) });
   }
 }
 

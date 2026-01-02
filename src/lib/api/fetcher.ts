@@ -1,6 +1,7 @@
 // src/lib/api/fetcher.ts
 
 import { ExternalApiError, ApiErrorCode } from './errors';
+import { sanitizeApiResponse } from '@/lib/utils/sanitize';
 
 /**
  * Default timeout for API requests (10 seconds)
@@ -72,7 +73,7 @@ export async function fetchApi(
   const dateParamName = opts.dateParamName ?? 'rc_date';
   const timeoutMs = opts.timeout ?? DEFAULT_TIMEOUT_MS;
   if (!apiKey) {
-    console.warn(`[${apiName}] ${envVarName} is not set. Returning empty array.`);
+    console.error(`[${apiName}] ${envVarName} is not set. Returning empty array.`);
     return [];
   }
 
@@ -115,7 +116,8 @@ export async function fetchApi(
     const data = await response.json();
     const items = data.response?.body?.items?.item || [];
 
-    return items;
+    // Sanitize external API data to prevent XSS and injection attacks
+    return sanitizeApiResponse(items) as unknown[];
   } catch (error) {
     clearTimeout(timeoutId);
 

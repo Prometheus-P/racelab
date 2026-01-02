@@ -13,7 +13,12 @@ import {
   getCachedClientInfo,
 } from '@/lib/cache/rateLimiter';
 import type { Client, ClientTier, TierConfig } from '@/lib/db/schema';
-import { safeError } from '@/lib/utils/safeLogger';
+import { safeError, safeWarn } from '@/lib/utils/safeLogger';
+import {
+  logAuthSuccess,
+  logAuthFailure,
+  logRateLimitExceeded,
+} from '@/lib/utils/auditLogger';
 
 /**
  * B2B API Authentication & Rate Limiting Middleware
@@ -24,19 +29,23 @@ import { safeError } from '@/lib/utils/safeLogger';
 
 // Environment variables for legacy support
 const LEGACY_API_KEYS = process.env.B2B_API_KEYS?.split(',') || [];
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.API_RATE_LIMIT || '100', 10);
 
 // Explicit auth skip flag - MUST be explicitly set, never auto-enabled
 // WARNING: Only use in local development, never in staging/production
 const SKIP_AUTH = process.env.SKIP_AUTH === 'true';
 
-// In-memory rate limit store (DEVELOPMENT ONLY for legacy auth)
-// WARNING: Not safe for production - use Redis-based B2B auth instead
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-// Check if we're in production
-const isProduction = process.env.NODE_ENV === 'production';
+// Legacy tier config for Redis-based rate limiting (replaces in-memory store)
+const LEGACY_TIER_CONFIG: TierConfig = {
+  requestsPerMinute: RATE_LIMIT_MAX_REQUESTS,
+  allowCsv: false,
+  allowStreaming: false,
+  realTimeIntervalSeconds: 30,
+  allowBacktest: false,
+  backtestQuotaMonthly: 0,
+  maxBacktestPeriodDays: 0,
+  maxConcurrentBacktests: 0,
+};
 
 // Log warning if SKIP_AUTH is enabled
 if (SKIP_AUTH) {
@@ -103,43 +112,33 @@ function validateApiKey(apiKey: string): boolean {
 }
 
 /**
- * Check rate limit for the given API key (LEGACY - uses in-memory store)
+ * Check rate limit for the given API key using Redis (unified implementation)
  *
- * WARNING: Not safe for production - use withB2BAuth with Redis instead
- *
- * In production, this function REJECTS ALL REQUESTS to enforce Redis migration.
- * Legacy in-memory rate limiting is only available for local development.
+ * Uses the same Redis-based rate limiter as B2B auth with a legacy tier config.
+ * Falls back to allowing requests if Redis is unavailable (with warning).
  */
-function checkRateLimit(apiKey: string): { allowed: boolean; remaining: number; resetIn: number } {
-  // CRITICAL: In production, reject requests using legacy rate limiting
-  // This forces migration to Redis-based B2B auth for distributed rate limiting
-  if (isProduction) {
-    safeError('[apiAuth] CRITICAL: Legacy in-memory rate limiting blocked in production. Use withB2BAuth with Redis.');
-    return { allowed: false, remaining: 0, resetIn: 60000 };
+async function checkRateLimitAsync(apiKey: string): Promise<{ allowed: boolean; remaining: number; resetIn: number }> {
+  try {
+    // Use API key hash as clientId for legacy keys
+    const clientId = `legacy:${apiKey.slice(0, 8)}`;
+    const result = await checkRedisRateLimit(clientId, 'Bronze', LEGACY_TIER_CONFIG);
+    return {
+      allowed: result.allowed,
+      remaining: result.remaining,
+      resetIn: result.resetIn,
+    };
+  } catch (error) {
+    safeWarn('[apiAuth] Redis rate limit check failed, allowing request:', error);
+    // Graceful degradation: allow request if Redis is unavailable
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS, resetIn: 60 };
   }
-
-  // Development only: in-memory rate limiting
-  const now = Date.now();
-  const record = rateLimitStore.get(apiKey);
-
-  if (!record || now > record.resetTime) {
-    // New window or expired - reset
-    rateLimitStore.set(apiKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
-  }
-
-  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, resetIn: record.resetTime - now };
-  }
-
-  record.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - record.count, resetIn: record.resetTime - now };
 }
 
 /**
  * Validates B2B API request authentication and rate limits
+ * Now uses Redis-based rate limiting (unified with B2B auth)
  */
-export function validateApiAuth(request: NextRequest): ApiAuthResult {
+export async function validateApiAuth(request: NextRequest): Promise<ApiAuthResult> {
   const apiKey = extractApiKey(request);
 
   if (!apiKey) {
@@ -158,12 +157,12 @@ export function validateApiAuth(request: NextRequest): ApiAuthResult {
     };
   }
 
-  const rateLimit = checkRateLimit(apiKey);
+  const rateLimit = await checkRateLimitAsync(apiKey);
   if (!rateLimit.allowed) {
     return {
       authenticated: false,
       apiKey,
-      error: `Rate limit exceeded. Try again in ${Math.ceil(rateLimit.resetIn / 1000)} seconds`,
+      error: `Rate limit exceeded. Try again in ${rateLimit.resetIn} seconds`,
       errorCode: 'RATE_LIMITED',
     };
   }
@@ -209,14 +208,12 @@ export function createAuthErrorResponse(result: ApiAuthResult): NextResponse {
 
 /**
  * Add rate limit headers to successful responses
+ * Note: For legacy auth, we use the default limit since Redis stores the actual state
  */
-export function addRateLimitHeaders(response: NextResponse, apiKey: string): NextResponse {
-  const record = rateLimitStore.get(apiKey);
-  if (record) {
-    response.headers.set('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
-    response.headers.set('X-RateLimit-Remaining', String(Math.max(0, RATE_LIMIT_MAX_REQUESTS - record.count)));
-    response.headers.set('X-RateLimit-Reset', String(Math.ceil(record.resetTime / 1000)));
-  }
+export function addRateLimitHeaders(response: NextResponse, _apiKey: string): NextResponse {
+  // Set default headers - actual remaining count is managed by Redis
+  response.headers.set('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
+  response.headers.set('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + 60));
   return response;
 }
 
@@ -234,7 +231,7 @@ export function withApiAuth(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): (request: NextRequest) => Promise<NextResponse> {
   return async (request: NextRequest) => {
-    const auth = validateApiAuth(request);
+    const auth = await validateApiAuth(request);
 
     if (!auth.authenticated) {
       return createAuthErrorResponse(auth);
@@ -293,7 +290,7 @@ export function withApiAuthParams<T = Record<string, string>>(
       return handler(request, context);
     }
 
-    const auth = validateApiAuth(request);
+    const auth = await validateApiAuth(request);
 
     if (!auth.authenticated) {
       return createAuthErrorResponse(auth);
@@ -330,6 +327,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   const apiKey = extractApiKey(request);
 
   if (!apiKey) {
+    logAuthFailure(request, 'NO_KEY', null);
     return {
       authenticated: false,
       error: 'Authentication required',
@@ -348,6 +346,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     // Verify the full key hash even with cached info
     client = await validateClientApiKey(apiKey);
     if (!client) {
+      logAuthFailure(request, 'INVALID_KEY', apiKey);
       return {
         authenticated: false,
         error: 'Invalid API key',
@@ -360,6 +359,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     client = await validateClientApiKey(apiKey);
 
     if (!client) {
+      logAuthFailure(request, 'INVALID_KEY', apiKey);
       return {
         authenticated: false,
         error: 'Invalid API key',
@@ -380,6 +380,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   // Check client status
   if (!isClientActive(client)) {
     if (client.status === 'expired' || (client.expiresAt && new Date(client.expiresAt) < new Date())) {
+      logAuthFailure(request, 'EXPIRED', apiKey);
       return {
         authenticated: false,
         apiKey,
@@ -387,6 +388,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
         errorCode: 'EXPIRED',
       };
     }
+    logAuthFailure(request, 'SUSPENDED', apiKey);
     return {
       authenticated: false,
       apiKey,
@@ -399,6 +401,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   const rateLimit = await checkRedisRateLimit(client.clientId, client.tier as ClientTier, tierConfig);
 
   if (!rateLimit.allowed) {
+    logRateLimitExceeded(request, client.clientId, rateLimit.limit, rateLimit.resetIn);
     return {
       authenticated: false,
       apiKey,
@@ -420,6 +423,9 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     rateLimitRemaining: rateLimit.remaining,
     rateLimitReset: rateLimit.resetIn,
   };
+
+  // Log successful authentication
+  logAuthSuccess(request, client.clientId, apiKey);
 
   return {
     authenticated: true,
