@@ -144,7 +144,7 @@ export function validateApiAuth(request: NextRequest): ApiAuthResult {
   if (!apiKey) {
     return {
       authenticated: false,
-      error: 'API key required. Provide via X-API-Key header or Authorization: Bearer token',
+      error: 'Authentication required',
       errorCode: 'UNAUTHORIZED',
     };
   }
@@ -331,7 +331,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   if (!apiKey) {
     return {
       authenticated: false,
-      error: 'API key required. Provide via X-API-Key header or Authorization: Bearer token',
+      error: 'Authentication required',
       errorCode: 'UNAUTHORIZED',
     };
   }
@@ -477,7 +477,7 @@ export function addB2BRateLimitHeaders(
     response.headers.set('X-RateLimit-Remaining', String(client.rateLimitRemaining));
     response.headers.set('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + client.rateLimitReset));
   }
-  response.headers.set('X-Client-Tier', client.tier);
+  // Note: X-Client-Tier removed for security (tier info should not be exposed)
   return response;
 }
 
