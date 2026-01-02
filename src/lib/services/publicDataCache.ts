@@ -1,4 +1,10 @@
 import { getRedisClient } from '@/lib/cache/redisClient';
+import {
+  singleFlight,
+  onCacheInvalidation,
+  invalidateCache,
+} from '@/lib/cache/cacheUtils';
+import { safeError, safeInfo } from '@/lib/utils/safeLogger';
 import type { RaceType } from '@/types';
 
 export interface PublicRaceResult {
@@ -74,7 +80,7 @@ async function persistSnapshot(key: string, payload: unknown) {
     await redis.set(key, JSON.stringify(payload), 'EX', 86_400);
   } catch (error) {
     // 스냅샷 저장 실패는 사용자에 노출하지 않음
-    console.error('[PublicDataCache] Snapshot 저장 실패', error);
+    safeError('[PublicDataCache] Snapshot 저장 실패', error);
   }
 }
 
@@ -90,7 +96,7 @@ async function readCache(key: string): Promise<PublicRaceResult[] | null> {
       return parsed.filter((item) => normalizePublicRaceResult(item as Record<string, unknown>) !== null) as PublicRaceResult[];
     }
   } catch (error) {
-    console.error('[PublicDataCache] 캐시 읽기 실패', error);
+    safeError('[PublicDataCache] 캐시 읽기 실패', error);
   }
 
   return null;
@@ -103,7 +109,7 @@ async function writeCache(key: string, data: PublicRaceResult[], ttlSeconds: num
   try {
     await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
   } catch (error) {
-    console.error('[PublicDataCache] 캐시 저장 실패', error);
+    safeError('[PublicDataCache] 캐시 저장 실패', error);
   }
 }
 
@@ -186,35 +192,135 @@ async function fetchFromUpstream(date: string): Promise<PublicRaceResult[]> {
   return [];
 }
 
+/**
+ * 캐시된 경주 결과 조회 (Single-flight 패턴 적용)
+ *
+ * - 동일 날짜에 대한 동시 요청은 하나의 업스트림 호출만 수행
+ * - 캐시 스탬피드 방지
+ */
 export async function fetchRaceResultsWithCache(dateInput?: string): Promise<CachedRaceResponse> {
   const date = dateInput ?? formatKstDate(new Date());
   const cacheKey = `public-data:results:${date}`;
   const snapshotKey = 'public-data:results:last-good';
 
+  // 캐시 히트 시 즉시 반환
   const cached = await readCache(cacheKey);
   if (cached) {
     return { data: cached, source: 'cache' };
   }
 
-  try {
-    const data = await fetchFromUpstream(date);
-    const ttl = data.every((item) => item.status === 'finished') ? FINISHED_TTL_SECONDS : DEFAULT_TTL_SECONDS;
-
-    await writeCache(cacheKey, data, ttl);
-    await persistSnapshot(snapshotKey, { date, data });
-
-    return { data, source: 'upstream' };
-  } catch (error) {
-    console.error('[PublicDataCache] API 실패, 스냅샷 시도', error);
-    const snapshot = await readCache(snapshotKey);
-    if (snapshot) {
-      return {
-        data: snapshot,
-        source: 'snapshot',
-        message: 'Data Updating... 최근 정상 스냅샷을 사용합니다.',
-      };
+  // Single-flight: 동일 날짜에 대한 동시 요청은 하나만 실행
+  return singleFlight(cacheKey, async () => {
+    // 다른 요청이 이미 캐시를 채웠을 수 있으므로 재확인
+    const cachedAgain = await readCache(cacheKey);
+    if (cachedAgain) {
+      return { data: cachedAgain, source: 'cache' };
     }
 
-    return { data: [], source: 'snapshot', message: 'Data Updating... 최신 데이터를 불러오는 중입니다.' };
+    try {
+      safeInfo(`[PublicDataCache] Fetching from upstream for ${date}`);
+      const data = await fetchFromUpstream(date);
+      const ttl = data.every((item) => item.status === 'finished') ? FINISHED_TTL_SECONDS : DEFAULT_TTL_SECONDS;
+
+      await writeCache(cacheKey, data, ttl);
+      await persistSnapshot(snapshotKey, { date, data });
+
+      return { data, source: 'upstream' };
+    } catch (error) {
+      safeError('[PublicDataCache] API 실패, 스냅샷 시도', error);
+      const snapshot = await readCache(snapshotKey);
+      if (snapshot) {
+        return {
+          data: snapshot,
+          source: 'snapshot',
+          message: 'Data Updating... 최근 정상 스냅샷을 사용합니다.',
+        };
+      }
+
+      return { data: [], source: 'snapshot', message: 'Data Updating... 최신 데이터를 불러오는 중입니다.' };
+    }
+  });
+}
+
+/**
+ * 캐시 수동 무효화
+ *
+ * @param date - 무효화할 날짜 (YYYYMMDD 형식), 없으면 오늘
+ */
+export async function invalidateRaceResultsCache(date?: string): Promise<void> {
+  const targetDate = date ?? formatKstDate(new Date());
+  const cacheKey = `public-data:results:${targetDate}`;
+
+  const redis = await getRedisClient();
+  if (redis) {
+    try {
+      await redis.del(cacheKey);
+      safeInfo(`[PublicDataCache] Cache invalidated: ${cacheKey}`);
+    } catch (error) {
+      safeError('[PublicDataCache] Cache invalidation failed', error);
+    }
   }
+
+  // 무효화 이벤트 발행
+  await invalidateCache([cacheKey], 'manual', 'publicDataCache');
+}
+
+/**
+ * 패턴 기반 캐시 무효화
+ *
+ * @param pattern - 캐시 키 패턴 (예: 'public-data:results:*')
+ */
+export async function invalidateRaceResultsCacheByPattern(pattern: string): Promise<number> {
+  const redis = await getRedisClient();
+  if (!redis) return 0;
+
+  try {
+    // Redis SCAN으로 패턴에 맞는 키 찾기
+    const keys: string[] = [];
+    let cursor = '0';
+
+    do {
+      const [newCursor, foundKeys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = newCursor;
+      keys.push(...foundKeys);
+    } while (cursor !== '0');
+
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      safeInfo(`[PublicDataCache] Invalidated ${keys.length} keys matching pattern: ${pattern}`);
+
+      // 무효화 이벤트 발행
+      await invalidateCache(keys, 'manual', 'publicDataCache');
+    }
+
+    return keys.length;
+  } catch (error) {
+    safeError('[PublicDataCache] Pattern invalidation failed', error);
+    return 0;
+  }
+}
+
+/**
+ * 캐시 무효화 이벤트 리스너 등록
+ *
+ * 다른 모듈에서 캐시 무효화 이벤트를 구독할 수 있음
+ */
+export function registerCacheInvalidationHandler(): () => void {
+  return onCacheInvalidation(async (keys) => {
+    const redis = await getRedisClient();
+    if (!redis) return;
+
+    for (const key of keys) {
+      // 와일드카드 패턴인 경우
+      if (key.includes('*')) {
+        await invalidateRaceResultsCacheByPattern(key);
+      } else if (key.startsWith('public-data:results:')) {
+        try {
+          await redis.del(key);
+        } catch (error) {
+          safeError(`[PublicDataCache] Failed to delete key: ${key}`, error);
+        }
+      }
+    }
+  });
 }
