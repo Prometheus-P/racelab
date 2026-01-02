@@ -23,6 +23,7 @@ jest.mock('@/lib/db/client', () => ({
             where: jest.fn(() => Promise.resolve()),
           })),
         })),
+        execute: jest.fn(() => Promise.resolve({ rows: [] })),
       };
       return callback(tx);
     }),
@@ -36,7 +37,28 @@ jest.mock('@/lib/db/client', () => ({
         where: jest.fn(() => Promise.resolve([])),
       })),
     })),
+    execute: jest.fn(() => Promise.resolve({ rows: [] })),
   },
+}));
+
+// Mock the transaction utilities
+jest.mock('@/lib/db/transaction', () => ({
+  withTransaction: jest.fn(async (callback: (tx: unknown) => Promise<void>) => {
+    const tx = {
+      insert: jest.fn(() => ({
+        values: jest.fn(() => ({
+          onConflictDoUpdate: jest.fn(() => Promise.resolve()),
+        })),
+      })),
+      update: jest.fn(() => ({
+        set: jest.fn(() => ({
+          where: jest.fn(() => Promise.resolve()),
+        })),
+      })),
+      execute: jest.fn(() => Promise.resolve({ rows: [] })),
+    };
+    return callback(tx);
+  }),
 }));
 
 // Mock the API clients

@@ -1,5 +1,6 @@
 // src/lib/services/raceService.ts
 // RaceService - High-level domain functions for race data
+// Supports Dependency Injection for testability
 
 import { Race, Entry, Odds, RaceResult, RaceType } from '@/types';
 import { fetchHorseRaceSchedules } from '../api/kraClient';
@@ -7,6 +8,65 @@ import { fetchCycleRaceSchedules } from '../api/kspoCycleClient';
 import { fetchBoatRaceSchedules } from '../api/kspoBoatClient';
 import { fetchRaceById, fetchRaceOdds, fetchRaceResults } from '../api';
 import { getTodayYYYYMMDD } from '../utils/date';
+
+/**
+ * Interface for race schedule fetchers (DI pattern)
+ * Allows mocking in tests and swapping implementations
+ */
+export interface RaceScheduleFetchers {
+  horse: (date: string) => Promise<Race[]>;
+  cycle: (date: string) => Promise<Race[]>;
+  boat: (date: string) => Promise<Race[]>;
+}
+
+/**
+ * Interface for race detail fetchers (DI pattern)
+ */
+export interface RaceDetailFetchers {
+  fetchById: (raceId: string) => Promise<Race | null>;
+  fetchOdds: (raceId: string) => Promise<Odds | null>;
+  fetchResults: (raceId: string) => Promise<RaceResult[]>;
+}
+
+/**
+ * Default implementations using real API clients
+ */
+const defaultScheduleFetchers: RaceScheduleFetchers = {
+  horse: fetchHorseRaceSchedules,
+  cycle: fetchCycleRaceSchedules,
+  boat: fetchBoatRaceSchedules,
+};
+
+const defaultDetailFetchers: RaceDetailFetchers = {
+  fetchById: fetchRaceById,
+  fetchOdds: fetchRaceOdds,
+  fetchResults: fetchRaceResults,
+};
+
+/**
+ * Configurable fetcher instances (for DI)
+ */
+let scheduleFetchers: RaceScheduleFetchers = defaultScheduleFetchers;
+let detailFetchers: RaceDetailFetchers = defaultDetailFetchers;
+
+/**
+ * Inject custom fetchers (for testing)
+ */
+export function injectScheduleFetchers(fetchers: Partial<RaceScheduleFetchers>): void {
+  scheduleFetchers = { ...scheduleFetchers, ...fetchers };
+}
+
+export function injectDetailFetchers(fetchers: Partial<RaceDetailFetchers>): void {
+  detailFetchers = { ...detailFetchers, ...fetchers };
+}
+
+/**
+ * Reset to default fetchers (cleanup after tests)
+ */
+export function resetFetchers(): void {
+  scheduleFetchers = defaultScheduleFetchers;
+  detailFetchers = defaultDetailFetchers;
+}
 
 /**
  * Result pattern for distinguishing success/failure from empty data
@@ -56,10 +116,11 @@ export async function getRacesByDateAndType(
   date: string,
   type?: RaceType
 ): Promise<RaceServiceResult<Race[]>> {
+  // Use injected fetchers (DI pattern) - allows mocking in tests
   const fetchFunctions: Record<RaceType, () => Promise<Race[]>> = {
-    horse: () => fetchHorseRaceSchedules(date),
-    cycle: () => fetchCycleRaceSchedules(date),
-    boat: () => fetchBoatRaceSchedules(date),
+    horse: () => scheduleFetchers.horse(date),
+    cycle: () => scheduleFetchers.cycle(date),
+    boat: () => scheduleFetchers.boat(date),
   };
 
   if (type) {
@@ -127,16 +188,16 @@ export async function getRacesByDateAndType(
 export async function getRaceDetail(
   raceId: string
 ): Promise<RaceDetailBundle | null> {
-  // First fetch the race
-  const race = await fetchRaceById(raceId);
+  // Use injected fetchers (DI pattern) - allows mocking in tests
+  const race = await detailFetchers.fetchById(raceId);
   if (!race) {
     return null;
   }
 
   // Fetch odds and results in parallel (graceful degradation)
   const [oddsResult, resultsResult] = await Promise.allSettled([
-    fetchRaceOdds(raceId),
-    fetchRaceResults(raceId),
+    detailFetchers.fetchOdds(raceId),
+    detailFetchers.fetchResults(raceId),
   ]);
 
   const odds = oddsResult.status === 'fulfilled' ? oddsResult.value : null;

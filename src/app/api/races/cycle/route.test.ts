@@ -59,17 +59,18 @@ describe('GET /api/races/cycle', () => {
   });
 
   it('should handle errors from service', async () => {
+    // "API error" contains "api" keyword → EXTERNAL_API_ERROR → 502
     (raceService.getRacesByDateAndType as jest.Mock).mockRejectedValue(new Error('API error'));
 
     const response = await GET(createMockRequest());
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(502);
     expect(response.headers.get('Content-Type')).toContain('application/json');
 
     const jsonResponse = await response.json();
     expect(jsonResponse.success).toBe(false);
     expect(jsonResponse).toHaveProperty('error');
-    expect(jsonResponse.error.code).toBe('SERVER_ERROR');
+    expect(jsonResponse.error.code).toBe('EXTERNAL_API_ERROR');
     expect(jsonResponse.error.message).toContain('API error');
   });
 

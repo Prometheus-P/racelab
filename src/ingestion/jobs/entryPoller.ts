@@ -5,14 +5,15 @@
  * Typically runs 2 hours before each race start.
  */
 
-import { db } from '@/lib/db/client';
 import { entries, races } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { fetchKraEntries } from '../clients/kraClient';
 import { fetchKspoEntries } from '../clients/kspoClient';
 import { mapKraEntries, mapKspoEntries } from '../mappers/entryMapper';
 import type { IngestionResult } from '@/types/db';
 import { withRetryAndLogging } from '../utils/retry';
+import { withTransaction } from '@/lib/db/transaction';
+import { safeInfo, safeError } from '@/lib/utils/safeLogger';
 
 export interface PollEntriesOptions {
   raceIds: string[];
@@ -55,16 +56,16 @@ export async function pollEntries(options: PollEntriesOptions): Promise<Ingestio
   };
 
   if (raceIds.length === 0) {
-    console.log('[EntryPoller] No race IDs provided');
+    safeInfo('[EntryPoller] No race IDs provided');
     return result;
   }
 
-  console.log(`[EntryPoller] Polling entries for ${raceIds.length} races`);
+  safeInfo(`[EntryPoller] Polling entries for ${raceIds.length} races`);
 
   for (const raceId of raceIds) {
     const parsed = parseRaceId(raceId);
     if (!parsed) {
-      console.warn(`[EntryPoller] Invalid race ID format: ${raceId}`);
+      safeInfo(`[EntryPoller] Invalid race ID format: ${raceId}`);
       result.skipped += 1;
       continue;
     }
@@ -109,43 +110,52 @@ export async function pollEntries(options: PollEntriesOptions): Promise<Ingestio
       }
 
       if (mappedEntries.length > 0) {
-        // Use transaction to ensure entries insert and race status update are atomic
-        // If either operation fails, both are rolled back to prevent data inconsistency
-        await db.transaction(async (tx) => {
-          await tx
-            .insert(entries)
-            .values(mappedEntries)
-            .onConflictDoUpdate({
-              target: [entries.raceId, entries.entryNo],
-              set: {
-                name: entries.name,
-                jockeyName: entries.jockeyName,
-                weight: entries.weight,
-                rating: entries.rating,
-                status: entries.status,
-              },
-            });
+        // Use transaction with row-level locking to prevent race conditions
+        // when multiple pollers run concurrently for the same race
+        await withTransaction(
+          async (tx) => {
+            // Lock the race row first to prevent concurrent modifications
+            // SELECT ... FOR UPDATE ensures exclusive access until transaction completes
+            await tx.execute(
+              sql`SELECT id FROM races WHERE id = ${raceId} FOR UPDATE`
+            );
 
-          // Update race status to 'upcoming'
-          await tx
-            .update(races)
-            .set({ status: 'upcoming', updatedAt: new Date() })
-            .where(eq(races.id, raceId));
-        });
+            await tx
+              .insert(entries)
+              .values(mappedEntries)
+              .onConflictDoUpdate({
+                target: [entries.raceId, entries.entryNo],
+                set: {
+                  name: entries.name,
+                  jockeyName: entries.jockeyName,
+                  weight: entries.weight,
+                  rating: entries.rating,
+                  status: entries.status,
+                },
+              });
+
+            // Update race status to 'upcoming'
+            await tx
+              .update(races)
+              .set({ status: 'upcoming', updatedAt: new Date() })
+              .where(eq(races.id, raceId));
+          },
+          { isolationLevel: 'read_committed', maxRetries: 3 }
+        );
 
         result.collected += mappedEntries.length;
-        console.log(`[EntryPoller] Collected ${mappedEntries.length} entries for ${raceId}`);
+        safeInfo(`[EntryPoller] Collected ${mappedEntries.length} entries for ${raceId}`);
       } else {
         result.skipped += 1;
-        console.log(`[EntryPoller] No entries found for ${raceId}`);
+        safeInfo(`[EntryPoller] No entries found for ${raceId}`);
       }
     } catch (error) {
-      console.error(`[EntryPoller] Error fetching entries for ${raceId}:`, error);
+      safeError(`[EntryPoller] Error fetching entries for ${raceId}:`, error);
       result.errors += 1;
     }
   }
 
-  console.log(
+  safeInfo(
     `[EntryPoller] Complete: collected=${result.collected}, skipped=${result.skipped}, errors=${result.errors}`
   );
 
