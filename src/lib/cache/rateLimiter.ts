@@ -3,11 +3,22 @@
  *
  * Implements sliding window rate limiting using Redis for B2B API.
  * Supports tier-based rate limits with atomic operations.
+ * Includes circuit breaker for graceful degradation on Redis failures.
  */
 
 import { getRedisClient } from './redisClient';
 import type { ClientTier, TierConfig } from '@/lib/db/schema';
 import { TIER_CONFIGS } from '@/lib/db/schema';
+import {
+  isCircuitAllowed,
+  recordSuccess,
+  recordFailure,
+  getCircuitInfo,
+} from './circuitBreaker';
+import { safeError, safeWarn, safeInfo } from '@/lib/utils/safeLogger';
+
+/** Redis circuit breaker 이름 */
+const REDIS_CIRCUIT = 'redis-rate-limiter';
 
 /**
  * Rate limit check result
@@ -104,21 +115,39 @@ export async function checkRateLimit(
     };
   }
 
+  // Circuit breaker check - if Redis is failing too often, allow requests through
+  if (!isCircuitAllowed(REDIS_CIRCUIT)) {
+    const circuitInfo = getCircuitInfo(REDIS_CIRCUIT);
+    safeWarn('[RateLimiter] Circuit OPEN - allowing request without rate limit check', {
+      failures: circuitInfo.failures,
+      timeSinceLastFailure: circuitInfo.timeSinceLastFailure,
+    });
+    // Graceful degradation: allow request when Redis is unavailable
+    return {
+      allowed: true,
+      remaining: config.requestsPerMinute,
+      limit: config.requestsPerMinute,
+      resetIn: WINDOW_SECONDS,
+    };
+  }
+
   const redis = await getRedisClient();
 
-  // In production, Redis is REQUIRED - reject request if unavailable
+  // Redis client unavailable
   if (!redis) {
     if (isProduction) {
-      console.error('[RateLimiter] CRITICAL: Redis unavailable in production');
+      recordFailure(REDIS_CIRCUIT);
+      safeError('[RateLimiter] Redis unavailable - graceful degradation active');
+      // Graceful degradation: allow request when Redis is unavailable
       return {
-        allowed: false,
-        remaining: 0,
+        allowed: true,
+        remaining: config.requestsPerMinute,
         limit: config.requestsPerMinute,
-        resetIn: 60,
+        resetIn: WINDOW_SECONDS,
       };
     }
     // Development only: fallback to in-memory
-    console.warn('[RateLimiter] DEV: Using in-memory fallback (not safe for production)');
+    safeWarn('[RateLimiter] DEV: Using in-memory fallback (not safe for production)');
     return checkRateLimitMemory(clientId, config.requestsPerMinute);
   }
 
@@ -132,6 +161,9 @@ export async function checkRateLimit(
       number
     ];
 
+    // Success - record for circuit breaker
+    recordSuccess(REDIS_CIRCUIT);
+
     return {
       allowed: result[0] === 1,
       remaining: result[1],
@@ -139,14 +171,18 @@ export async function checkRateLimit(
       resetIn: result[2],
     };
   } catch (error) {
-    console.error('[RateLimiter] Redis error:', error);
+    recordFailure(REDIS_CIRCUIT);
+    safeError('[RateLimiter] Redis error:', error);
+
+    // Graceful degradation: allow request when Redis errors occur
+    // Circuit breaker will prevent repeated failures from overwhelming the system
     if (isProduction) {
-      // In production, fail closed (deny access) when Redis errors occur
+      safeInfo('[RateLimiter] Graceful degradation - allowing request');
       return {
-        allowed: false,
-        remaining: 0,
+        allowed: true,
+        remaining: config.requestsPerMinute,
         limit: config.requestsPerMinute,
-        resetIn: 60,
+        resetIn: WINDOW_SECONDS,
       };
     }
     // Development only: fallback to in-memory
@@ -209,7 +245,7 @@ export async function cacheClientInfo(
     const key = `client:info:${clientId}`;
     await redis.setex(key, CLIENT_CACHE_TTL, JSON.stringify(data));
   } catch (error) {
-    console.error('[RateLimiter] Failed to cache client info:', error);
+    safeError('[RateLimiter] Failed to cache client info:', error);
   }
 }
 
@@ -230,7 +266,7 @@ export async function getCachedClientInfo(
     const data = await redis.get(key);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('[RateLimiter] Failed to get cached client info:', error);
+    safeError('[RateLimiter] Failed to get cached client info:', error);
     return null;
   }
 }
@@ -247,7 +283,7 @@ export async function clearClientCache(clientId: string): Promise<void> {
   try {
     await redis.del(`client:info:${clientId}`);
   } catch (error) {
-    console.error('[RateLimiter] Failed to clear client cache:', error);
+    safeError('[RateLimiter] Failed to clear client cache:', error);
   }
 }
 
@@ -316,7 +352,7 @@ export async function getRateLimitStatus(clientId: string, tier: ClientTier): Pr
       resetIn: WINDOW_SECONDS,
     };
   } catch (error) {
-    console.error('[RateLimiter] Failed to get rate limit status:', error);
+    safeError('[RateLimiter] Failed to get rate limit status:', error);
     return {
       allowed: true,
       remaining: config.requestsPerMinute,

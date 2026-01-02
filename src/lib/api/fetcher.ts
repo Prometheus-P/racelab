@@ -2,8 +2,26 @@
 
 import { ExternalApiError, ApiErrorCode } from './errors';
 
-/** Timeout for API requests (10 seconds) */
-const API_TIMEOUT_MS = 10000;
+/**
+ * Default timeout for API requests (10 seconds)
+ * Can be overridden per-API using the timeout parameter
+ */
+const DEFAULT_TIMEOUT_MS = 10000;
+
+/**
+ * API-specific timeout configurations (milliseconds)
+ * Adjust based on API response characteristics
+ */
+export const API_TIMEOUTS = {
+  /** 빠른 응답이 필요한 API (예: health check, simple lookups) */
+  FAST: 5000,
+  /** 기본 타임아웃 */
+  DEFAULT: 10000,
+  /** 느린 API (예: 복잡한 쿼리, 대량 데이터) */
+  SLOW: 20000,
+  /** 매우 느린 API (예: 배치 처리, 리포트 생성) */
+  VERY_SLOW: 30000,
+} as const;
 
 /**
  * Result of an API fetch operation
@@ -15,6 +33,16 @@ export interface FetchResult<T> {
 }
 
 /**
+ * Options for API fetch
+ */
+export interface FetchApiOptions {
+  /** Name of the date parameter in the API request (default: 'rc_date') */
+  dateParamName?: string;
+  /** Timeout in milliseconds (default: 10000) */
+  timeout?: number;
+}
+
+/**
  * Generic API fetch function with flexible date parameter
  * @param baseUrl Base URL of the API (e.g., https://apis.data.go.kr/B551015)
  * @param endpoint Specific API endpoint (e.g., /API299/Race_Result_total)
@@ -23,7 +51,7 @@ export interface FetchResult<T> {
  * @param rcDate Race date in YYYYMMDD format
  * @param apiName Name of the API for logging/debugging
  * @param envVarName Environment variable name where API key is stored
- * @param dateParamName Name of the date parameter in the API request (default: 'rc_date')
+ * @param options Optional configuration (dateParamName, timeout)
  * @returns Promise resolving to an array of raw API items
  */
 export async function fetchApi(
@@ -34,8 +62,15 @@ export async function fetchApi(
   rcDate: string,
   apiName: string,
   envVarName: string,
-  dateParamName: string = 'rc_date'
+  options: FetchApiOptions | string = {}
 ): Promise<unknown[]> {
+  // Backward compatibility: if options is a string, treat it as dateParamName
+  const opts: FetchApiOptions = typeof options === 'string'
+    ? { dateParamName: options }
+    : options;
+
+  const dateParamName = opts.dateParamName ?? 'rc_date';
+  const timeoutMs = opts.timeout ?? DEFAULT_TIMEOUT_MS;
   if (!apiKey) {
     console.warn(`[${apiName}] ${envVarName} is not set. Returning empty array.`);
     return [];
@@ -59,7 +94,7 @@ export async function fetchApi(
 
   // Create AbortController for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(finalUrl, {
@@ -86,10 +121,10 @@ export async function fetchApi(
 
     // Handle abort/timeout
     if (error instanceof Error && error.name === 'AbortError') {
-      console.error(`${apiName} API timeout after ${API_TIMEOUT_MS}ms`);
+      console.error(`${apiName} API timeout after ${timeoutMs}ms`);
       throw new ExternalApiError(apiName, {
         code: ApiErrorCode.EXTERNAL_API_TIMEOUT,
-        message: `${apiName} request timed out`,
+        message: `${apiName} request timed out after ${timeoutMs}ms`,
       });
     }
 
@@ -119,7 +154,7 @@ export async function fetchApiSafe(
   rcDate: string,
   apiName: string,
   envVarName: string,
-  dateParamName: string = 'rc_date'
+  options: FetchApiOptions | string = {}
 ): Promise<FetchResult<unknown>> {
   try {
     const data = await fetchApi(
@@ -130,7 +165,7 @@ export async function fetchApiSafe(
       rcDate,
       apiName,
       envVarName,
-      dateParamName
+      options
     );
     return { data };
   } catch (error) {
