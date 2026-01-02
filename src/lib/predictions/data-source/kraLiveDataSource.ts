@@ -9,11 +9,16 @@ import {
   fetchEntriesByRace,
   fetchAllJockeyResults,
   fetchAllTrainerResults,
+  fetchHorseDetail,
+  fetchAllOdds,
   getTodayDate,
   MEET_NAMES,
   type RaceEntry,
   type Jockey,
   type Trainer,
+  type Horse,
+  type HorseRaceRecord,
+  type RaceOdds,
 } from '@/lib/api/kra';
 
 import {
@@ -100,8 +105,8 @@ export async function fetchTodaysRaces(
       };
     }
 
-    // 2. 기수/조교사 정보 조회 (병렬)
-    const [jockeys, trainers] = await Promise.all([
+    // 2. 기수/조교사/배당률 정보 조회 (병렬)
+    const [jockeys, trainers, oddsData] = await Promise.all([
       fetchAllJockeyResults(targetDate).catch((err) => {
         warnings.push(`기수 정보 조회 실패: ${err.message}`);
         return [] as Jockey[];
@@ -110,18 +115,47 @@ export async function fetchTodaysRaces(
         warnings.push(`조교사 정보 조회 실패: ${err.message}`);
         return [] as Trainer[];
       }),
+      fetchAllOdds(targetDate).catch((err) => {
+        warnings.push(`배당률 정보 조회 실패: ${err.message}`);
+        return [] as RaceOdds[];
+      }),
     ]);
 
-    // 3. 이름 기반 조회 맵 생성
-    const relatedData = createRelatedDataMaps(jockeys, trainers);
+    // 3. 출마 마필 목록 수집
+    const allHorseNos = new Set<string>();
+    const entriesArrays = Array.from(entriesByRace.values());
+    for (const entries of entriesArrays) {
+      for (const entry of entries) {
+        allHorseNos.add(entry.horseNo);
+      }
+    }
 
-    // 4. 각 경주를 예측 입력 형식으로 변환
+    // 4. 마필 상세정보 및 경주기록 조회 (병렬, 최대 20마리씩)
+    const horseDataMap = await fetchHorseDataBatch(
+      Array.from(allHorseNos),
+      targetDate,
+      warnings
+    );
+
+    // 5. 배당률 맵 생성 (meet-raceNo -> RaceOdds)
+    const oddsMap = createOddsMap(oddsData);
+
+    // 6. 이름 기반 조회 맵 생성
+    const relatedData = createRelatedDataMaps(jockeys, trainers, horseDataMap);
+
+    // 7. 각 경주를 예측 입력 형식으로 변환
     const races: LiveRaceData[] = [];
 
     const raceEntries = Array.from(entriesByRace.entries());
     for (const [raceId, entries] of raceEntries) {
       try {
         const raceData = createKraRaceData(raceId, entries, targetDate);
+
+        // 배당률 연결
+        const meetCode = getMeetCodeFromEntry(entries[0]);
+        const oddsKey = `${MEET_NAMES[meetCode]}-${raceData.raceNo}`;
+        raceData.odds = oddsMap.get(oddsKey);
+
         const predictionInput = adaptKraRace(raceData, relatedData);
 
         races.push({
@@ -195,14 +229,72 @@ export async function fetchRaceData(
 // =============================================================================
 
 /**
- * 기수/조교사 이름 기반 조회 맵 생성
+ * 마필 상세정보 배치 조회
+ *
+ * @param horseNos 마번 목록
+ * @param date 기준일자
+ * @param warnings 경고 메시지 배열
+ * @returns 마번 → { horse, records } 맵
+ */
+async function fetchHorseDataBatch(
+  horseNos: string[],
+  date: string,
+  warnings: string[]
+): Promise<Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>> {
+  const horseDataMap = new Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>();
+
+  // 병렬 조회 (최대 10개씩 배치)
+  const BATCH_SIZE = 10;
+  const batches: string[][] = [];
+
+  for (let i = 0; i < horseNos.length; i += BATCH_SIZE) {
+    batches.push(horseNos.slice(i, i + BATCH_SIZE));
+  }
+
+  for (const batch of batches) {
+    const results = await Promise.allSettled(
+      batch.map((hrNo) => fetchHorseDetail(hrNo, undefined, date))
+    );
+
+    results.forEach((result, index) => {
+      const hrNo = batch[index];
+      if (result.status === 'fulfilled') {
+        horseDataMap.set(hrNo, result.value);
+      } else {
+        warnings.push(`마필 ${hrNo} 정보 조회 실패: ${result.reason}`);
+        horseDataMap.set(hrNo, { horse: null, history: [] });
+      }
+    });
+  }
+
+  return horseDataMap;
+}
+
+/**
+ * 배당률 맵 생성 (meet-raceNo → RaceOdds)
+ */
+function createOddsMap(oddsData: RaceOdds[]): Map<string, RaceOdds> {
+  const oddsMap = new Map<string, RaceOdds>();
+
+  for (const odds of oddsData) {
+    const key = `${odds.meet}-${odds.raceNo}`;
+    oddsMap.set(key, odds);
+  }
+
+  return oddsMap;
+}
+
+/**
+ * 기수/조교사/마필 조회 맵 생성
  */
 function createRelatedDataMaps(
   jockeys: Jockey[],
-  trainers: Trainer[]
+  trainers: Trainer[],
+  horseDataMap: Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>
 ): KraRelatedData {
   const jockeyMap = new Map<string, Jockey>();
   const trainerMap = new Map<string, Trainer>();
+  const horseMap = new Map<string, { horse: Horse; records: HorseRaceRecord[] }>();
 
   for (const jockey of jockeys) {
     jockeyMap.set(jockey.name, jockey);
@@ -212,10 +304,21 @@ function createRelatedDataMaps(
     trainerMap.set(trainer.name, trainer);
   }
 
+  // 마필 데이터 변환
+  const horseEntries = Array.from(horseDataMap.entries());
+  for (const [hrNo, data] of horseEntries) {
+    if (data.horse) {
+      horseMap.set(hrNo, {
+        horse: data.horse,
+        records: data.history,
+      });
+    }
+  }
+
   return {
     jockeys: jockeyMap,
     trainers: trainerMap,
-    horses: new Map(), // MVP에서는 마필 상세 정보 생략
+    horses: horseMap,
   };
 }
 
