@@ -36,7 +36,7 @@ describe('apiAuth', () => {
     it('should reject requests without API key', async () => {
       const { validateApiAuth } = await getAuthModule('some-key');
       const request = createMockRequest();
-      const result = validateApiAuth(request);
+      const result = await validateApiAuth(request);
 
       expect(result.authenticated).toBe(false);
       expect(result.errorCode).toBe('UNAUTHORIZED');
@@ -45,7 +45,7 @@ describe('apiAuth', () => {
     it('should accept X-API-Key header', async () => {
       const { validateApiAuth } = await getAuthModule('test-key-123');
       const request = createMockRequest({ 'x-api-key': 'test-key-123' });
-      const result = validateApiAuth(request);
+      const result = await validateApiAuth(request);
 
       expect(result.authenticated).toBe(true);
       expect(result.apiKey).toBe('test-key-123');
@@ -54,7 +54,7 @@ describe('apiAuth', () => {
     it('should accept Authorization Bearer token', async () => {
       const { validateApiAuth } = await getAuthModule('bearer-key-456');
       const request = createMockRequest({ authorization: 'Bearer bearer-key-456' });
-      const result = validateApiAuth(request);
+      const result = await validateApiAuth(request);
 
       expect(result.authenticated).toBe(true);
     });
@@ -62,7 +62,7 @@ describe('apiAuth', () => {
     it('should reject invalid API keys', async () => {
       const { validateApiAuth } = await getAuthModule('valid-key');
       const request = createMockRequest({ 'x-api-key': 'invalid-key' });
-      const result = validateApiAuth(request);
+      const result = await validateApiAuth(request);
 
       expect(result.authenticated).toBe(false);
       expect(result.errorCode).toBe('INVALID_KEY');
@@ -71,7 +71,7 @@ describe('apiAuth', () => {
     it('should support multiple API keys', async () => {
       const { validateApiAuth } = await getAuthModule('key1,key2,key3');
       const request = createMockRequest({ 'x-api-key': 'key2' });
-      const result = validateApiAuth(request);
+      const result = await validateApiAuth(request);
 
       expect(result.authenticated).toBe(true);
     });

@@ -3,6 +3,9 @@ import {
   singleFlight,
   onCacheInvalidation,
   invalidateCache,
+  recordCacheHit,
+  recordCacheMiss,
+  recordCacheError,
 } from '@/lib/cache/cacheUtils';
 import { safeError, safeInfo } from '@/lib/utils/safeLogger';
 import { sanitizeForJsonLd } from '@/lib/utils/sanitize';
@@ -216,11 +219,14 @@ async function fetchFromUpstream(date: string): Promise<PublicRaceResult[]> {
   return [];
 }
 
+const CACHE_NAMESPACE = 'public-data';
+
 /**
  * 캐시된 경주 결과 조회 (Single-flight 패턴 적용)
  *
  * - 동일 날짜에 대한 동시 요청은 하나의 업스트림 호출만 수행
  * - 캐시 스탬피드 방지
+ * - 캐시 히트/미스 메트릭 기록
  */
 export async function fetchRaceResultsWithCache(dateInput?: string): Promise<CachedRaceResponse> {
   const date = dateInput ?? formatKstDate(new Date());
@@ -230,14 +236,18 @@ export async function fetchRaceResultsWithCache(dateInput?: string): Promise<Cac
   // 캐시 히트 시 즉시 반환
   const cached = await readCache(cacheKey);
   if (cached) {
+    recordCacheHit(CACHE_NAMESPACE);
     return { data: cached, source: 'cache' };
   }
+
+  recordCacheMiss(CACHE_NAMESPACE);
 
   // Single-flight: 동일 날짜에 대한 동시 요청은 하나만 실행
   return singleFlight(cacheKey, async () => {
     // 다른 요청이 이미 캐시를 채웠을 수 있으므로 재확인
     const cachedAgain = await readCache(cacheKey);
     if (cachedAgain) {
+      recordCacheHit(CACHE_NAMESPACE);
       return { data: cachedAgain, source: 'cache' };
     }
 
@@ -251,6 +261,7 @@ export async function fetchRaceResultsWithCache(dateInput?: string): Promise<Cac
 
       return { data, source: 'upstream' };
     } catch (error) {
+      recordCacheError(CACHE_NAMESPACE);
       safeError('[PublicDataCache] API 실패, 스냅샷 시도', error);
       const snapshot = await readCache(snapshotKey);
       if (snapshot) {

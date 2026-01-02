@@ -243,7 +243,9 @@ export async function* getOddsHistoryStream(
 ): AsyncGenerator<OddsSnapshot, void, unknown> {
   const { entryNo, startTime, endTime, limit, batchSize = 1000 } = options;
 
-  let offset = 0;
+  // Cursor-based pagination: use (time, entryNo) as cursor for efficient O(1) seek
+  // oddsSnapshots uses composite PK (time, raceId, entryNo)
+  let cursor: { time: Date; entryNo: number } | null = null;
   let hasMore = true;
   let totalYielded = 0;
   const maxRecords = limit ?? Infinity;
@@ -263,6 +265,13 @@ export async function* getOddsHistoryStream(
       conditions.push(lte(oddsSnapshots.time, endTime));
     }
 
+    // Cursor condition: seek past the last record using composite key order
+    if (cursor) {
+      conditions.push(
+        sql`(${oddsSnapshots.time} > ${cursor.time} OR (${oddsSnapshots.time} = ${cursor.time} AND ${oddsSnapshots.entryNo} > ${cursor.entryNo}))`
+      );
+    }
+
     // Calculate batch size respecting overall limit
     const remainingLimit = maxRecords - totalYielded;
     const currentBatchSize = Math.min(batchSize, remainingLimit);
@@ -271,9 +280,8 @@ export async function* getOddsHistoryStream(
       .select()
       .from(oddsSnapshots)
       .where(and(...conditions))
-      .orderBy(asc(oddsSnapshots.time))
-      .limit(currentBatchSize)
-      .offset(offset);
+      .orderBy(asc(oddsSnapshots.time), asc(oddsSnapshots.entryNo))
+      .limit(currentBatchSize);
 
     if (batch.length === 0) {
       hasMore = false;
@@ -288,7 +296,9 @@ export async function* getOddsHistoryStream(
       }
     }
 
-    offset += batch.length;
+    // Update cursor to last record
+    const lastRecord = batch[batch.length - 1];
+    cursor = { time: lastRecord.time, entryNo: lastRecord.entryNo };
     hasMore = batch.length === currentBatchSize;
   }
 }

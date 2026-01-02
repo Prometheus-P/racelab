@@ -15,7 +15,13 @@ import {
   recordFailure,
   getCircuitInfo,
 } from './circuitBreaker';
+import {
+  recordCacheHit,
+  recordCacheMiss,
+} from './cacheUtils';
 import { safeError, safeWarn, safeInfo } from '@/lib/utils/safeLogger';
+
+const CLIENT_CACHE_NAMESPACE = 'client-info';
 
 /** Redis circuit breaker 이름 */
 const REDIS_CIRCUIT = 'redis-rate-limiter';
@@ -277,14 +283,23 @@ export async function getCachedClientInfo(
   clientId: string
 ): Promise<{ tier: ClientTier; dbId: number; status: string } | null> {
   const redis = await getRedisClient();
-  if (!redis) return null;
+  if (!redis) {
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
+    return null;
+  }
 
   try {
     const key = `client:info:${clientId}`;
     const data = await redis.get(key);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      recordCacheHit(CLIENT_CACHE_NAMESPACE);
+      return JSON.parse(data);
+    }
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
+    return null;
   } catch (error) {
     safeError('[RateLimiter] Failed to get cached client info:', error);
+    recordCacheMiss(CLIENT_CACHE_NAMESPACE);
     return null;
   }
 }
