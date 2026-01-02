@@ -296,3 +296,88 @@ export function sortTrainersByWinRate(trainers: Trainer[]): Trainer[] {
 export function sortHorsesByRating(horses: Horse[]): Horse[] {
   return [...horses].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 }
+
+// =====================
+// 배당률 매퍼
+// =====================
+
+import type { KraOddsItem, RaceOdds } from './types';
+
+/**
+ * 배당률 원본 데이터 → 내부 모델 변환
+ *
+ * API에서 받은 개별 배당 항목들을 경주별로 그룹화하여 RaceOdds 구조로 변환
+ */
+export function mapOddsItems(items: KraOddsItem[]): RaceOdds[] {
+  // 경주별로 그룹화
+  const raceMap = new Map<string, RaceOdds>();
+
+  for (const item of items) {
+    const key = `${item.rcDate}-${item.meet}-${item.rcNo}`;
+
+    if (!raceMap.has(key)) {
+      raceMap.set(key, {
+        raceDate: item.rcDate,
+        meet: MEET_NAMES[item.meet] || item.meet,
+        raceNo: parseNumber(item.rcNo),
+        win: {},
+        place: {},
+      });
+    }
+
+    const raceOdds = raceMap.get(key)!;
+    const oddsValue = parseNumber(item.odds);
+
+    // 승식별로 배당률 할당
+    switch (item.betType) {
+      case 'WIN': // 단승
+        raceOdds.win[item.hrNo1] = oddsValue;
+        break;
+      case 'PLC': // 연승
+        raceOdds.place[item.hrNo1] = oddsValue;
+        break;
+      case 'QNL': // 복승
+        if (item.hrNo2) {
+          const qnlKey = [item.hrNo1, item.hrNo2].sort().join('-');
+          raceOdds.quinella = raceOdds.quinella || {};
+          raceOdds.quinella[qnlKey] = oddsValue;
+        }
+        break;
+      case 'EXA': // 쌍승
+        if (item.hrNo2) {
+          const exaKey = `${item.hrNo1}-${item.hrNo2}`;
+          raceOdds.exacta = raceOdds.exacta || {};
+          raceOdds.exacta[exaKey] = oddsValue;
+        }
+        break;
+      case 'QPL': // 복연승
+        if (item.hrNo2) {
+          const qplKey = [item.hrNo1, item.hrNo2].sort().join('-');
+          raceOdds.quinellaPlace = raceOdds.quinellaPlace || {};
+          raceOdds.quinellaPlace[qplKey] = oddsValue;
+        }
+        break;
+      case 'TLA': // 삼복승/삼쌍승
+        if (item.hrNo2 && item.hrNo3) {
+          const tlaKey = `${item.hrNo1}-${item.hrNo2}-${item.hrNo3}`;
+          raceOdds.trifecta = raceOdds.trifecta || {};
+          raceOdds.trifecta[tlaKey] = oddsValue;
+        }
+        break;
+    }
+  }
+
+  return Array.from(raceMap.values());
+}
+
+/**
+ * 특정 경주의 배당률 추출
+ */
+export function filterOddsByRace(
+  allOdds: RaceOdds[],
+  meet: string,
+  raceNo: number
+): RaceOdds | null {
+  const meetName = MEET_NAMES[meet] || meet;
+  return allOdds.find((o) => o.meet === meetName && o.raceNo === raceNo) || null;
+}

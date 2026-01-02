@@ -86,6 +86,9 @@ export {
   // 출마표
   mapEntryHorse,
   mapEntryHorseList,
+  // 배당률
+  mapOddsItems,
+  filterOddsByRace,
 } from './mappers';
 
 // Jockey API
@@ -133,3 +136,15 @@ export {
   getRaceCount,
   getFieldSizes,
 } from './entry';
+
+// Odds API
+export {
+  fetchOdds,
+  fetchAllOdds,
+  fetchRaceOdds,
+  fetchOddsSafe,
+  extractWinOdds,
+  extractPlaceOdds,
+  getOddsFavoriteOrder,
+  getHorseOdds,
+} from './odds';
