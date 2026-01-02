@@ -13,6 +13,7 @@ import {
   getCachedClientInfo,
 } from '@/lib/cache/rateLimiter';
 import type { Client, ClientTier, TierConfig } from '@/lib/db/schema';
+import { safeError } from '@/lib/utils/safeLogger';
 
 /**
  * B2B API Authentication & Rate Limiting Middleware
@@ -113,7 +114,7 @@ function checkRateLimit(apiKey: string): { allowed: boolean; remaining: number; 
   // CRITICAL: In production, reject requests using legacy rate limiting
   // This forces migration to Redis-based B2B auth for distributed rate limiting
   if (isProduction) {
-    console.error('[apiAuth] CRITICAL: Legacy in-memory rate limiting blocked in production. Use withB2BAuth with Redis.');
+    safeError('[apiAuth] CRITICAL: Legacy in-memory rate limiting blocked in production. Use withB2BAuth with Redis.');
     return { allowed: false, remaining: 0, resetIn: 60000 };
   }
 
@@ -520,7 +521,7 @@ export function withB2BAuth(
       method: request.method,
       statusCode: response.status,
       responseTimeMs: responseTime,
-    }).catch((err) => console.error('[B2B] Failed to log usage:', err));
+    }).catch((err) => safeError('[B2B] Failed to log usage:', err));
 
     return response;
   };
@@ -568,7 +569,7 @@ export function withB2BAuthParams<T = Record<string, string>>(
       method: request.method,
       statusCode: response.status,
       responseTimeMs: responseTime,
-    }).catch((err) => console.error('[B2B] Failed to log usage:', err));
+    }).catch((err) => safeError('[B2B] Failed to log usage:', err));
 
     return response;
   };

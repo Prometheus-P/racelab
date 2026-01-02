@@ -1,4 +1,6 @@
 // src/lib/utils/errorLogger.test.ts
+// Note: errorLogger now uses safeLogger which adds a timestamp prefix
+// Console output format: [timestamp] [SEVERITY] message error logData
 
 import {
   logError,
@@ -12,6 +14,19 @@ describe('errorLogger', () => {
   let consoleErrorSpy: jest.SpyInstance;
   let consoleWarnSpy: jest.SpyInstance;
   let consoleInfoSpy: jest.SpyInstance;
+
+  // Helper to get args accounting for timestamp prefix from safeLogger
+  const getLogArgs = (spy: jest.SpyInstance) => {
+    const call = spy.mock.calls[0];
+    // safeLogger adds timestamp at index 0, so actual args start at index 1
+    return {
+      timestamp: call[0],
+      prefix: call[1],
+      message: call[2],
+      error: call[3],
+      logData: call[4],
+    };
+  };
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -29,9 +44,10 @@ describe('errorLogger', () => {
     it('should log info message when Sentry is not available', () => {
       initErrorLogger('https://test@sentry.io/123');
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[ErrorLogger] Sentry not available, using console fallback'
-      );
+      expect(consoleInfoSpy).toHaveBeenCalled();
+      // safeInfo with single arg: [timestamp, message]
+      const call = consoleInfoSpy.mock.calls[0];
+      expect(call[1]).toBe('[ErrorLogger] Sentry not available, using console fallback');
     });
   });
 
@@ -41,7 +57,7 @@ describe('errorLogger', () => {
       logError(error);
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const [prefix, message] = consoleErrorSpy.mock.calls[0];
+      const { prefix, message } = getLogArgs(consoleErrorSpy);
       expect(prefix).toBe('[ERROR]');
       expect(message).toBe('Test error');
     });
@@ -51,7 +67,7 @@ describe('errorLogger', () => {
       logError(error, { severity: ErrorSeverity.FATAL });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const [prefix] = consoleErrorSpy.mock.calls[0];
+      const { prefix } = getLogArgs(consoleErrorSpy);
       expect(prefix).toBe('[FATAL]');
     });
 
@@ -60,7 +76,7 @@ describe('errorLogger', () => {
       logError(error, { severity: ErrorSeverity.WARNING });
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const [prefix] = consoleWarnSpy.mock.calls[0];
+      const { prefix } = getLogArgs(consoleWarnSpy);
       expect(prefix).toBe('[WARNING]');
     });
 
@@ -68,7 +84,7 @@ describe('errorLogger', () => {
       logError('String error message');
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const [prefix, message] = consoleErrorSpy.mock.calls[0];
+      const { prefix, message } = getLogArgs(consoleErrorSpy);
       expect(prefix).toBe('[ERROR]');
       expect(message).toBe('String error message');
     });
@@ -79,7 +95,7 @@ describe('errorLogger', () => {
       logError(error, { context });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const logData = consoleErrorSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleErrorSpy);
       expect(logData.context).toEqual(context);
     });
 
@@ -89,7 +105,7 @@ describe('errorLogger', () => {
       logError(error, { tags });
 
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const logData = consoleErrorSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleErrorSpy);
       expect(logData.tags).toEqual(tags);
     });
   });
@@ -138,7 +154,7 @@ describe('errorLogger', () => {
       });
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const logData = consoleWarnSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleWarnSpy);
       expect(logData.tags['api.provider']).toBe('KRA');
       expect(logData.tags['api.type']).toBe('external');
     });
@@ -150,7 +166,7 @@ describe('errorLogger', () => {
       logExternalApiError(error, 'KRA', '/races/today', 5000);
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const logData = consoleWarnSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleWarnSpy);
       expect(logData.tags['api.provider']).toBe('KRA');
     });
 
@@ -159,7 +175,7 @@ describe('errorLogger', () => {
       logExternalApiError(error, 'KSPO_CYCLE', '/cycle/races');
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const logData = consoleWarnSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleWarnSpy);
       expect(logData.tags['api.provider']).toBe('KSPO_CYCLE');
     });
 
@@ -168,7 +184,7 @@ describe('errorLogger', () => {
       logExternalApiError(error, 'KSPO_BOAT', '/boat/races');
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const logData = consoleWarnSpy.mock.calls[0][3];
+      const { logData } = getLogArgs(consoleWarnSpy);
       expect(logData.tags['api.provider']).toBe('KSPO_BOAT');
     });
   });

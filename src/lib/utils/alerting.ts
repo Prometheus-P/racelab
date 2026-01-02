@@ -2,7 +2,10 @@
  * Alerting Utilities
  *
  * 운영 알림을 위한 유틸리티 (Slack, 로깅 등)
+ * Security: Uses safeLogger for production-safe logging
  */
+
+import { safeError, safeWarn, safeInfo } from './safeLogger';
 
 interface AlertPayload {
   level: 'info' | 'warn' | 'error' | 'critical';
@@ -42,12 +45,13 @@ export async function sendAlert(payload: AlertPayload): Promise<boolean> {
   const webhookUrl = process.env.SLACK_WEBHOOK_URL;
 
   // Log to console regardless (for CloudWatch/Vercel logs)
-  const logFn = level === 'critical' || level === 'error' ? console.error : console.warn;
+  // Uses safe logger for production-safe logging with data sanitization
+  const logFn = level === 'critical' || level === 'error' ? safeError : safeWarn;
   logFn(`[Alert/${level.toUpperCase()}] ${title}: ${message}`, context || '');
 
   // If no webhook configured, just log
   if (!webhookUrl) {
-    console.log('[Alerting] SLACK_WEBHOOK_URL not configured, skipping Slack notification');
+    safeInfo('[Alerting] SLACK_WEBHOOK_URL not configured, skipping Slack notification');
     return false;
   }
 
@@ -97,13 +101,13 @@ export async function sendAlert(payload: AlertPayload): Promise<boolean> {
     });
 
     if (!response.ok) {
-      console.error('[Alerting] Slack webhook failed:', response.status);
+      safeError('[Alerting] Slack webhook failed:', response.status);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('[Alerting] Failed to send Slack notification:', error);
+    safeError('[Alerting] Failed to send Slack notification:', error);
     return false;
   }
 }

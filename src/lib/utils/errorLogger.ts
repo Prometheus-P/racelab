@@ -11,6 +11,9 @@
 // 3. Import Sentry and update the functions below to use it
 //
 // Current behavior: All errors are logged to console with structured metadata
+// Security: Uses safeLogger for production-safe logging with data sanitization
+
+import { safeError, safeWarn, safeInfo } from './safeLogger';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Sentry: any = null;
@@ -79,7 +82,7 @@ export function initErrorLogger(dsn: string, options: ErrorLoggerOptions = {}): 
         integrations.filter((integration) => integration.name !== 'Breadcrumbs'),
     });
   } else {
-    console.info('[ErrorLogger] Sentry not available, using console fallback');
+    safeInfo('[ErrorLogger] Sentry not available, using console fallback');
   }
 }
 
@@ -110,15 +113,14 @@ export function logError(error: Error | string, options: LogErrorOptions = {}): 
       }
     });
   } else {
-    // Fallback to console logging
+    // Fallback to safe console logging (auto-sanitizes in production)
     const logData = { severity, tags, context };
-    const consoleMethod =
-      severity === 'error' || severity === 'fatal' ? console.error : console.warn;
+    const safeLogMethod = severity === 'error' || severity === 'fatal' ? safeError : safeWarn;
 
     if (typeof error === 'string') {
-      consoleMethod(`[${severity.toUpperCase()}]`, error, logData);
+      safeLogMethod(`[${severity.toUpperCase()}]`, error, logData);
     } else {
-      consoleMethod(`[${severity.toUpperCase()}]`, error.message, error, logData);
+      safeLogMethod(`[${severity.toUpperCase()}]`, error.message, error, logData);
     }
   }
 }
