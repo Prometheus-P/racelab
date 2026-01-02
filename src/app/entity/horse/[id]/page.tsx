@@ -8,6 +8,7 @@ import ProGate from '@/components/shared/ProGate';
 import { buildEntityProfileVM } from '@/lib/view-models/entityVM';
 import { getDummyRaces } from '@/lib/api-helpers/dummy';
 import { Race } from '@/types';
+import { sanitizeUrlParam, safeJsonStringify } from '@/lib/utils/sanitize';
 
 interface Props {
   params: { id: string };
@@ -21,7 +22,7 @@ const fetchRaces = async (): Promise<Race[]> => {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const name = decodeURIComponent(params.id);
+  const name = sanitizeUrlParam(params.id);
   return {
     title: `${name} ${roleLabel} - RaceLab`,
     description: `${name} 최근 출주 기록, 통계, 성적 요약`,
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function HorseEntityPage({ params }: Props) {
-  const name = decodeURIComponent(params.id);
+  const name = sanitizeUrlParam(params.id);
   const races = await fetchRaces();
   const profile = buildEntityProfileVM(role, name, races);
 
@@ -42,7 +43,7 @@ export default async function HorseEntityPage({ params }: Props) {
 
   return (
     <EntityProfileShell>
-      <Script id="entity-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
+      <Script id="entity-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonStringify(personSchema) }} />
       <EntityHeader profile={profile} />
       <StatsGrid profile={profile} />
       <ProGate feature="history" />

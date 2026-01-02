@@ -5,6 +5,7 @@ import {
   invalidateCache,
 } from '@/lib/cache/cacheUtils';
 import { safeError, safeInfo } from '@/lib/utils/safeLogger';
+import { sanitizeForJsonLd } from '@/lib/utils/sanitize';
 import type { RaceType } from '@/types';
 
 export interface PublicRaceResult {
@@ -39,7 +40,8 @@ function formatKstDate(date: Date): string {
 
 function safeString(value: unknown, fallback = ''): string {
   if (typeof value === 'string' && value.trim().length > 0) {
-    return value.trim();
+    // Sanitize external API data to prevent XSS
+    return sanitizeForJsonLd(value.trim());
   }
   return fallback;
 }
