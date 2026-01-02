@@ -301,7 +301,16 @@ export function sortHorsesByRating(horses: Horse[]): Horse[] {
 // 배당률 매퍼
 // =====================
 
-import type { KraOddsItem, RaceOdds, KraRaceInfoItem, RaceInfo, RaceSchedule } from './types';
+import type {
+  KraOddsItem,
+  RaceOdds,
+  KraRaceInfoItem,
+  RaceInfo,
+  RaceSchedule,
+  KraRaceResultAIItem,
+  RaceResultAI,
+  RaceResultAISummary,
+} from './types';
 
 /**
  * 배당률 원본 데이터 → 내부 모델 변환
@@ -460,4 +469,116 @@ export function filterRaceByNo(
   raceNo: number
 ): RaceInfo | null {
   return races.find((r) => r.meet === meet && r.raceNo === raceNo) || null;
+}
+
+// =====================
+// AI 학습용 경주결과 매퍼
+// =====================
+
+/**
+ * AI 학습용 경주결과 원본 → 내부 모델 변환
+ */
+export function mapRaceResultAI(item: KraRaceResultAIItem): RaceResultAI {
+  const meetName = MEET_NAMES[item.meet] || item.meet;
+
+  return {
+    // 경주 기본정보
+    meet: item.meet,
+    meetName,
+    raceDate: item.rcDate,
+    raceNo: parseNumber(item.rcNo),
+    raceName: item.rcName,
+    distance: parseNumber(item.rcDist),
+    grade: item.rcClass,
+    trackCondition: item.rcTrack,
+    weather: item.rcWeather,
+
+    // 출전마 정보
+    horseNo: item.hrNo,
+    horseName: item.hrName,
+    gateNo: parseNumber(item.chulNo),
+    sex: SEX_NAMES[item.sex] || item.sex,
+    age: parseNumber(item.age),
+    burden: parseNumber(item.wgBu),
+    weight: parseNumber(item.wgHr),
+    rating: parseNumber(item.rating),
+
+    // 관계자
+    jockeyNo: item.jkNo,
+    jockeyName: item.jkName,
+    trainerNo: item.trNo,
+    trainerName: item.trName,
+    ownerName: item.owName,
+
+    // 결과
+    position: parseNumber(item.ord),
+    finishTime: item.rcTime,
+    timeDiff: item.diffTime,
+
+    // 구간 기록
+    sectionTimes: {
+      g1f: parseNumber(item.g1f) || undefined,
+      g2f: parseNumber(item.g2f) || undefined,
+      g3f: parseNumber(item.g3f) || undefined,
+      g4f: parseNumber(item.g4f) || undefined,
+    },
+
+    // 선두와의 거리
+    distanceFromLead: {
+      s1f: parseNumber(item.s1f) || undefined,
+      s2f: parseNumber(item.s2f) || undefined,
+      s3f: parseNumber(item.s3f) || undefined,
+      s4f: parseNumber(item.s4f) || undefined,
+    },
+
+    // 배당률
+    winOdds: parseNumber(item.oddWin),
+    placeOdds: parseNumber(item.oddPlc),
+  };
+}
+
+/**
+ * AI 학습용 경주결과 목록 변환
+ */
+export function mapRaceResultAIList(items: KraRaceResultAIItem[]): RaceResultAI[] {
+  return items.map(mapRaceResultAI);
+}
+
+/**
+ * AI 학습용 경주결과를 경주별로 그룹화
+ */
+export function groupRaceResultsByRace(results: RaceResultAI[]): RaceResultAISummary[] {
+  const summaryMap = new Map<string, RaceResultAISummary>();
+
+  for (const result of results) {
+    const key = `${result.raceDate}-${result.meet}-${result.raceNo}`;
+
+    if (!summaryMap.has(key)) {
+      summaryMap.set(key, {
+        meet: result.meet,
+        meetName: result.meetName,
+        raceDate: result.raceDate,
+        raceNo: result.raceNo,
+        raceName: result.raceName,
+        distance: result.distance,
+        grade: result.grade,
+        trackCondition: result.trackCondition,
+        weather: result.weather,
+        entries: [],
+        totalEntries: 0,
+      });
+    }
+
+    const summary = summaryMap.get(key)!;
+    summary.entries.push(result);
+    summary.totalEntries = summary.entries.length;
+  }
+
+  // 순위순 정렬
+  const summaries = Array.from(summaryMap.values());
+  for (const summary of summaries) {
+    summary.entries.sort((a: RaceResultAI, b: RaceResultAI) => a.position - b.position);
+  }
+
+  return summaries;
 }

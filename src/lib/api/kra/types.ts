@@ -348,6 +348,127 @@ export interface RaceOdds {
 }
 
 // =====================
+// AI 학습용 경주결과 타입 (Race Result AI)
+// =====================
+
+/** API156: AI학습용 경주결과 원본 응답 */
+export interface KraRaceResultAIItem {
+  meet: string; // 경마장코드 (1:서울, 2:제주, 3:부경)
+  rcDate: string; // 경주일자 (YYYYMMDD)
+  rcNo: string; // 경주번호
+  rcName?: string; // 경주명
+  rcDist: string; // 경주거리 (미터)
+  rcClass?: string; // 등급조건
+  rcTrack?: string; // 주로상태
+  rcWeather?: string; // 날씨
+
+  // 출전마 정보
+  hrNo: string; // 마번
+  hrName: string; // 마명
+  chulNo: string; // 출전번호 (게이트번호)
+  sex: string; // 성별
+  age: string; // 연령
+  wgBu?: string; // 부담중량
+  wgHr?: string; // 마체중
+  rating?: string; // 레이팅
+
+  // 관계자
+  jkNo?: string; // 기수번호
+  jkName: string; // 기수명
+  trNo?: string; // 조교사번호
+  trName?: string; // 조교사명
+  owName?: string; // 마주명
+
+  // 결과
+  ord: string; // 순위
+  rcTime?: string; // 주파기록
+  diffTime?: string; // 착차시간
+  g1f?: string; // 1구간 시간
+  g2f?: string; // 2구간 시간
+  g3f?: string; // 3구간 시간
+  g4f?: string; // 4구간 시간
+  s1f?: string; // 선두에서의 거리 (1구간)
+  s2f?: string; // 선두에서의 거리 (2구간)
+  s3f?: string; // 선두에서의 거리 (3구간)
+  s4f?: string; // 선두에서의 거리 (4구간)
+
+  // 배당률
+  oddWin?: string; // 단승배당
+  oddPlc?: string; // 연승배당
+}
+
+/** 내부 AI 학습용 경주결과 모델 */
+export interface RaceResultAI {
+  // 경주 기본정보
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  raceNo: number;
+  raceName?: string;
+  distance: number;
+  grade?: string;
+  trackCondition?: string;
+  weather?: string;
+
+  // 출전마 정보
+  horseNo: string;
+  horseName: string;
+  gateNo: number;
+  sex: string;
+  age: number;
+  burden?: number;
+  weight?: number;
+  rating?: number;
+
+  // 관계자
+  jockeyNo?: string;
+  jockeyName: string;
+  trainerNo?: string;
+  trainerName?: string;
+  ownerName?: string;
+
+  // 결과
+  position: number;
+  finishTime?: string;
+  timeDiff?: string;
+
+  // 구간 기록
+  sectionTimes?: {
+    g1f?: number;
+    g2f?: number;
+    g3f?: number;
+    g4f?: number;
+  };
+
+  // 선두와의 거리
+  distanceFromLead?: {
+    s1f?: number;
+    s2f?: number;
+    s3f?: number;
+    s4f?: number;
+  };
+
+  // 배당률
+  winOdds?: number;
+  placeOdds?: number;
+}
+
+/** AI 학습용 경주 요약 (경주별 그룹화) */
+export interface RaceResultAISummary {
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  raceNo: number;
+  raceName?: string;
+  distance: number;
+  grade?: string;
+  trackCondition?: string;
+  weather?: string;
+  entries: RaceResultAI[];
+  totalEntries: number;
+}
+
+// =====================
 // 경주정보 관련 타입 (Race Info)
 // =====================
 
