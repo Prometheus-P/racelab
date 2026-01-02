@@ -178,6 +178,8 @@ export async function invalidatePrediction(
 /**
  * 날짜별 예측 캐시 일괄 삭제
  *
+ * SCAN 명령어를 사용하여 대규모 키스페이스에서도 블로킹 없이 삭제
+ *
  * @param date 경주일자 (YYYYMMDD)
  */
 export async function invalidateDatePredictions(date: string): Promise<number> {
@@ -189,13 +191,30 @@ export async function invalidateDatePredictions(date: string): Promise<number> {
   const pattern = createDateCachePattern(date);
 
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length === 0) {
-      return 0;
-    }
+    let cursor = '0';
+    let totalDeleted = 0;
 
-    await redis.del(...keys);
-    return keys.length;
+    // SCAN을 사용하여 패턴 매칭 키를 점진적으로 조회 및 삭제
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        100
+      );
+
+      cursor = nextCursor;
+
+      if (keys.length > 0) {
+        const deleted = await redis.del(...keys);
+        if (typeof deleted === 'number') {
+          totalDeleted += deleted;
+        }
+      }
+    } while (cursor !== '0');
+
+    return totalDeleted;
   } catch (error) {
     console.error(`[PredictionCache] Bulk delete error for ${pattern}:`, error);
     return 0;

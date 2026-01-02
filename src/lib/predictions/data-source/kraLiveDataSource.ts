@@ -243,7 +243,7 @@ async function fetchHorseDataBatch(
 ): Promise<Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>> {
   const horseDataMap = new Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>();
 
-  // 병렬 조회 (최대 10개씩 배치)
+  // 병렬 조회 (10개씩 배치로 API 부하 분산)
   const BATCH_SIZE = 10;
   const batches: string[][] = [];
 
