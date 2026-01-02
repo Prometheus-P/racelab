@@ -158,7 +158,6 @@ describe('Retry Utility', () => {
     it('should track total time', async () => {
       const fn = jest.fn().mockResolvedValue('success');
 
-      const startTime = Date.now();
       const resultPromise = withRetry(fn);
       await jest.runAllTimersAsync();
       const result = await resultPromise;
@@ -202,7 +201,7 @@ describe('Retry Utility', () => {
 
       const resultPromise = apiRetry(fn, { maxRetries: 1 });
       await jest.runAllTimersAsync();
-      const result = await resultPromise;
+      await resultPromise;
 
       expect(fn).toHaveBeenCalledTimes(2); // 1 retry max = 2 attempts
     });

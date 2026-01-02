@@ -215,11 +215,7 @@ describe('GET /api/v1/kra/odds/[raceId]', () => {
     it('should return 404 when odds not found', async () => {
       mockFetchRaceOdds.mockResolvedValue(null);
 
-      const [request, context] = createRequest(
-        'http://localhost/api/v1/kra/odds/1-99-20241225',
-        { raceId: '1-99-20241225' }
-      );
-      // raceNo 99 is out of range, but let's test a valid range race that returns null
+      // Test a valid range race that returns null (no odds data found)
       const [req, ctx] = createRequest(
         'http://localhost/api/v1/kra/odds/1-5-20241225',
         { raceId: '1-5-20241225' }
