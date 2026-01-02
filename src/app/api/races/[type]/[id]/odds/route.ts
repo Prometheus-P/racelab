@@ -32,9 +32,12 @@ async function handler(
       }, { status: 404 });
     }
 
+    // Return null explicitly if odds is undefined
+    const odds = raceDetail.odds ?? null;
+
     return NextResponse.json({
       success: true,
-      data: raceDetail.odds,
+      data: odds,
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {

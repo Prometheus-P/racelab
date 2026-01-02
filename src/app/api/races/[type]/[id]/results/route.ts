@@ -32,9 +32,12 @@ async function handler(
       }, { status: 404 });
     }
 
+    // Ensure results is always an array (defensive against undefined)
+    const results = raceDetail.results ?? [];
+
     return NextResponse.json({
       success: true,
-      data: raceDetail.results,
+      data: results,
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {

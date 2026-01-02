@@ -73,7 +73,7 @@ export async function fetchApi(
   const dateParamName = opts.dateParamName ?? 'rc_date';
   const timeoutMs = opts.timeout ?? DEFAULT_TIMEOUT_MS;
   if (!apiKey) {
-    console.warn(`[${apiName}] ${envVarName} is not set. Returning empty array.`);
+    console.error(`[${apiName}] ${envVarName} is not set. Returning empty array.`);
     return [];
   }
 

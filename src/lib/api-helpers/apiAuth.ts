@@ -14,6 +14,11 @@ import {
 } from '@/lib/cache/rateLimiter';
 import type { Client, ClientTier, TierConfig } from '@/lib/db/schema';
 import { safeError, safeWarn } from '@/lib/utils/safeLogger';
+import {
+  logAuthSuccess,
+  logAuthFailure,
+  logRateLimitExceeded,
+} from '@/lib/utils/auditLogger';
 
 /**
  * B2B API Authentication & Rate Limiting Middleware
@@ -322,6 +327,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   const apiKey = extractApiKey(request);
 
   if (!apiKey) {
+    logAuthFailure(request, 'NO_KEY', null);
     return {
       authenticated: false,
       error: 'Authentication required',
@@ -340,6 +346,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     // Verify the full key hash even with cached info
     client = await validateClientApiKey(apiKey);
     if (!client) {
+      logAuthFailure(request, 'INVALID_KEY', apiKey);
       return {
         authenticated: false,
         error: 'Invalid API key',
@@ -352,6 +359,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     client = await validateClientApiKey(apiKey);
 
     if (!client) {
+      logAuthFailure(request, 'INVALID_KEY', apiKey);
       return {
         authenticated: false,
         error: 'Invalid API key',
@@ -372,6 +380,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   // Check client status
   if (!isClientActive(client)) {
     if (client.status === 'expired' || (client.expiresAt && new Date(client.expiresAt) < new Date())) {
+      logAuthFailure(request, 'EXPIRED', apiKey);
       return {
         authenticated: false,
         apiKey,
@@ -379,6 +388,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
         errorCode: 'EXPIRED',
       };
     }
+    logAuthFailure(request, 'SUSPENDED', apiKey);
     return {
       authenticated: false,
       apiKey,
@@ -391,6 +401,7 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
   const rateLimit = await checkRedisRateLimit(client.clientId, client.tier as ClientTier, tierConfig);
 
   if (!rateLimit.allowed) {
+    logRateLimitExceeded(request, client.clientId, rateLimit.limit, rateLimit.resetIn);
     return {
       authenticated: false,
       apiKey,
@@ -412,6 +423,9 @@ export async function validateB2BAuth(request: NextRequest): Promise<B2BAuthResu
     rateLimitRemaining: rateLimit.remaining,
     rateLimitReset: rateLimit.resetIn,
   };
+
+  // Log successful authentication
+  logAuthSuccess(request, client.clientId, apiKey);
 
   return {
     authenticated: true,
