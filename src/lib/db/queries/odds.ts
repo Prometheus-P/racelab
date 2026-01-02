@@ -18,6 +18,82 @@ export interface OddsHistoryOptions {
 }
 
 /**
+ * Odds-Results 시간 정합성 검증을 위한 상수
+ */
+const ODDS_VALID_BEFORE_RACE_MINUTES = 60; // 경주 시작 60분 전부터
+const ODDS_VALID_AFTER_RACE_MINUTES = 5; // 경주 시작 5분 후까지 (마감 직후)
+
+/**
+ * 배당률 데이터의 유효 시간 범위 계산
+ *
+ * 경주 결과와의 정합성을 위해 유효한 배당률 시간 범위를 반환합니다.
+ * - 경주 시작 60분 전부터 시작 5분 후까지만 유효
+ *
+ * @param raceStartTime - 경주 시작 시간
+ * @returns 유효한 시간 범위 { validFrom, validUntil }
+ */
+export function getValidOddsTimeRange(raceStartTime: Date): {
+  validFrom: Date;
+  validUntil: Date;
+} {
+  const validFrom = new Date(raceStartTime.getTime() - ODDS_VALID_BEFORE_RACE_MINUTES * 60 * 1000);
+  const validUntil = new Date(raceStartTime.getTime() + ODDS_VALID_AFTER_RACE_MINUTES * 60 * 1000);
+  return { validFrom, validUntil };
+}
+
+/**
+ * 배당률 타임스탬프가 유효한지 검증
+ *
+ * @param oddsTime - 배당률 스냅샷 시간
+ * @param raceStartTime - 경주 시작 시간
+ * @returns 유효 여부
+ */
+export function isOddsTimestampValid(oddsTime: Date, raceStartTime: Date): boolean {
+  const { validFrom, validUntil } = getValidOddsTimeRange(raceStartTime);
+  return oddsTime >= validFrom && oddsTime <= validUntil;
+}
+
+/**
+ * 경주 결과와 연관된 최종 배당률 조회 (시간 정합성 보장)
+ *
+ * 경주 시작 직전의 최종 배당률만 반환하여 결과와의 정합성 보장
+ *
+ * @param raceId - 경주 ID
+ * @param raceStartTime - 경주 시작 시간
+ * @returns 최종 배당률 스냅샷 배열
+ */
+export async function getFinalOddsForResult(
+  raceId: string,
+  raceStartTime: Date
+): Promise<OddsSnapshot[]> {
+  const { validFrom, validUntil } = getValidOddsTimeRange(raceStartTime);
+
+  // 각 출전마별로 경주 시작 직전 마지막 배당률만 조회
+  const result = await db.execute<OddsSnapshot>(sql`
+    WITH ranked_odds AS (
+      SELECT *,
+        ROW_NUMBER() OVER (
+          PARTITION BY entry_no
+          ORDER BY time DESC
+        ) as rn
+      FROM odds_snapshots
+      WHERE race_id = ${raceId}
+        AND time >= ${validFrom}
+        AND time <= ${validUntil}
+    )
+    SELECT time, race_id as "raceId", entry_no as "entryNo",
+           odds_win as "oddsWin", odds_place as "oddsPlace",
+           pool_total as "poolTotal", pool_win as "poolWin",
+           pool_place as "poolPlace", popularity_rank as "popularityRank"
+    FROM ranked_odds
+    WHERE rn = 1
+    ORDER BY entry_no
+  `);
+
+  return result.rows;
+}
+
+/**
  * Get odds history for a race
  *
  * @param raceId - Race ID

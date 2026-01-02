@@ -161,30 +161,91 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * 환경 변수로 설정 가능한 복구 간격 (기본 5분, 최소 1분)
+ */
+const DEFAULT_INTERVAL_MS = 5 * 60 * 1000; // 5분
+const MIN_INTERVAL_MS = 60 * 1000; // 최소 1분
+const RECOVERY_INTERVAL_MS = Math.max(
+  parseInt(process.env.RECOVERY_INTERVAL_MS || '', 10) || DEFAULT_INTERVAL_MS,
+  MIN_INTERVAL_MS
+);
+
+/**
+ * 복구 루프 상태 (모니터링용)
+ */
+export interface RecoveryLoopStatus {
+  isRunning: boolean;
+  lastRunAt: Date | null;
+  totalIterations: number;
+  totalRecovered: number;
+  totalFailed: number;
+  consecutiveErrors: number;
+}
+
+const loopStatus: RecoveryLoopStatus = {
+  isRunning: false,
+  lastRunAt: null,
+  totalIterations: 0,
+  totalRecovered: 0,
+  totalFailed: 0,
+  consecutiveErrors: 0,
+};
+
+/**
+ * 복구 루프 상태 조회 (모니터링 API용)
+ */
+export function getRecoveryLoopStatus(): RecoveryLoopStatus {
+  return { ...loopStatus };
+}
+
+/**
  * Run failure recovery as a background process
  *
- * @param intervalMs - Check interval in milliseconds (default: 5 minutes)
+ * @param intervalMs - Check interval in milliseconds (default: from env or 5 minutes)
  * @param maxIterations - Maximum iterations (default: unlimited)
  */
 export async function runRecoveryLoop(
-  intervalMs: number = 5 * 60 * 1000,
+  intervalMs: number = RECOVERY_INTERVAL_MS,
   maxIterations?: number
 ): Promise<void> {
+  if (loopStatus.isRunning) {
+    console.warn('[FailureRecovery] Recovery loop already running');
+    return;
+  }
+
+  loopStatus.isRunning = true;
   let iterations = 0;
 
   console.log(`[FailureRecovery] Starting recovery loop (interval: ${intervalMs}ms)`);
 
   while (maxIterations === undefined || iterations < maxIterations) {
     iterations++;
+    loopStatus.totalIterations = iterations;
+    loopStatus.lastRunAt = new Date();
 
     try {
-      await processFailures();
+      const result = await processFailures();
+      loopStatus.totalRecovered += result.recovered;
+      loopStatus.totalFailed += result.failed;
+      loopStatus.consecutiveErrors = 0;
+
+      // 주기적 상태 로깅 (매 10회)
+      if (iterations % 10 === 0) {
+        console.log(`[FailureRecovery] Status - iterations: ${iterations}, recovered: ${loopStatus.totalRecovered}, failed: ${loopStatus.totalFailed}`);
+      }
     } catch (error) {
+      loopStatus.consecutiveErrors++;
       console.error('[FailureRecovery] Loop error:', error);
+
+      // 연속 에러 5회 이상 시 경고
+      if (loopStatus.consecutiveErrors >= 5) {
+        console.error(`[FailureRecovery] WARNING: ${loopStatus.consecutiveErrors} consecutive errors`);
+      }
     }
 
     await sleep(intervalMs);
   }
 
+  loopStatus.isRunning = false;
   console.log(`[FailureRecovery] Loop completed after ${iterations} iterations`);
 }
