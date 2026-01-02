@@ -301,7 +301,7 @@ export function sortHorsesByRating(horses: Horse[]): Horse[] {
 // 배당률 매퍼
 // =====================
 
-import type { KraOddsItem, RaceOdds } from './types';
+import type { KraOddsItem, RaceOdds, KraRaceInfoItem, RaceInfo, RaceSchedule } from './types';
 
 /**
  * 배당률 원본 데이터 → 내부 모델 변환
@@ -380,4 +380,84 @@ export function filterOddsByRace(
 ): RaceOdds | null {
   const meetName = MEET_NAMES[meet] || meet;
   return allOdds.find((o) => o.meet === meetName && o.raceNo === raceNo) || null;
+}
+
+// =====================
+// 경주정보 매퍼
+// =====================
+
+/**
+ * 경주정보 원본 → 내부 모델 변환
+ */
+export function mapRaceInfo(item: KraRaceInfoItem): RaceInfo {
+  const meetName = MEET_NAMES[item.meet] || item.meet;
+
+  return {
+    meet: item.meet,
+    meetName,
+    raceDate: item.rcDate,
+    raceNo: parseNumber(item.rcNo),
+    raceName: item.rcName,
+    distance: parseNumber(item.rcDist),
+    grade: item.rcClass,
+    condition: item.rcCond,
+    ageCondition: item.rcAge,
+    sexCondition: item.rcSex,
+    prize: parseNumber(item.rcPrize),
+    startTime: item.rcTime,
+    trackCondition: item.rcTrack,
+    weather: item.rcWeather,
+    entryCount: parseNumber(item.hrCnt),
+  };
+}
+
+/**
+ * 경주정보 목록 변환
+ */
+export function mapRaceInfoList(items: KraRaceInfoItem[]): RaceInfo[] {
+  return items.map(mapRaceInfo);
+}
+
+/**
+ * 경주정보를 일자/경마장별로 그룹화
+ */
+export function groupRacesByDateAndMeet(races: RaceInfo[]): RaceSchedule[] {
+  const scheduleMap = new Map<string, RaceSchedule>();
+
+  for (const race of races) {
+    const key = `${race.raceDate}-${race.meet}`;
+
+    if (!scheduleMap.has(key)) {
+      scheduleMap.set(key, {
+        meet: race.meet,
+        meetName: race.meetName,
+        raceDate: race.raceDate,
+        totalRaces: 0,
+        races: [],
+      });
+    }
+
+    const schedule = scheduleMap.get(key)!;
+    schedule.races.push(race);
+    schedule.totalRaces = schedule.races.length;
+  }
+
+  // 경주번호순 정렬
+  const schedules = Array.from(scheduleMap.values());
+  for (const schedule of schedules) {
+    schedule.races.sort((a: RaceInfo, b: RaceInfo) => a.raceNo - b.raceNo);
+  }
+
+  return schedules;
+}
+
+/**
+ * 특정 경주 조회
+ */
+export function filterRaceByNo(
+  races: RaceInfo[],
+  meet: string,
+  raceNo: number
+): RaceInfo | null {
+  return races.find((r) => r.meet === meet && r.raceNo === raceNo) || null;
 }

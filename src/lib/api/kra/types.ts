@@ -348,6 +348,56 @@ export interface RaceOdds {
 }
 
 // =====================
+// 경주정보 관련 타입 (Race Info)
+// =====================
+
+/** API187: 경마경주정보 원본 응답 */
+export interface KraRaceInfoItem {
+  meet: string; // 경마장코드 (1:서울, 2:제주, 3:부경)
+  rcDate: string; // 경주일자 (YYYYMMDD)
+  rcNo: string; // 경주번호
+  rcName?: string; // 경주명
+  rcDist: string; // 경주거리 (미터)
+  rcClass?: string; // 등급조건
+  rcCond?: string; // 경주조건
+  rcAge?: string; // 연령조건
+  rcSex?: string; // 성별조건
+  rcPrize?: string; // 1착상금
+  rcTime?: string; // 발주예정시각
+  rcTrack?: string; // 주로상태 (양호, 불량 등)
+  rcWeather?: string; // 날씨
+  hrCnt?: string; // 출전두수
+}
+
+/** 내부 경주정보 모델 */
+export interface RaceInfo {
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  raceNo: number;
+  raceName?: string;
+  distance: number;
+  grade?: string;
+  condition?: string;
+  ageCondition?: string;
+  sexCondition?: string;
+  prize?: number;
+  startTime?: string;
+  trackCondition?: string;
+  weather?: string;
+  entryCount?: number;
+}
+
+/** 경주일정 요약 (경마장/일자별) */
+export interface RaceSchedule {
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  totalRaces: number;
+  races: RaceInfo[];
+}
+
+// =====================
 // 유틸리티 타입
 // =====================
 

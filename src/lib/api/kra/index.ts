@@ -38,6 +38,7 @@ export {
   type KraHorseTotalInfoItem,
   type KraEntryHorseItem,
   type KraOddsItem,
+  type KraRaceInfoItem,
   // 내부 모델
   type Jockey,
   type Trainer,
@@ -45,6 +46,8 @@ export {
   type HorseRaceRecord,
   type RaceEntry,
   type RaceOdds,
+  type RaceInfo,
+  type RaceSchedule,
   // 상수
   MEET_NAMES,
   SEX_NAMES,
@@ -89,6 +92,11 @@ export {
   // 배당률
   mapOddsItems,
   filterOddsByRace,
+  // 경주정보
+  mapRaceInfo,
+  mapRaceInfoList,
+  groupRacesByDateAndMeet,
+  filterRaceByNo,
 } from './mappers';
 
 // Jockey API
@@ -148,3 +156,17 @@ export {
   getOddsFavoriteOrder,
   getHorseOdds,
 } from './odds';
+
+// Race Info API
+export {
+  fetchRaceInfo,
+  fetchAllRaceInfo,
+  fetchRaceSchedule,
+  fetchRace,
+  fetchRaceInfoSafe,
+  hasRacesToday,
+  getTotalRaceCount,
+  filterRacesByGrade,
+  filterRacesByDistance,
+  sortRacesByStartTime,
+} from './race';
