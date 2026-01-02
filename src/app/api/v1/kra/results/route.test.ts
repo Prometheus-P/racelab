@@ -114,6 +114,7 @@ const mockSummaryData = [
         meetName: '제주',
         raceDate: '20241225',
         raceNo: 1,
+        distance: 1000,
         horseNo: '789',
         horseName: '제주마1',
         gateNo: 1,
