@@ -116,8 +116,30 @@ async function writeCache(key: string, data: PublicRaceResult[], ttlSeconds: num
 }
 
 function extractXmlValue(block: string, tag: string): string {
-  const match = block.match(new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, 'i'));
-  return match?.[1] ?? '';
+  // Handle multi-line content, CDATA sections, and entities
+  const patterns = [
+    // Standard tag with content (including multi-line)
+    new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'),
+    // CDATA section
+    new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>`, 'i'),
+    // Self-closing tag with value attribute
+    new RegExp(`<${tag}[^>]*\\svalue=["']([^"']*)["'][^>]*/?>`, 'i'),
+  ];
+
+  for (const pattern of patterns) {
+    const match = block.match(pattern);
+    if (match?.[1]) {
+      // Decode common XML entities and trim
+      return match[1]
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .trim();
+    }
+  }
+  return '';
 }
 
 function parseXmlRaces(xml: string): PublicRaceResult[] {

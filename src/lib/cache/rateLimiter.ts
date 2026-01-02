@@ -47,9 +47,27 @@ const isProduction = process.env.NODE_ENV === 'production';
 const WINDOW_SECONDS = 60;
 
 /**
- * Client info cache TTL in seconds
+ * Client info cache TTL configuration
+ * Can be overridden via environment variable CACHE_TTL_SECONDS
  */
-const CLIENT_CACHE_TTL = 300; // 5 minutes
+const DEFAULT_CACHE_TTL = 300; // 5 minutes default
+const CLIENT_CACHE_TTL = parseInt(process.env.CACHE_TTL_SECONDS || '', 10) || DEFAULT_CACHE_TTL;
+
+/**
+ * Dynamic TTL based on data freshness requirements
+ */
+export const CacheTTL = {
+  /** Live race data - very short TTL */
+  LIVE: 30,
+  /** Upcoming race data - short TTL */
+  UPCOMING: 60,
+  /** Default TTL */
+  DEFAULT: CLIENT_CACHE_TTL,
+  /** Finished race data - longer TTL */
+  FINISHED: 3600,
+  /** Static data - very long TTL */
+  STATIC: 86400,
+} as const;
 
 /**
  * Lua script for atomic sliding window rate limiting

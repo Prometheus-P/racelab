@@ -126,7 +126,7 @@ function getDefaultStatusCode(code: ApiErrorCodeType): number {
     case ApiErrorCode.EXTERNAL_API_TIMEOUT:
       return 504;
     case ApiErrorCode.STALE_DATA:
-      return 200; // Still return 200 for stale data with warning
+      return 203; // Non-Authoritative Information - indicates stale/cached data
     default:
       return 500;
   }
