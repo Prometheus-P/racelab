@@ -28,6 +28,14 @@ import {
   type KraRelatedData,
 } from '@/lib/predictions/adapters/kraAdapter';
 
+import {
+  getCachedHorseData,
+  cacheHorseData,
+  getCurrentBatchSize,
+  recordResponseTime,
+  type HorseData,
+} from '@/lib/predictions/cache/horseDataCache';
+
 import type { PredictionInput } from '@/types/prediction';
 
 // =============================================================================
@@ -229,7 +237,12 @@ export async function fetchRaceData(
 // =============================================================================
 
 /**
- * 마필 상세정보 배치 조회
+ * 마필 상세정보 배치 조회 (캐싱 및 적응형 배치)
+ *
+ * 최적화:
+ * - 캐시된 마필 데이터 우선 사용
+ * - API 응답 시간 기반 배치 크기 동적 조절
+ * - 조회 실패 마킹으로 재시도 방지
  *
  * @param horseNos 마번 목록
  * @param date 기준일자
@@ -242,29 +255,78 @@ async function fetchHorseDataBatch(
   warnings: string[]
 ): Promise<Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>> {
   const horseDataMap = new Map<string, { horse: Horse | null; history: HorseRaceRecord[] }>();
+  const uncachedHorseNos: string[] = [];
 
-  // 병렬 조회 (10개씩 배치로 API 부하 분산)
-  const BATCH_SIZE = 10;
+  // 1. 캐시 조회 (병렬)
+  const cacheResults = await Promise.all(
+    horseNos.map(async (hrNo) => {
+      const cached = await getCachedHorseData(hrNo);
+      return { hrNo, cached };
+    })
+  );
+
+  // 캐시 히트/미스 분류
+  let cacheHits = 0;
+  for (const { hrNo, cached } of cacheResults) {
+    if (cached) {
+      horseDataMap.set(hrNo, { horse: cached.horse, history: cached.history });
+      cacheHits++;
+    } else {
+      uncachedHorseNos.push(hrNo);
+    }
+  }
+
+  if (cacheHits > 0) {
+    console.log(`[HorseData] Cache hits: ${cacheHits}/${horseNos.length}`);
+  }
+
+  // 캐시 미스가 없으면 조기 반환
+  if (uncachedHorseNos.length === 0) {
+    return horseDataMap;
+  }
+
+  // 2. 적응형 배치 크기로 API 조회
+  const batchSize = getCurrentBatchSize();
   const batches: string[][] = [];
 
-  for (let i = 0; i < horseNos.length; i += BATCH_SIZE) {
-    batches.push(horseNos.slice(i, i + BATCH_SIZE));
+  for (let i = 0; i < uncachedHorseNos.length; i += batchSize) {
+    batches.push(uncachedHorseNos.slice(i, i + batchSize));
   }
 
   for (const batch of batches) {
+    const startTime = Date.now();
+
     const results = await Promise.allSettled(
       batch.map((hrNo) => fetchHorseDetail(hrNo, undefined, date))
     );
 
+    // 응답 시간 기록 (적응형 배치 조절)
+    const responseTime = Date.now() - startTime;
+    recordResponseTime(responseTime);
+
+    // 결과 처리 및 캐싱
+    const cachePromises: Promise<void>[] = [];
+
     results.forEach((result, index) => {
       const hrNo = batch[index];
       if (result.status === 'fulfilled') {
-        horseDataMap.set(hrNo, result.value);
+        const data = result.value;
+        horseDataMap.set(hrNo, data);
+        // 백그라운드 캐싱
+        cachePromises.push(cacheHorseData(hrNo, data));
       } else {
         warnings.push(`마필 ${hrNo} 정보 조회 실패: ${result.reason}`);
-        horseDataMap.set(hrNo, { horse: null, history: [] });
+        const emptyData: HorseData = { horse: null, history: [] };
+        horseDataMap.set(hrNo, emptyData);
+        // 실패도 캐싱 (재시도 방지)
+        cachePromises.push(cacheHorseData(hrNo, emptyData));
       }
     });
+
+    // 캐싱은 백그라운드에서 진행 (await 안함)
+    Promise.all(cachePromises).catch((err) =>
+      console.error('[HorseData] Background caching error:', err)
+    );
   }
 
   return horseDataMap;

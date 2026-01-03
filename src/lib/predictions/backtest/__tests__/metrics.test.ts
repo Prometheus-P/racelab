@@ -26,10 +26,14 @@ function createMockPrediction(
     meetCode: '1',
     raceNo: 1,
     trackCondition: {
+      code: '1' as const,
+      name: '양호',
+      nameEn: 'Good',
       moisture: 5,
-      firmness: 7,
-      label: '양호',
-      going: 'good',
+      surface: 'dirt' as const,
+      speedImpactFactor: 1.0,
+      frontRunnerAdvantage: 0.1,
+      closerAdvantage: -0.1,
     },
     predictions: [
       {

@@ -22,3 +22,28 @@ export {
   type CachedPrediction,
   type PredictionCacheStats,
 } from './predictionCache';
+
+export {
+  // Horse data cache
+  getCachedHorseData,
+  cacheHorseData,
+  getCachedHorseInfo,
+  cacheHorseInfo,
+  getCachedHistory,
+  cacheHistory,
+
+  // Adaptive batching
+  getCurrentBatchSize,
+  recordResponseTime,
+  resetBatchSize,
+  getBatchMetrics,
+
+  // Constants
+  HORSE_CACHE_TTL,
+  BATCH_CONFIG,
+
+  // Types
+  type HorseData,
+  type CachedHorseData,
+  type BatchMetrics,
+} from './horseDataCache';

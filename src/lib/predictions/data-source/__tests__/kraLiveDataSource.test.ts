@@ -101,11 +101,16 @@ const mockOdds = [
   },
 ];
 
-const mockHorseDetail = {
+// Type assertion for mock data (fetchHorseDetail mock)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockHorseDetail: any = {
   horse: {
+    id: '1',
+    name: '테스트마1',
     hrNo: '1',
     hrName: '테스트마1',
     sex: 'M',
+    sexName: '수',
     age: 4,
     rating: 65,
     color: 'bay',
@@ -114,12 +119,15 @@ const mockHorseDetail = {
     owner: '테스트오너',
     trainer: '김영관',
     meet: '1',
+    meetName: '서울',
     totalStarts: 10,
     totalWins: 3,
     totalSeconds: 2,
     totalThirds: 1,
     winRate: 30,
     placeRate: 60,
+    recentStarts: 5,
+    recentWins: 2,
   },
   history: [
     {
