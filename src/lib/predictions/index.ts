@@ -176,3 +176,32 @@ export {
   type CachedPrediction,
   type PredictionCacheStats,
 } from './cache';
+
+// =============================================================================
+// Backtesting
+// =============================================================================
+
+export {
+  // Runner
+  runBacktest,
+  quickBacktest,
+  formatBacktestSummary,
+
+  // Metrics
+  calculateAccuracyMetrics,
+  calculateCalibration,
+  calculateECE,
+  calculateMetricsByMeet,
+  calculateMetricsByDistance,
+  calculateBrierScore,
+  calculateROI,
+
+  // Types
+  type BacktestConfig,
+  type BacktestReport,
+  type RaceBacktestResult,
+  type ActualResult,
+  type AccuracyMetrics,
+  type CalibrationResult,
+  type BacktestProgressCallback,
+} from './backtest';
