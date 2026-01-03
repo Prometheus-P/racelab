@@ -307,6 +307,9 @@ import type {
   KraRaceInfoItem,
   RaceInfo,
   RaceSchedule,
+  KraRaceResultTotalItem,
+  RaceResult,
+  RaceResultSummary,
   KraRaceResultAIItem,
   RaceResultAI,
   RaceResultAISummary,
@@ -578,6 +581,102 @@ export function groupRaceResultsByRace(results: RaceResultAI[]): RaceResultAISum
   const summaries = Array.from(summaryMap.values());
   for (const summary of summaries) {
     summary.entries.sort((a: RaceResultAI, b: RaceResultAI) => a.position - b.position);
+  }
+
+  return summaries;
+}
+
+// =====================
+// 경주결과 종합 매퍼 (API299)
+// =====================
+
+/**
+ * 경주결과 종합 원본 → 내부 모델 변환
+ */
+export function mapRaceResult(item: KraRaceResultTotalItem): RaceResult {
+  const meetName = MEET_NAMES[item.meet] || item.meet;
+
+  return {
+    // 경주 기본정보
+    meet: item.meet,
+    meetName,
+    raceDate: item.rcDate,
+    raceNo: parseNumber(item.rcNo),
+    raceName: item.rcName,
+    distance: parseNumber(item.rcDist),
+    grade: item.rcClass,
+    trackCondition: item.rcTrack,
+
+    // 출전마 정보
+    horseNo: item.hrNo,
+    horseName: item.hrName,
+    gateNo: parseNumber(item.chulNo),
+
+    // 관계자
+    jockeyName: item.jkName,
+    trainerName: item.trName,
+
+    // 결과
+    position: parseNumber(item.ord),
+    finishTime: item.rcTime,
+
+    // 배당률
+    winOdds: parseNumber(item.oddWin),
+    placeOdds: parseNumber(item.oddPlc),
+  };
+}
+
+/**
+ * 경주결과 종합 목록 변환
+ */
+export function mapRaceResultList(items: KraRaceResultTotalItem[]): RaceResult[] {
+  return items.map(mapRaceResult);
+}
+
+/**
+ * 경주결과 종합을 경주별로 그룹화
+ */
+export function groupRaceResults(results: RaceResult[]): RaceResultSummary[] {
+  const summaryMap = new Map<string, RaceResultSummary>();
+
+  for (const result of results) {
+    const key = `${result.raceDate}-${result.meet}-${result.raceNo}`;
+
+    if (!summaryMap.has(key)) {
+      summaryMap.set(key, {
+        meet: result.meet,
+        meetName: result.meetName,
+        raceDate: result.raceDate,
+        raceNo: result.raceNo,
+        raceName: result.raceName,
+        distance: result.distance,
+        grade: result.grade,
+        trackCondition: result.trackCondition,
+        entries: [],
+        totalEntries: 0,
+      });
+    }
+
+    const summary = summaryMap.get(key)!;
+    summary.entries.push(result);
+    summary.totalEntries = summary.entries.length;
+  }
+
+  // 순위순 정렬 및 우승마 정보 설정
+  const summaries = Array.from(summaryMap.values());
+  for (const summary of summaries) {
+    summary.entries.sort((a: RaceResult, b: RaceResult) => a.position - b.position);
+
+    // 우승마 정보 설정
+    const winner = summary.entries.find((e) => e.position === 1);
+    if (winner) {
+      summary.winner = {
+        horseName: winner.horseName,
+        jockeyName: winner.jockeyName,
+        finishTime: winner.finishTime,
+        winOdds: winner.winOdds,
+      };
+    }
   }
 
   return summaries;

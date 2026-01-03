@@ -348,6 +348,89 @@ export interface RaceOdds {
 }
 
 // =====================
+// 경주결과 종합 타입 (Race Result Total - API299)
+// =====================
+
+/** API299: 경주결과종합 원본 응답 */
+export interface KraRaceResultTotalItem {
+  meet: string; // 경마장코드 (1:서울, 2:제주, 3:부경)
+  rcDate: string; // 경주일자 (YYYYMMDD)
+  rcNo: string; // 경주번호
+  rcName?: string; // 경주명
+  rcDist: string; // 경주거리 (미터)
+  rcClass?: string; // 등급조건
+  rcTrack?: string; // 주로상태
+
+  // 출전마 정보
+  hrNo: string; // 마번
+  hrName: string; // 마명
+  chulNo: string; // 출전번호 (게이트번호)
+
+  // 관계자
+  jkName: string; // 기수명
+  trName?: string; // 조교사명
+
+  // 결과
+  ord: string; // 순위
+  rcTime?: string; // 주파기록
+
+  // 배당률
+  oddWin?: string; // 단승배당
+  oddPlc?: string; // 연승배당
+}
+
+/** 내부 경주결과 모델 (일반 사용자용) */
+export interface RaceResult {
+  // 경주 기본정보
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  raceNo: number;
+  raceName?: string;
+  distance: number;
+  grade?: string;
+  trackCondition?: string;
+
+  // 출전마 정보
+  horseNo: string;
+  horseName: string;
+  gateNo: number;
+
+  // 관계자
+  jockeyName: string;
+  trainerName?: string;
+
+  // 결과
+  position: number;
+  finishTime?: string;
+
+  // 배당률
+  winOdds?: number;
+  placeOdds?: number;
+}
+
+/** 경주결과 요약 (경주별 그룹화) */
+export interface RaceResultSummary {
+  meet: string;
+  meetName: string;
+  raceDate: string;
+  raceNo: number;
+  raceName?: string;
+  distance: number;
+  grade?: string;
+  trackCondition?: string;
+  entries: RaceResult[];
+  totalEntries: number;
+  /** 우승마 정보 */
+  winner?: {
+    horseName: string;
+    jockeyName: string;
+    finishTime?: string;
+    winOdds?: number;
+  };
+}
+
+// =====================
 // AI 학습용 경주결과 타입 (Race Result AI)
 // =====================
 

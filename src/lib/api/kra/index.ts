@@ -39,6 +39,7 @@ export {
   type KraEntryHorseItem,
   type KraOddsItem,
   type KraRaceInfoItem,
+  type KraRaceResultTotalItem,
   type KraRaceResultAIItem,
   // 내부 모델
   type Jockey,
@@ -49,6 +50,8 @@ export {
   type RaceOdds,
   type RaceInfo,
   type RaceSchedule,
+  type RaceResult,
+  type RaceResultSummary,
   type RaceResultAI,
   type RaceResultAISummary,
   // 상수
@@ -104,6 +107,10 @@ export {
   mapRaceResultAI,
   mapRaceResultAIList,
   groupRaceResultsByRace,
+  // 경주결과종합 (API299)
+  mapRaceResult,
+  mapRaceResultList,
+  groupRaceResults,
 } from './mappers';
 
 // Jockey API
@@ -194,3 +201,21 @@ export {
   sortResultsByPosition,
   sortResultsByTime,
 } from './race-result';
+
+// Race Result Total API (API299)
+export {
+  fetchRaceResultTotal,
+  fetchAllRaceResultTotal,
+  fetchRaceResultTotalSummary,
+  fetchSingleRaceResult,
+  fetchRaceResultTotalSafe,
+  hasRaceResultsTotal,
+  getTotalRaceResultCount,
+  filterWinnersTotal,
+  filterPlacersTotal,
+  sortResultsTotalByPosition,
+  sortResultsTotalByTime,
+  isLiveResult,
+  filterLiveResults,
+  filterPastResults,
+} from './race-result-total';
